@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
     const supabase = createServerSupabaseClient();
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('user_id');
+    const staffId = searchParams.get('staff_id');
 
     if (!userId) {
       return NextResponse.json(
@@ -14,13 +15,21 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get all staff members for the user with job category info
-    const { data: staff, error } = await supabase
+    // Build query for staff members
+    let query = supabase
       .from('staff_members')
       .select('*')
       .eq('user_id', userId)
-      .eq('is_active', true)
-      .order('created_at', { ascending: true });
+      .eq('is_active', true);
+    
+    // If staff_id is provided, filter for specific staff member
+    if (staffId) {
+      query = query.eq('id', staffId);
+    }
+    
+    query = query.order('created_at', { ascending: true });
+
+    const { data: staff, error } = await query;
 
     if (error) {
       console.error('Error fetching staff:', error);

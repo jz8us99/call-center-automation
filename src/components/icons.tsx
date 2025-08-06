@@ -23,10 +23,13 @@ import {
   ArrowDown,
   ArrowLeft,
   ArrowUp,
+  ArrowRight,
   DollarSign,
   AlertCircle,
   Mic,
   User,
+  Save,
+  ShoppingBag,
 } from 'lucide-react';
 
 // Export all icons with consistent naming
@@ -55,6 +58,7 @@ export const SignOutIcon = LogOut;
 export const ArrowDownIcon = ArrowDown;
 export const ArrowLeftIcon = ArrowLeft;
 export const ArrowUpIcon = ArrowUp;
+export const ArrowRightIcon = ArrowRight;
 export const DollarSignIcon = DollarSign;
 export const AlertIcon = AlertCircle;
 
@@ -63,3 +67,5 @@ export const QuestionMarkIcon = HelpCircle;
 export const ClearIcon = X;
 export const MicIcon = Mic;
 export const UserIcon = User;
+export const SaveIcon = Save;
+export const ShoppingBagIcon = ShoppingBag;

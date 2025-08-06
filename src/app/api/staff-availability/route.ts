@@ -28,14 +28,14 @@ export async function GET(request: NextRequest) {
       .eq('user_id', user_id);
 
     if (start_date) {
-      query = query.gte('availability_date', start_date);
+      query = query.gte('date', start_date);
     }
 
     if (end_date) {
-      query = query.lte('availability_date', end_date);
+      query = query.lte('date', end_date);
     }
 
-    const { data, error } = await query.order('availability_date', {
+    const { data, error } = await query.order('date', {
       ascending: true,
     });
 
@@ -103,19 +103,53 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // First, find the calendar_id for this staff member and year
+    const year = new Date(availability_date).getFullYear();
+    const { data: calendar, error: calendarError } = await supabase
+      .from('staff_calendars')
+      .select('id')
+      .eq('staff_id', staff_id)
+      .eq('user_id', user_id)
+      .eq('year', year)
+      .single();
+
+    let calendarId = calendar?.id;
+
+    // If no calendar exists, try to create one
+    if (!calendarId) {
+      const { data: newCalendar, error: createError } = await supabase
+        .from('staff_calendars')
+        .insert({
+          staff_id,
+          user_id,
+          year,
+          default_generated: false,
+        })
+        .select('id')
+        .single();
+
+      if (createError) {
+        console.error('Error creating staff calendar:', createError);
+        return NextResponse.json({ 
+          error: 'Could not create staff calendar for this year.' 
+        }, { status: 500 });
+      }
+      
+      calendarId = newCalendar.id;
+    }
+
     const { data, error } = await supabase
       .from('staff_availability')
       .insert({
+        calendar_id: calendarId,
         staff_id,
-        user_id,
-        availability_date,
+        date: availability_date, // Map to the new column name
         start_time: start_time || null,
         end_time: end_time || null,
         is_available: is_available !== false,
         is_override: is_override || false,
         reason: reason || null,
         notes: notes || null,
-        source: source || 'manual',
       })
       .select()
       .single();

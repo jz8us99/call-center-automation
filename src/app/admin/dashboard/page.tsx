@@ -22,12 +22,22 @@ import { SimpleThemeSwitch } from '@/components/SimpleThemeSwitch';
 interface CallLog {
   id: string;
   user_id: string;
-  phone_number: string;
-  call_status: string;
-  started_at: string;
-  ended_at: string;
+  created_at: string;
+  updated_at: string;
+  direction?: 'inbound' | 'outbound';
+  from_number?: string;
+  to_number?: string;
+  phone_number?: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  start_timestamp?: string;
+  end_timestamp?: string;
   duration?: number;
   call_summary?: string;
+  transcript?: string;
+  call_type?: string;
+  custom_data?: any;
   profiles?: {
     id: string;
     full_name: string;
@@ -90,11 +100,23 @@ export default function AdminDashboard() {
     try {
       setUsersLoading(true);
 
+      // Get current session and token for authentication
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      // Add authorization header if session exists
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
+
       const response = await fetch('/api/admin/users', {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
       });
 
       if (!response.ok) {
@@ -118,31 +140,45 @@ export default function AdminDashboard() {
       setCallsLoading(true);
 
       const params = new URLSearchParams({
+        page: '1',
         limit: '20',
-        offset: '0',
       });
 
       if (userId && userId !== 'all') {
-        params.append('userId', userId);
+        params.append('user_id', userId);
       }
 
-      const response = await fetch(`/api/admin/calls?${params}`, {
+      // Get current session and token for authentication
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      // Add authorization header if session exists
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
+
+      const response = await fetch(`/api/customer-call-logs-rls?${params}`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch calls');
+        const errorText = await response.text();
+        console.error('API Error Response:', errorText);
+        throw new Error(`Failed to fetch calls: ${response.status} ${response.statusText} - ${errorText}`);
       }
 
       const data = await response.json();
-      setCalls(data.calls || []);
+      setCalls(data.data || []);
       setStats(prev => ({
         ...prev,
-        totalCalls: data.totalCount || 0,
-        recentCalls: data.calls?.length || 0,
+        totalCalls: data.pagination?.total || 0,
+        recentCalls: data.data?.length || 0,
       }));
     } catch (error) {
       console.error('Failed to load calls:', error);
@@ -612,7 +648,7 @@ export default function AdminDashboard() {
                         Phone Number
                       </th>
                       <th className="text-left py-3 px-4 font-semibold text-black dark:text-white">
-                        Status
+                        Type/Direction
                       </th>
                       <th className="text-left py-3 px-4 font-semibold text-black dark:text-white">
                         Duration
@@ -634,35 +670,35 @@ export default function AdminDashboard() {
                         <td className="py-4 px-4">
                           <div>
                             <div className="font-medium text-black dark:text-white">
-                              {call.profiles?.full_name || 'Unknown User'}
+                              {call.profiles?.full_name || call.user_id || 'Unknown User'}
                             </div>
                             <div className="text-sm text-black dark:text-gray-300">
                               {call.profiles?.business_name ||
-                                call.profiles?.email}
+                                call.profiles?.email || 'No profile data'}
                             </div>
                           </div>
                         </td>
                         <td className="py-4 px-4">
                           <span className="text-black dark:text-white">
-                            {call.phone_number || '-'}
+                            {call.direction === 'inbound' ? call.from_number : call.to_number || call.phone_number || '-'}
                           </span>
                         </td>
                         <td className="py-4 px-4">
                           <Badge
                             variant={
-                              call.call_status === 'ended'
+                              call.call_type === 'completed'
                                 ? 'default'
                                 : 'secondary'
                             }
                             className={
-                              call.call_status === 'ended'
+                              call.call_type === 'completed'
                                 ? 'bg-green-100 text-green-800'
-                                : call.call_status === 'started'
+                                : call.call_type === 'in_progress'
                                   ? 'bg-blue-100 text-blue-800'
-                                  : 'bg-red-100 text-red-800'
+                                  : 'bg-gray-100 text-gray-800'
                             }
                           >
-                            {call.call_status}
+                            {call.call_type || call.direction || 'Unknown'}
                           </Badge>
                         </td>
                         <td className="py-4 px-4">
@@ -675,13 +711,13 @@ export default function AdminDashboard() {
                         <td className="py-4 px-4">
                           <div>
                             <div className="text-black dark:text-white">
-                              {call.started_at
-                                ? new Date(call.started_at).toLocaleDateString()
+                              {call.start_timestamp || call.created_at
+                                ? new Date(call.start_timestamp || call.created_at).toLocaleDateString()
                                 : '-'}
                             </div>
                             <div className="text-sm text-black dark:text-gray-300">
-                              {call.started_at
-                                ? new Date(call.started_at).toLocaleTimeString()
+                              {call.start_timestamp || call.created_at
+                                ? new Date(call.start_timestamp || call.created_at).toLocaleTimeString()
                                 : '-'}
                             </div>
                           </div>

@@ -23,6 +23,7 @@ export default function StaffCalendarPage() {
   const [loading, setLoading] = useState(true);
   const [staffMember, setStaffMember] = useState<any>(null);
   const [businessProfile, setBusinessProfile] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const staffId = params.staffId as string;
 
@@ -53,11 +54,21 @@ export default function StaffCalendarPage() {
       const response = await fetch(
         `/api/staff?user_id=${userId}&staff_id=${staffId}`
       );
-      if (response.ok) {
-        const data = await response.json();
-        if (data.staff && data.staff.length > 0) {
-          setStaffMember(data.staff[0]);
-        }
+      
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('API Error:', response.status, errorData);
+        setError(`Failed to load staff data: ${response.status} - ${errorData}`);
+        return;
+      }
+      
+      const data = await response.json();
+      console.log('Staff API response:', data);
+      
+      if (data.staff && data.staff.length > 0) {
+        // Find the specific staff member by ID if provided
+        const targetStaff = data.staff.find((staff: any) => staff.id === staffId) || data.staff[0];
+        setStaffMember(targetStaff);
       }
     } catch (error) {
       console.error('Failed to load staff member:', error);
@@ -67,10 +78,16 @@ export default function StaffCalendarPage() {
   const loadBusinessProfile = async (userId: string) => {
     try {
       const response = await fetch(`/api/business-profile?user_id=${userId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setBusinessProfile(data.profile);
+      
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('Business Profile API Error:', response.status, errorData);
+        return;
       }
+      
+      const data = await response.json();
+      console.log('Business Profile API response:', data);
+      setBusinessProfile(data.profile);
     } catch (error) {
       console.error('Failed to load business profile:', error);
     }
@@ -111,6 +128,30 @@ export default function StaffCalendarPage() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <CardTitle>Error Loading Calendar</CardTitle>
+            <CardDescription>
+              There was an error loading the staff calendar
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center space-y-4">
+            <div className="text-sm text-red-600 bg-red-50 p-3 rounded">
+              {error}
+            </div>
+            <Button onClick={handleBackToCalendarDashboard}>
+              <ArrowLeftIcon className="h-4 w-4 mr-2" />
+              Back to Calendar Dashboard
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (!staffMember) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -118,10 +159,18 @@ export default function StaffCalendarPage() {
           <CardHeader className="text-center">
             <CardTitle>Staff Member Not Found</CardTitle>
             <CardDescription>
-              The requested staff member could not be found
+              The requested staff member could not be found. Staff ID: {staffId}
             </CardDescription>
           </CardHeader>
-          <CardContent className="text-center">
+          <CardContent className="text-center space-y-4">
+            <div className="text-sm text-gray-600">
+              <p>This could happen if:</p>
+              <ul className="text-left mt-2 space-y-1">
+                <li>• The staff member doesn't exist</li>
+                <li>• You don't have permission to access this staff member</li>
+                <li>• The staff member is no longer active</li>
+              </ul>
+            </div>
             <Button onClick={handleBackToCalendarDashboard}>
               <ArrowLeftIcon className="h-4 w-4 mr-2" />
               Back to Calendar Dashboard

@@ -73,6 +73,37 @@ export default function ConfigurationPage() {
     setMounted(true);
   }, []);
 
+  // Restore saved active step after workflow state is loaded
+  useEffect(() => {
+    if (mounted && workflowState.businessInfo.canAccess) {
+      const savedActiveStep = sessionStorage.getItem('configuration-active-step');
+      if (savedActiveStep && ['business', 'products', 'services', 'staff', 'appointments', 'agent'].includes(savedActiveStep)) {
+        const stepKey = savedActiveStep as keyof WorkflowState;
+        const stepMapping = {
+          business: 'businessInfo',
+          products: 'products',
+          services: 'services',
+          staff: 'staffManagement',
+          appointments: 'appointmentSystem',
+          agent: 'aiAgentSetup'
+        } as const;
+        
+        const workflowKey = stepMapping[stepKey] || 'businessInfo';
+        if (workflowState[workflowKey]?.canAccess) {
+          setActiveStep(savedActiveStep as 'business' | 'products' | 'services' | 'staff' | 'appointments' | 'agent');
+        }
+      }
+    }
+  }, [mounted, workflowState]);
+
+  // Save state to session storage whenever it changes
+  useEffect(() => {
+    if (mounted) {
+      sessionStorage.setItem('configuration-active-step', activeStep);
+      sessionStorage.setItem('configuration-workflow-state', JSON.stringify(workflowState));
+    }
+  }, [activeStep, workflowState, mounted]);
+
   useEffect(() => {
     const getUser = async () => {
       const {
@@ -87,8 +118,66 @@ export default function ConfigurationPage() {
   useEffect(() => {
     if (!loading && !profileLoading && !user) {
       router.push('/auth');
+    } else if (!loading && !profileLoading && user && mounted) {
+      // Load initial workflow state based on existing data
+      loadInitialWorkflowState();
     }
-  }, [loading, profileLoading, user, router]);
+  }, [loading, profileLoading, user, router, mounted]);
+
+  // Load initial workflow state from the database
+  const loadInitialWorkflowState = async () => {
+    if (!user) return;
+
+    try {
+      // Check business information
+      const businessResponse = await fetch(`/api/business-profile?user_id=${user.id}`);
+      const businessData = await businessResponse.json();
+      const hasBusinessInfo = businessData.profiles && businessData.profiles.length > 0;
+
+      // Check products
+      const productsResponse = await fetch(`/api/business-products?user_id=${user.id}`);
+      const productsData = await productsResponse.json();
+      const hasProducts = productsData.products && productsData.products.length > 0;
+
+      // Check services
+      const servicesResponse = await fetch(`/api/business-services?user_id=${user.id}`);
+      const servicesData = await servicesResponse.json();
+      const hasServices = servicesData.services && servicesData.services.length > 0;
+
+      // Check appointments
+      const appointmentsResponse = await fetch(`/api/appointment-types?user_id=${user.id}`);
+      const appointmentsData = await appointmentsResponse.json();
+      const hasAppointments = appointmentsData.appointment_types && appointmentsData.appointment_types.length > 0;
+
+      // Check staff
+      const staffResponse = await fetch(`/api/staff-members?user_id=${user.id}`);
+      const staffData = await staffResponse.json();
+      const hasStaff = staffData.staff && staffData.staff.length > 0;
+
+      // Check AI agents
+      const agentsResponse = await fetch(`/api/ai-agents?user_id=${user.id}`);
+      const agentsData = await agentsResponse.json();
+      const hasAgents = agentsData.agents && agentsData.agents.length > 0;
+
+      // Update workflow state based on actual data
+      setWorkflowState({
+        businessInfo: { completed: hasBusinessInfo, canAccess: true },
+        products: { completed: hasProducts, canAccess: hasBusinessInfo },
+        services: { completed: hasServices, canAccess: hasBusinessInfo },
+        appointmentSystem: { completed: hasAppointments, canAccess: hasBusinessInfo && hasServices },
+        staffManagement: { 
+          completed: hasStaff, 
+          canAccess: hasBusinessInfo && hasServices && hasAppointments 
+        },
+        aiAgentSetup: { 
+          completed: hasAgents, 
+          canAccess: hasBusinessInfo && hasProducts && hasServices && hasAppointments && hasStaff 
+        },
+      });
+    } catch (error) {
+      console.warn('Failed to load initial workflow state:', error);
+    }
+  };
 
   // Handle workflow progression
   const handleBusinessInfoUpdate = useCallback((hasBusinessInfo: boolean) => {

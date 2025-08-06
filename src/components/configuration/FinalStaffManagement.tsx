@@ -338,7 +338,17 @@ export function FinalStaffManagement({
   };
 
   const handleConfigureCalendar = async (member: StaffMember) => {
-    setConfiguringCalendar(member);
+    try {
+      if (!member || !member.id) {
+        console.error('Invalid staff member data:', member);
+        alert('Error: Invalid staff member data. Please try again.');
+        return;
+      }
+      setConfiguringCalendar(member);
+    } catch (error) {
+      console.error('Error configuring calendar:', error);
+      alert('An error occurred while opening calendar configuration. Please try again.');
+    }
   };
 
   const handleBackFromCalendar = () => {
@@ -860,12 +870,34 @@ export function FinalStaffManagement({
       {configuringCalendar && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-[90vh] overflow-y-auto">
-            <StaffCalendarConfiguration
-              user={user}
-              staffMember={configuringCalendar}
-              onBack={handleBackFromCalendar}
-              onSaveAndContinue={handleSaveAndContinueCalendar}
-            />
+            {/* Error Boundary for Calendar Configuration */}
+            {(() => {
+              try {
+                return (
+                  <StaffCalendarConfiguration
+                    user={user}
+                    staffMember={configuringCalendar}
+                    onBack={handleBackFromCalendar}
+                    onSaveAndContinue={handleSaveAndContinueCalendar}
+                  />
+                );
+              } catch (error) {
+                console.error('Error rendering calendar configuration:', error);
+                return (
+                  <div className="p-8 text-center">
+                    <h3 className="text-lg font-semibold text-red-600 mb-4">
+                      Error Loading Calendar Configuration
+                    </h3>
+                    <p className="text-gray-600 mb-4">
+                      There was an error loading the calendar configuration. Please try again.
+                    </p>
+                    <Button onClick={handleBackFromCalendar}>
+                      Close
+                    </Button>
+                  </div>
+                );
+              }
+            })()}
           </div>
         </div>
       )}

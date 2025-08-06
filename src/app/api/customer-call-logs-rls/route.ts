@@ -38,15 +38,9 @@ export async function GET(request: NextRequest) {
     const offset = (page - 1) * limit;
 
     // Build query - RLS will automatically restrict users to only see their own data
-    // For admins, include user profile information by joining with profiles table
-    const selectFields =
-      user.role === 'admin' || user.is_super_admin
-        ? `*, profiles!customer_call_logs_user_id_fkey(full_name, email)`
-        : '*';
-
     let query = supabaseWithAuth
       .from('customer_call_logs')
-      .select(selectFields, { count: 'exact' })
+      .select('*', { count: 'exact' })
       .order('created_at', { ascending: false });
 
     // Add search filter
@@ -76,16 +70,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // For regular users, RLS will automatically restrict to their own data
-    // For admins, we need to explicitly handle the filtering
-    if (user.role === 'admin' || user.is_super_admin) {
-      // Admins can optionally filter by specific user ID
-      if (userId) {
-        query = query.eq('user_id', userId);
-      }
-      // If no specific user filter, admins see all records (no additional filter needed)
+    // Admins can filter by user ID
+    if (userId && (user.role === 'admin' || user.is_super_admin)) {
+      query = query.eq('user_id', userId);
     }
-    // For regular users, RLS handles the filtering automatically
 
     // Add pagination
     query = query.range(offset, offset + limit - 1);
