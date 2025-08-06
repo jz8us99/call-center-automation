@@ -1,0 +1,150 @@
+@import 'tailwindcss';
+
+:root {
+  /* Natural white and black professional theme */
+  --background: #ffffff; /* pure white */
+  --foreground: #000000; /* pure black */
+  --card: #ffffff; /* white */
+  --card-foreground: #000000; /* black */
+  --primary: #000000; /* black */
+  --primary-hover: #374151; /* gray-700 */
+  --secondary: #f9f9f9; /* very light gray */
+  --muted: #6b7280; /* gray-500 */
+  --border: #d1d5db; /* gray-300 */
+  --accent: #f97316; /* orange-500 for accent color */
+  --accent-hover: #ea580c; /* orange-600 */
+  --success: #10b981; /* green-500 */
+  --error: #ef4444; /* red-500 */
+  --warning: #f59e0b; /* yellow-500 */
+}
+
+.dark {
+  /* Dark theme colors */
+  --background: #111827; /* gray-900 */
+  --foreground: #f9fafb; /* gray-50 */
+  --card: #1f2937; /* gray-800 */
+  --card-foreground: #f3f4f6; /* gray-100 */
+  --primary: #f9fafb; /* gray-50 */
+  --primary-hover: #e5e7eb; /* gray-200 */
+  --secondary: #374151; /* gray-700 */
+  --muted: #9ca3af; /* gray-400 */
+  --border: #374151; /* gray-700 */
+  --accent: #f97316; /* orange-500 for accent color */
+  --accent-hover: #ea580c; /* orange-600 */
+  --success: #10b981; /* green-500 */
+  --error: #ef4444; /* red-500 */
+  --warning: #f59e0b; /* yellow-500 */
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-secondary: var(--secondary);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-success: var(--success);
+  --color-error: var(--error);
+  --color-warning: var(--warning);
+  --font-sans: system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, monospace;
+}
+
+body {
+  font-family: var(--font-sans);
+  min-height: 100vh;
+}
+
+/* Force light theme styles */
+html:not(.dark) body {
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* Force dark theme styles */
+html.dark body {
+  background: #111827 !important;
+  color: #f9fafb !important;
+}
+
+/* Ensure Tailwind utilities work properly for light mode */
+html:not(.dark) .bg-white {
+  background-color: #ffffff !important;
+}
+
+html:not(.dark) .text-black {
+  color: #000000 !important;
+}
+
+/* Override light mode styles in dark mode */
+html.dark .bg-white {
+  background-color: #1f2937 !important; /* gray-800 */
+}
+
+html.dark .text-black {
+  color: #f9fafb !important; /* gray-50 */
+}
+
+/* Force dark mode Tailwind classes to work */
+html.dark .dark\:bg-gray-800 {
+  background-color: #1f2937 !important;
+}
+
+html.dark .dark\:bg-gray-900 {
+  background-color: #111827 !important;
+}
+
+html.dark .dark\:text-white {
+  color: #ffffff !important;
+}
+
+html.dark .dark\:text-gray-300 {
+  color: #d1d5db !important;
+}
+
+html.dark .dark\:border-gray-700 {
+  border-color: #374151 !important;
+}
+
+/* Custom gradient utilities for light theme */
+.gradient-primary {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 50%, #dc2626 100%);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #6b7280 0%, #9ca3af 50%, #d1d5db 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Light theme utility classes */
+.bg-theme-background {
+  background-color: var(--background);
+}
+.bg-theme-card {
+  background-color: var(--card);
+}
+.text-theme-foreground {
+  color: var(--foreground);
+}
+.text-theme-muted {
+  color: var(--muted);
+}
+.border-theme {
+  border-color: var(--border);
+}
+.text-theme-accent {
+  color: var(--accent);
+}
+.bg-theme-accent {
+  background-color: var(--accent);
+}
+.bg-theme-accent:hover {
+  background-color: var(--accent-hover);
+}
