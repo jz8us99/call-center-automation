@@ -134,6 +134,7 @@ interface StaffCalendarConfigurationProps {
   staffMember: StaffMember;
   onBack: () => void;
   onSaveAndContinue: () => void;
+  isStaffView?: boolean;
 }
 
 export function StaffCalendarConfiguration({
@@ -141,6 +142,7 @@ export function StaffCalendarConfiguration({
   staffMember,
   onBack,
   onSaveAndContinue,
+  isStaffView = false,
 }: StaffCalendarConfigurationProps) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -164,6 +166,7 @@ export function StaffCalendarConfiguration({
   const [activeTab, setActiveTab] = useState<
     'calendar' | 'settings' | 'holidays'
   >('calendar');
+  const [officeHours, setOfficeHours] = useState<any[]>([]);
 
   // Configuration form state
   const [configForm, setConfigForm] = useState({
@@ -246,7 +249,8 @@ export function StaffCalendarConfiguration({
         loadStaffCalendars(), 
         loadHolidays(), 
         loadConfig(),
-        loadAppointments()
+        loadAppointments(),
+        loadOfficeHours()
       ]);
       
       // Load job types after service type code is available
@@ -276,6 +280,18 @@ export function StaffCalendarConfiguration({
       }
     } catch (error) {
       console.error('Failed to load business profile:', error);
+    }
+  };
+
+  const loadOfficeHours = async () => {
+    try {
+      const response = await fetch(`/api/office-hours?user_id=${user.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setOfficeHours(data.office_hours || []);
+      }
+    } catch (error) {
+      console.error('Failed to load office hours:', error);
     }
   };
 
@@ -527,6 +543,22 @@ export function StaffCalendarConfiguration({
     }
   };
 
+  const isWithinBusinessHours = (date: string, startTime: string, endTime: string) => {
+    const dayOfWeek = new Date(date).getDay();
+    const businessHours = officeHours.find(oh => oh.day_of_week === dayOfWeek && oh.is_active);
+    
+    if (!businessHours) {
+      return false; // Office is closed on this day
+    }
+
+    const appointmentStart = startTime.substring(0, 5);
+    const appointmentEnd = endTime.substring(0, 5);
+    const businessStart = businessHours.start_time.substring(0, 5);
+    const businessEnd = businessHours.end_time.substring(0, 5);
+
+    return appointmentStart >= businessStart && appointmentEnd <= businessEnd;
+  };
+
   const saveAppointment = async () => {
     console.log('saveAppointment called with:', {
       selectedTimeSlot,
@@ -543,6 +575,22 @@ export function StaffCalendarConfiguration({
     if (!appointmentForm.start_time || !appointmentForm.end_time) {
       alert('Start time and end time must be set');
       return;
+    }
+
+    // Check if appointment is within business hours
+    const isWithinHours = isWithinBusinessHours(
+      selectedTimeSlot.dateString,
+      appointmentForm.start_time,
+      appointmentForm.end_time
+    );
+
+    if (!isWithinHours && isStaffView) {
+      const confirmed = confirm(
+        'This appointment is outside of business hours. Are you sure you want to book this appointment?'
+      );
+      if (!confirmed) {
+        return;
+      }
     }
 
     try {
@@ -1692,35 +1740,10 @@ export function StaffCalendarConfiguration({
           </DialogHeader>
 
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="flex justify-center">
               <Button
                 variant="outline"
-                className="h-20 flex flex-col items-center gap-2"
-                onClick={() => {
-                  setBookingModalType('availability');
-                  setShowBookingModal(false);
-                  setShowDayDetail(true);
-                  // Load or create availability data
-                  setDayAvailability({
-                    availability_date: selectedTimeSlot.dateString,
-                    staff_id: staffMember.id,
-                    user_id: user.id,
-                    is_available: true,
-                    start_time: `${selectedTimeSlot.hour.toString().padStart(2, '0')}:00`,
-                    end_time: `${(selectedTimeSlot.hour + 1).toString().padStart(2, '0')}:00`,
-                    is_override: true,
-                    reason: '',
-                    notes: ''
-                  });
-                }}
-              >
-                <SettingsIcon className="h-6 w-6" />
-                <span className="text-sm">Update Availability</span>
-              </Button>
-              
-              <Button
-                variant="outline"
-                className="h-20 flex flex-col items-center gap-2"
+                className="h-20 flex flex-col items-center gap-2 min-w-[200px]"
                 onClick={() => {
                   setBookingModalType('appointment');
                   // Initialize appointment form with default times

@@ -12,6 +12,10 @@ export interface UserRole {
     delete_business: boolean;
     transfer_ownership: boolean;
     assign_roles: boolean;
+    manage_office_hours: boolean;
+    edit_own_calendar: boolean;
+    edit_staff_calendars: boolean;
+    book_appointments: boolean;
   };
   hierarchy_level: number;
 }
@@ -50,6 +54,10 @@ export const DEFAULT_ROLES: UserRole[] = [
       delete_business: true,
       transfer_ownership: true,
       assign_roles: true,
+      manage_office_hours: true,
+      edit_own_calendar: true,
+      edit_staff_calendars: true,
+      book_appointments: true,
     },
     hierarchy_level: 1,
   },
@@ -65,6 +73,10 @@ export const DEFAULT_ROLES: UserRole[] = [
       delete_business: false,
       transfer_ownership: false,
       assign_roles: true,
+      manage_office_hours: true,
+      edit_own_calendar: true,
+      edit_staff_calendars: true,
+      book_appointments: true,
     },
     hierarchy_level: 2,
   },
@@ -79,6 +91,10 @@ export const DEFAULT_ROLES: UserRole[] = [
       delete_business: false,
       transfer_ownership: false,
       assign_roles: false,
+      manage_office_hours: false,
+      edit_own_calendar: true,
+      edit_staff_calendars: false,
+      book_appointments: true,
     },
     hierarchy_level: 3,
   },
@@ -93,6 +109,10 @@ export const DEFAULT_ROLES: UserRole[] = [
       delete_business: false,
       transfer_ownership: false,
       assign_roles: false,
+      manage_office_hours: false,
+      edit_own_calendar: false,
+      edit_staff_calendars: false,
+      book_appointments: false,
     },
     hierarchy_level: 4,
   },

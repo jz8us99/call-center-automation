@@ -98,6 +98,7 @@ export async function POST(request: NextRequest) {
       promotional_content,
       compliance_notes,
       document_sections,
+      accepted_insurances,
     } = body;
 
     if (!user_id || !business_name || !business_phone) {
@@ -116,7 +117,8 @@ export async function POST(request: NextRequest) {
       return_policy,
       payment_methods: payment_methods || [],
       business_hours: business_hours || {},
-      insurance_accepted: insurance_accepted || [],
+      insurance_accepted: insurance_accepted || accepted_insurances || [],
+      accepted_insurances: accepted_insurances || [],
       specialties: specialties || [],
       certifications: certifications || [],
       service_areas: service_areas || [],
@@ -334,6 +336,7 @@ export async function PUT(request: NextRequest) {
       promotional_content,
       compliance_notes,
       document_sections,
+      accepted_insurances,
     } = body;
 
     if (!id && !user_id) {
@@ -351,7 +354,8 @@ export async function PUT(request: NextRequest) {
       return_policy,
       payment_methods: payment_methods || [],
       business_hours: business_hours || {},
-      insurance_accepted: insurance_accepted || [],
+      insurance_accepted: insurance_accepted || accepted_insurances || [],
+      accepted_insurances: accepted_insurances || [],
       specialties: specialties || [],
       certifications: certifications || [],
       service_areas: service_areas || [],

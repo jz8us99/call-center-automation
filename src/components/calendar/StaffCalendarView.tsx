@@ -284,6 +284,34 @@ export function StaffCalendarView({
     return officeHours.find(oh => oh.day_of_week === dayOfWeek && oh.is_active);
   };
 
+  // Helper function to determine if a staff member should be considered available
+  // based on office hours when no specific availability is set
+  const getEffectiveAvailability = (date: string) => {
+    const dateAvailability = getDateAvailability(date);
+    const officeHoursForDay = getOfficeHoursForDay(date);
+    
+    // If staff has specific availability set, use that
+    if (dateAvailability) {
+      return dateAvailability;
+    }
+    
+    // If no specific availability but office is open, consider staff available
+    if (officeHoursForDay) {
+      return {
+        availability_date: date,
+        start_time: officeHoursForDay.start_time,
+        end_time: officeHoursForDay.end_time,
+        is_available: true,
+        is_override: false,
+        reason: 'Office Hours',
+        notes: 'Default availability during office hours'
+      };
+    }
+    
+    // Office is closed
+    return null;
+  };
+
   const getDateAvailability = (date: string) => {
     return availability[date];
   };
@@ -315,7 +343,8 @@ export function StaffCalendarView({
     } else if (dateAvailability && !dateAvailability.is_available) {
       classes += 'bg-yellow-50 border-yellow-200 text-yellow-700 ';
     } else if (officeHoursForDay) {
-      classes += 'bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 ';
+      // Show office hours as available (green) instead of blue
+      classes += 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100 ';
     } else {
       classes += 'bg-gray-50 border-gray-200 text-gray-500 ';
     }
@@ -412,7 +441,7 @@ export function StaffCalendarView({
               )}
             </div>
           ) : officeHoursForDay ? (
-            <div className="text-xs mb-1 text-blue-600">
+            <div className="text-xs mb-1 text-green-600">
               {officeHoursForDay.start_time.substring(0, 5)} -{' '}
               {officeHoursForDay.end_time.substring(0, 5)}
             </div>
@@ -488,11 +517,7 @@ export function StaffCalendarView({
         <div className="flex flex-wrap gap-4 mt-4 text-xs">
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 bg-green-100 border border-green-200 rounded"></div>
-            <span>Available (Custom)</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-3 h-3 bg-blue-100 border border-blue-200 rounded"></div>
-            <span>Office Hours</span>
+            <span>Available</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 bg-yellow-100 border border-yellow-200 rounded"></div>

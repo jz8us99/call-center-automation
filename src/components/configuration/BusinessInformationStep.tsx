@@ -91,6 +91,29 @@ const DOCUMENT_CATEGORIES = {
   },
 };
 
+const COMMON_INSURANCES = [
+  'Aetna',
+  'Blue Cross Blue Shield',
+  'Cigna',
+  'UnitedHealthcare',
+  'Humana',
+  'Medicare',
+  'Medicaid',
+  'Kaiser Permanente',
+  'Anthem',
+  'Molina Healthcare',
+  'Centene',
+  'WellCare',
+  'Tricare',
+  'Independence Blue Cross',
+  'UPMC Health Plan',
+  'Harvard Pilgrim',
+  'Tufts Health Plan',
+  'Horizon Blue Cross',
+  'Priority Health',
+  'BlueCare Tennessee',
+];
+
 interface BusinessLocation {
   id?: string;
   business_id?: string;
@@ -134,6 +157,7 @@ interface BusinessProfile {
   business_documents?: DocumentUpload[];
   document_sections?: DocumentSection[];
   business_locations?: BusinessLocation[];
+  accepted_insurances?: string[];
 }
 
 interface BusinessInformationStepProps {
@@ -171,6 +195,7 @@ export function BusinessInformationStep({
     business_documents: initialData?.business_documents || [],
     document_sections: initialData?.document_sections || [],
     business_locations: initialData?.business_locations || [],
+    accepted_insurances: initialData?.accepted_insurances || [],
   });
 
   const [saving, setSaving] = useState(false);
@@ -182,6 +207,7 @@ export function BusinessInformationStep({
   const [extractingWebsite, setExtractingWebsite] = useState(false);
   const [showAddLocationForm, setShowAddLocationForm] = useState(false);
   const [editingLocation, setEditingLocation] = useState<BusinessLocation | null>(null);
+  const [newInsuranceInput, setNewInsuranceInput] = useState('');
   const [businessLocations, setBusinessLocations] = useState<BusinessLocation[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -643,6 +669,17 @@ export function BusinessInformationStep({
     }
   };
 
+  const addInsurance = () => {
+    const insuranceName = newInsuranceInput.trim();
+    if (insuranceName && !formData.accepted_insurances.includes(insuranceName)) {
+      setFormData(prev => ({
+        ...prev,
+        accepted_insurances: [...prev.accepted_insurances, insuranceName],
+      }));
+      setNewInsuranceInput('');
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -1014,6 +1051,103 @@ export function BusinessInformationStep({
                   }
                   placeholder="john@yourbusiness.com"
                 />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Insurance Acceptance */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Insurance Acceptance</CardTitle>
+            <CardDescription>
+              List the insurance providers your business accepts. This helps customers know which insurances you work with.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label>Accepted Insurance Providers</Label>
+              <div className="mt-2">
+                {formData.accepted_insurances.length > 0 ? (
+                  <div className="space-y-2">
+                    {formData.accepted_insurances.map((insurance, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between bg-gray-50 p-3 rounded-lg"
+                      >
+                        <span className="text-sm font-medium">{insurance}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const newInsurances = formData.accepted_insurances.filter(
+                              (_, i) => i !== index
+                            );
+                            setFormData(prev => ({
+                              ...prev,
+                              accepted_insurances: newInsurances,
+                            }));
+                          }}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 italic">
+                    No insurance providers added yet.
+                  </p>
+                )}
+
+                <div className="flex gap-2 mt-3">
+                  <Input
+                    placeholder="Enter insurance provider name"
+                    value={newInsuranceInput}
+                    onChange={(e) => setNewInsuranceInput(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addInsurance();
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    onClick={addInsurance}
+                    disabled={!newInsuranceInput.trim()}
+                  >
+                    <PlusIcon className="h-4 w-4" />
+                    Add
+                  </Button>
+                </div>
+
+                <div className="mt-3">
+                  <p className="text-xs text-gray-600 mb-2">Common Insurance Providers:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {COMMON_INSURANCES.filter(
+                      insurance => !formData.accepted_insurances.includes(insurance)
+                    ).map(insurance => (
+                      <Button
+                        key={insurance}
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setFormData(prev => ({
+                            ...prev,
+                            accepted_insurances: [...prev.accepted_insurances, insurance],
+                          }));
+                        }}
+                        className="text-xs h-7"
+                      >
+                        + {insurance}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           </CardContent>

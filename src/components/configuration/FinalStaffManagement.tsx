@@ -111,7 +111,7 @@ export function FinalStaffManagement({
     phone: '',
     gender: '',
     job_title: '',
-    job_category_id: '',
+    job_category_ids: [] as string[], // Changed to support multiple categories
     selected_job_types: [] as string[],
     specialties: '',
   });
@@ -238,7 +238,7 @@ export function FinalStaffManagement({
           phone: formData.phone,
           gender: formData.gender,
           job_title: formData.job_title,
-          job_category_id: formData.job_category_id,
+          job_category_ids: formData.job_category_ids,
           selected_job_types: formData.selected_job_types,
           schedule: defaultSchedule,
           specialties: formData.specialties
@@ -286,7 +286,7 @@ export function FinalStaffManagement({
           phone: formData.phone,
           gender: formData.gender,
           job_title: formData.job_title,
-          job_category_id: formData.job_category_id,
+          job_category_ids: formData.job_category_ids,
           selected_job_types: formData.selected_job_types,
           specialties: formData.specialties
             ? formData.specialties.split(',').map(s => s.trim())
@@ -345,7 +345,7 @@ export function FinalStaffManagement({
       phone: member.phone || '',
       gender: member.gender || '',
       job_title: member.title || '',
-      job_category_id: '',
+      job_category_ids: [],
       selected_job_types: member.job_types || [],
       specialties: member.specialties?.join(', ') || '',
     });
@@ -360,7 +360,7 @@ export function FinalStaffManagement({
       phone: '',
       gender: '',
       job_title: '',
-      job_category_id: '',
+      job_category_ids: [],
       selected_job_types: [],
       specialties: '',
     });
@@ -750,39 +750,39 @@ export function FinalStaffManagement({
               </p>
 
               <div>
-                <Label htmlFor="job-category">Job Category</Label>
-                <Select
-                  value={formData.job_category_id}
-                  onValueChange={value => {
-                    setFormData(prev => ({
-                      ...prev,
-                      job_category_id: value,
-                      new_category_name: '',
-                      new_category_description: '',
-                      selected_job_types: [],
-                    }));
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {jobCategories.map(category => (
-                      <SelectItem key={category.id} value={category.id}>
-                        <div>
-                          <div className="font-medium">
-                            {category.category_name}
-                          </div>
-                          {category.description && (
-                            <div className="text-xs text-gray-500">
-                              {category.description}
-                            </div>
-                          )}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="job-category">Job Categories (Select Multiple)</Label>
+                <div className="border rounded-lg p-3 max-h-48 overflow-y-auto">
+                  {jobCategories.map(category => (
+                    <div key={category.id} className="flex items-start space-x-2 py-2">
+                      <Checkbox
+                        id={`category-${category.id}`}
+                        checked={formData.job_category_ids.includes(category.id)}
+                        onCheckedChange={checked => {
+                          setFormData(prev => ({
+                            ...prev,
+                            job_category_ids: checked
+                              ? [...prev.job_category_ids, category.id]
+                              : prev.job_category_ids.filter(id => id !== category.id),
+                            selected_job_types: [], // Reset job types when categories change
+                          }));
+                        }}
+                      />
+                      <div className="flex-1">
+                        <label
+                          htmlFor={`category-${category.id}`}
+                          className="text-sm font-medium leading-none cursor-pointer"
+                        >
+                          {category.category_name}
+                        </label>
+                        {category.description && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            {category.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {jobCategories.length === 0 && (
@@ -799,26 +799,29 @@ export function FinalStaffManagement({
             </div>
 
             {/* Job Types Selection */}
-            {formData.job_category_id && (
+            {formData.job_category_ids.length > 0 && (
               <div className="space-y-4">
                 <h4 className="text-sm font-medium text-gray-900">
                   Select Job Types
                 </h4>
                 <p className="text-sm text-gray-600">
-                  Choose specific job types this staff member can handle within
-                  their category.
+                  Choose specific job types this staff member can handle from
+                  their selected categories.
                 </p>
 
                 {(() => {
-                  const categoryJobTypes = getJobTypesForCategory(
-                    formData.job_category_id
+                  const categoryJobTypes = formData.job_category_ids.reduce(
+                    (allTypes, categoryId) => {
+                      return [...allTypes, ...getJobTypesForCategory(categoryId)];
+                    },
+                    [] as JobType[]
                   );
 
                   if (categoryJobTypes.length === 0) {
                     return (
                       <div className="text-center py-6 border rounded-lg bg-gray-50">
                         <p className="text-sm text-gray-600">
-                          No job types available for this category.
+                          No job types available for the selected categories.
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
                           Configure job types in the Products & Services step
@@ -829,44 +832,60 @@ export function FinalStaffManagement({
                   }
 
                   return (
-                    <div className="space-y-3 max-h-64 overflow-y-auto border rounded-lg p-4">
-                      {categoryJobTypes.map(jobType => (
-                        <div
-                          key={jobType.id}
-                          className="flex items-start gap-3"
-                        >
-                          <Checkbox
-                            id={`jobtype-${jobType.id}`}
-                            checked={formData.selected_job_types.includes(
-                              jobType.id
-                            )}
-                            onCheckedChange={checked =>
-                              handleJobTypeToggle(jobType.id, !!checked)
-                            }
-                          />
-                          <div className="flex-1">
-                            <label
-                              htmlFor={`jobtype-${jobType.id}`}
-                              className="text-sm font-medium text-gray-900 cursor-pointer"
-                            >
-                              {jobType.job_name}
-                            </label>
-                            {jobType.job_description && (
-                              <p className="text-xs text-gray-600">
-                                {jobType.job_description}
-                              </p>
-                            )}
-                            <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
-                              <span>
-                                {jobType.default_duration_minutes} min
-                              </span>
-                              {jobType.default_price && (
-                                <span>${jobType.default_price}</span>
-                              )}
+                    <div className="space-y-4 max-h-64 overflow-y-auto border rounded-lg p-4">
+                      {formData.job_category_ids.map(categoryId => {
+                        const category = jobCategories.find(c => c.id === categoryId);
+                        const categoryTypes = getJobTypesForCategory(categoryId);
+                        
+                        if (categoryTypes.length === 0) return null;
+                        
+                        return (
+                          <div key={categoryId} className="space-y-2">
+                            <h5 className="text-sm font-semibold text-blue-700 border-b border-blue-200 pb-1">
+                              {category?.category_name}
+                            </h5>
+                            <div className="space-y-2">
+                              {categoryTypes.map(jobType => (
+                                <div
+                                  key={jobType.id}
+                                  className="flex items-start gap-3 pl-2"
+                                >
+                                  <Checkbox
+                                    id={`jobtype-${jobType.id}`}
+                                    checked={formData.selected_job_types.includes(
+                                      jobType.id
+                                    )}
+                                    onCheckedChange={checked =>
+                                      handleJobTypeToggle(jobType.id, !!checked)
+                                    }
+                                  />
+                                  <div className="flex-1">
+                                    <label
+                                      htmlFor={`jobtype-${jobType.id}`}
+                                      className="text-sm font-medium text-gray-900 cursor-pointer"
+                                    >
+                                      {jobType.job_name}
+                                    </label>
+                                    {jobType.job_description && (
+                                      <p className="text-xs text-gray-600">
+                                        {jobType.job_description}
+                                      </p>
+                                    )}
+                                    <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
+                                      <span>
+                                        {jobType.default_duration_minutes} min
+                                      </span>
+                                      {jobType.default_price && (
+                                        <span>${jobType.default_price}</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   );
                 })()}
@@ -950,6 +969,7 @@ export function FinalStaffManagement({
                     staffMember={configuringCalendar}
                     onBack={handleBackFromCalendar}
                     onSaveAndContinue={handleSaveAndContinueCalendar}
+                    isStaffView={false}
                   />
                 );
               } catch (error) {
