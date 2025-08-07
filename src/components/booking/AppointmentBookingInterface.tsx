@@ -55,11 +55,9 @@ interface Customer {
   id?: string;
   first_name: string;
   last_name: string;
-  email: string;
+  email?: string;
   phone: string;
-  date_of_birth?: string;
-  medical_notes?: string;
-  allergies?: string;
+  note?: string;
 }
 
 interface AppointmentBookingInterfaceProps {
@@ -103,12 +101,9 @@ export function AppointmentBookingInterface({
     last_name: '',
     email: '',
     phone: '',
-    date_of_birth: '',
-    medical_notes: '',
-    allergies: '',
+    note: '',
   });
 
-  const [bookingNotes, setBookingNotes] = useState('');
 
   useEffect(() => {
     loadAppointmentTypes();
@@ -207,19 +202,21 @@ export function AppointmentBookingInterface({
       // First, create or find the customer
       let customerId = '';
 
-      // Try to find existing customer by email
-      const customerSearchResponse = await fetch(
-        `/api/customers?business_id=${businessId}&search=${customerForm.email}`
-      );
-
-      if (customerSearchResponse.ok) {
-        const customerData = await customerSearchResponse.json();
-        const existingCustomer = customerData.customers.find(
-          (c: any) => c.email.toLowerCase() === customerForm.email.toLowerCase()
+      // Try to find existing customer by email (if provided)
+      if (customerForm.email) {
+        const customerSearchResponse = await fetch(
+          `/api/customers?business_id=${businessId}&search=${customerForm.email}`
         );
 
-        if (existingCustomer) {
-          customerId = existingCustomer.id;
+        if (customerSearchResponse.ok) {
+          const customerData = await customerSearchResponse.json();
+          const existingCustomer = customerData.customers.find(
+            (c: any) => c.email?.toLowerCase() === customerForm.email?.toLowerCase()
+          );
+
+          if (existingCustomer) {
+            customerId = existingCustomer.id;
+          }
         }
       }
 
@@ -262,7 +259,7 @@ export function AppointmentBookingInterface({
           end_time: selectedSlot.end_time,
           duration_minutes: selectedSlot.duration_minutes,
           title: `${selectedType.name} - ${customerForm.first_name} ${customerForm.last_name}`,
-          customer_notes: bookingNotes,
+          customer_notes: customerForm.note || '',
           booking_source: 'online',
         }),
       });
@@ -297,11 +294,8 @@ export function AppointmentBookingInterface({
       last_name: '',
       email: '',
       phone: '',
-      date_of_birth: '',
-      medical_notes: '',
-      allergies: '',
+      note: '',
     });
-    setBookingNotes('');
     setCreatedAppointmentId('');
   };
 
@@ -534,7 +528,7 @@ export function AppointmentBookingInterface({
           {currentStep === 'customer' && selectedSlot && selectedType && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Your Information</h3>
+                <h3 className="text-lg font-semibold">Customer Information</h3>
                 <Button
                   variant="outline"
                   size="sm"
@@ -616,21 +610,6 @@ export function AppointmentBookingInterface({
                   />
                 </div>
                 <div>
-                  <Label htmlFor="email">Email Address *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={customerForm.email}
-                    onChange={e =>
-                      setCustomerForm(prev => ({
-                        ...prev,
-                        email: e.target.value,
-                      }))
-                    }
-                    required
-                  />
-                </div>
-                <div>
                   <Label htmlFor="phone">Phone Number *</Label>
                   <Input
                     id="phone"
@@ -646,15 +625,15 @@ export function AppointmentBookingInterface({
                   />
                 </div>
                 <div>
-                  <Label htmlFor="dob">Date of Birth</Label>
+                  <Label htmlFor="email">Email Address</Label>
                   <Input
-                    id="dob"
-                    type="date"
-                    value={customerForm.date_of_birth}
+                    id="email"
+                    type="email"
+                    value={customerForm.email || ''}
                     onChange={e =>
                       setCustomerForm(prev => ({
                         ...prev,
-                        date_of_birth: e.target.value,
+                        email: e.target.value,
                       }))
                     }
                   />
@@ -662,46 +641,21 @@ export function AppointmentBookingInterface({
               </div>
 
               <div>
-                <Label htmlFor="medical-notes">Medical Notes</Label>
+                <Label htmlFor="note">Note</Label>
                 <Textarea
-                  id="medical-notes"
-                  value={customerForm.medical_notes}
+                  id="note"
+                  value={customerForm.note || ''}
                   onChange={e =>
                     setCustomerForm(prev => ({
                       ...prev,
-                      medical_notes: e.target.value,
+                      note: e.target.value,
                     }))
                   }
-                  placeholder="Any medical conditions, medications, or other relevant information"
-                  rows={2}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="allergies">Allergies</Label>
-                <Input
-                  id="allergies"
-                  value={customerForm.allergies}
-                  onChange={e =>
-                    setCustomerForm(prev => ({
-                      ...prev,
-                      allergies: e.target.value,
-                    }))
-                  }
-                  placeholder="List any allergies"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="booking-notes">Additional Notes</Label>
-                <Textarea
-                  id="booking-notes"
-                  value={bookingNotes}
-                  onChange={e => setBookingNotes(e.target.value)}
-                  placeholder="Any additional information or special requests"
+                  placeholder="Any additional information or notes"
                   rows={3}
                 />
               </div>
+
 
               <Button
                 onClick={handleCustomerSubmit}
@@ -709,7 +663,6 @@ export function AppointmentBookingInterface({
                   loading ||
                   !customerForm.first_name ||
                   !customerForm.last_name ||
-                  !customerForm.email ||
                   !customerForm.phone
                 }
                 className="w-full"

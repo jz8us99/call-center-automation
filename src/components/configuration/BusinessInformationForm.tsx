@@ -40,6 +40,9 @@ interface AgentConfig {
   agent_name?: string;
   business_name?: string;
   business_address?: string;
+  city?: string;
+  state?: string;
+  postal_code?: string;
   business_phone?: string;
   business_email?: string;
   business_website?: string;
@@ -69,6 +72,9 @@ export function BusinessInformationForm({
     agent_name: agent?.agent_name || '',
     business_name: agent?.business_name || '',
     business_address: agent?.business_address || '',
+    city: agent?.city || '',
+    state: agent?.state || '',
+    postal_code: agent?.postal_code || '',
     business_phone: agent?.business_phone || '',
     business_email: agent?.business_email || '',
     business_website: agent?.business_website || '',
@@ -80,7 +86,7 @@ export function BusinessInformationForm({
     greeting_message: agent?.greeting_message || '',
     timezone: agent?.timezone || 'America/New_York',
     documents: agent?.documents || [],
-    website_url: agent?.website_url || '',
+    website_url: agent?.website_url || agent?.business_website || '',
     agent_personality: agent?.agent_personality || 'professional',
     support_content: agent?.support_content || '',
   });
@@ -345,17 +351,53 @@ export function BusinessInformationForm({
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Business Address
-            </label>
-            <Input
-              value={formData.business_address}
-              onChange={e =>
-                handleInputChange('business_address', e.target.value)
-              }
-              placeholder="123 Main St, City, State 12345"
-            />
+          {/* Business Address Fields */}
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Street Address
+              </label>
+              <Input
+                value={formData.business_address}
+                onChange={e =>
+                  handleInputChange('business_address', e.target.value)
+                }
+                placeholder="123 Main Street, Suite 100"
+              />
+            </div>
+            
+            <div className="grid md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  City
+                </label>
+                <Input
+                  value={formData.city}
+                  onChange={e => handleInputChange('city', e.target.value)}
+                  placeholder="City"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  State
+                </label>
+                <Input
+                  value={formData.state}
+                  onChange={e => handleInputChange('state', e.target.value)}
+                  placeholder="State"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  ZIP Code
+                </label>
+                <Input
+                  value={formData.postal_code}
+                  onChange={e => handleInputChange('postal_code', e.target.value)}
+                  placeholder="12345"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">

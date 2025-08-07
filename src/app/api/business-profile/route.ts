@@ -14,9 +14,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get client/business profile for the user
+    // Get business profile for the user
     const { data: client, error } = await supabase
-      .from('clients')
+      .from('business_profiles')
       .select('*')
       .eq('user_id', userId)
       .single();
@@ -66,6 +66,10 @@ export async function POST(request: NextRequest) {
       business_name,
       business_type,
       business_address,
+      street_address,
+      city,
+      state,
+      postal_code,
       business_phone,
       business_email,
       business_website,
@@ -130,12 +134,16 @@ export async function POST(request: NextRequest) {
       contact_person_phone,
       contact_person_email,
       business_address,
+      street_address,
+      city,
+      state,
+      postal_code,
       business_website,
     };
 
-    // First try to get existing client
+    // First try to get existing business profile
     const { data: existingClient } = await supabase
-      .from('clients')
+      .from('business_profiles')
       .select()
       .eq('user_id', user_id)
       .single();
@@ -143,16 +151,23 @@ export async function POST(request: NextRequest) {
     let client, error;
 
     if (existingClient) {
-      // Update existing client
+      // Update existing business profile
       const result = await supabase
-        .from('clients')
+        .from('business_profiles')
         .update({
           business_name,
           business_type,
-          contact_email: business_email,
-          contact_phone: business_phone,
+          business_email: business_email,
+          business_phone: business_phone,
+          business_address,
+          business_website,
           timezone: timezone || 'America/New_York',
+          contact_person_name,
+          contact_person_role,
+          contact_person_phone,
+          contact_person_email,
           support_content: JSON.stringify(comprehensiveData),
+          updated_at: new Date().toISOString(),
         })
         .eq('user_id', user_id)
         .select()
@@ -161,16 +176,22 @@ export async function POST(request: NextRequest) {
       client = result.data;
       error = result.error;
     } else {
-      // Insert new client
+      // Insert new business profile
       const result = await supabase
-        .from('clients')
+        .from('business_profiles')
         .insert({
           user_id,
           business_name,
           business_type,
-          contact_email: business_email,
-          contact_phone: business_phone,
+          business_email: business_email,
+          business_phone: business_phone,
+          business_address,
+          business_website,
           timezone: timezone || 'America/New_York',
+          contact_person_name,
+          contact_person_role,
+          contact_person_phone,
+          contact_person_email,
           support_content: JSON.stringify(comprehensiveData),
         })
         .select()
@@ -188,9 +209,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // If this is a new business profile (not an update), automatically add the user as business admin
+    // If this is a new business profile (not an update), automatically create default business location and admin staff member
     if (!existingClient) {
       try {
+        // Create default business location
+        const { data: businessLocation, error: locationError } = await supabase
+          .from('business_locations')
+          .insert({
+            business_id: client.id,
+            location_name: business_name + ' - Main Location',
+            is_primary: true,
+            street_address: street_address || business_address || '',
+            city: city || '',
+            state: state || '',
+            postal_code: postal_code || '',
+            phone: business_phone,
+            email: business_email,
+            is_active: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
+
+        if (locationError) {
+          console.error('Failed to create default business location:', locationError);
+        }
+
         // Get user data from auth to get email
         const { data: userData, error: userError } =
           await supabase.auth.admin.getUserById(user_id);
@@ -199,6 +244,8 @@ export async function POST(request: NextRequest) {
           // Add the business owner as a staff member with admin role
           await supabase.from('staff_members').insert({
             user_id: user_id,
+            business_id: client.id,
+            location_id: businessLocation?.id, // Assign to the default location
             auth_user_id: user_id, // This user can login
             role_code: 'admin',
             first_name: contact_person_name?.split(' ')[0] || 'Business',
@@ -206,14 +253,14 @@ export async function POST(request: NextRequest) {
               contact_person_name?.split(' ').slice(1).join(' ') || 'Owner',
             email: userData.user.email,
             phone: contact_person_phone || business_phone,
-            job_title: contact_person_role || 'Business Administrator',
+            title: contact_person_role || 'Business Administrator',
             employment_status: 'active',
             is_active: true,
           });
         }
       } catch (staffError) {
         // Log error but don't fail the business profile creation
-        console.error('Failed to create admin staff member:', staffError);
+        console.error('Failed to create admin staff member or location:', staffError);
       }
     }
 
@@ -255,6 +302,10 @@ export async function PUT(request: NextRequest) {
       business_name,
       business_type,
       business_address,
+      street_address,
+      city,
+      state,
+      postal_code,
       business_phone,
       business_email,
       business_website,
@@ -318,6 +369,10 @@ export async function PUT(request: NextRequest) {
       contact_person_phone,
       contact_person_email,
       business_address,
+      street_address,
+      city,
+      state,
+      postal_code,
       business_website,
     };
 
@@ -325,13 +380,20 @@ export async function PUT(request: NextRequest) {
     const updateData = {
       business_name,
       business_type,
-      contact_email: business_email,
-      contact_phone: business_phone,
+      business_email: business_email,
+      business_phone: business_phone,
+      business_address,
+      business_website,
       timezone: timezone || 'America/New_York',
+      contact_person_name,
+      contact_person_role,
+      contact_person_phone,
+      contact_person_email,
       support_content: JSON.stringify(comprehensiveData),
+      updated_at: new Date().toISOString(),
     };
 
-    const query = supabase.from('clients').update(updateData).select().single();
+    const query = supabase.from('business_profiles').update(updateData).select().single();
 
     if (id) {
       query.eq('id', id);

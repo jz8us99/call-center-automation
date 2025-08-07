@@ -30,6 +30,8 @@ import {
   AlertCircle,
   Building,
   Plus as PlusIcon,
+  Edit as EditIcon,
+  Trash as TrashIcon,
 } from 'lucide-react';
 import { BUSINESS_TYPE_CONFIGS } from '@/types/business-types';
 
@@ -89,12 +91,34 @@ const DOCUMENT_CATEGORIES = {
   },
 };
 
+interface BusinessLocation {
+  id?: string;
+  business_id?: string;
+  location_name: string;
+  is_primary: boolean;
+  street_address?: string;
+  city?: string;
+  state?: string;
+  postal_code?: string;
+  country?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  timezone?: string;
+  business_hours?: any;
+  is_active?: boolean;
+}
+
 interface BusinessProfile {
   id?: string;
   user_id: string;
   business_name: string;
   business_type: string;
   business_address?: string;
+  street_address?: string;
+  city?: string;
+  state?: string;
+  postal_code?: string;
   business_phone?: string;
   business_email?: string;
   business_website?: string;
@@ -109,6 +133,7 @@ interface BusinessProfile {
   number_of_employees?: number;
   business_documents?: DocumentUpload[];
   document_sections?: DocumentSection[];
+  business_locations?: BusinessLocation[];
 }
 
 interface BusinessInformationStepProps {
@@ -127,6 +152,10 @@ export function BusinessInformationStep({
     business_name: initialData?.business_name || '',
     business_type: initialData?.business_type || '',
     business_address: initialData?.business_address || '',
+    street_address: initialData?.street_address || '',
+    city: initialData?.city || '',
+    state: initialData?.state || '',
+    postal_code: initialData?.postal_code || '',
     business_phone: initialData?.business_phone || '',
     business_email: initialData?.business_email || user.email || '',
     business_website: initialData?.business_website || '',
@@ -141,6 +170,7 @@ export function BusinessInformationStep({
     number_of_employees: initialData?.number_of_employees || undefined,
     business_documents: initialData?.business_documents || [],
     document_sections: initialData?.document_sections || [],
+    business_locations: initialData?.business_locations || [],
   });
 
   const [saving, setSaving] = useState(false);
@@ -150,6 +180,9 @@ export function BusinessInformationStep({
   );
   const [uploadingFiles, setUploadingFiles] = useState<Set<string>>(new Set());
   const [extractingWebsite, setExtractingWebsite] = useState(false);
+  const [showAddLocationForm, setShowAddLocationForm] = useState(false);
+  const [editingLocation, setEditingLocation] = useState<BusinessLocation | null>(null);
+  const [businessLocations, setBusinessLocations] = useState<BusinessLocation[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load existing business profile data
@@ -171,8 +204,12 @@ export function BusinessInformationStep({
               business_name: profile.business_name || '',
               business_type: profile.business_type || '',
               business_address: profile.business_address || '',
-              business_phone: profile.contact_phone || '',
-              business_email: profile.contact_email || user.email || '',
+              street_address: profile.street_address || '',
+              city: profile.city || '',
+              state: profile.state || '',
+              postal_code: profile.postal_code || '',
+              business_phone: profile.business_phone || profile.contact_phone || '',
+              business_email: profile.business_email || profile.contact_email || user.email || '',
               business_website: profile.business_website || '',
               contact_person_name: profile.contact_person_name || '',
               contact_person_role: profile.contact_person_role || '',
@@ -190,6 +227,11 @@ export function BusinessInformationStep({
 
             // Notify parent that business info is already completed
             onBusinessProfileUpdate(true);
+            
+            // Load business locations for this profile
+            if (profile.id) {
+              await loadBusinessLocations(profile.id);
+            }
           } else {
             // No existing profile, set up default values
             setFormData(prev => ({
@@ -206,6 +248,18 @@ export function BusinessInformationStep({
       }
     };
 
+    const loadBusinessLocations = async (businessId: string) => {
+      try {
+        const response = await fetch(`/api/business-locations?business_id=${businessId}`);
+        if (response.ok) {
+          const data = await response.json();
+          setBusinessLocations(data.locations || []);
+        }
+      } catch (error) {
+        console.error('Error loading business locations:', error);
+      }
+    };
+
     if (user && !initialData) {
       loadBusinessProfile();
     } else if (initialData) {
@@ -215,9 +269,9 @@ export function BusinessInformationStep({
 
   // Notify parent when form data changes
   useEffect(() => {
-    const hasRequiredInfo = formData.business_name && formData.business_type;
+    const hasRequiredInfo = formData.business_name && formData.business_type && formData.business_phone;
     onBusinessProfileUpdate(!!hasRequiredInfo);
-  }, [formData.business_name, formData.business_type, onBusinessProfileUpdate]);
+  }, [formData.business_name, formData.business_type, formData.business_phone, onBusinessProfileUpdate]);
 
   const handleInputChange = (
     field: keyof BusinessProfile,
@@ -457,6 +511,138 @@ export function BusinessInformationStep({
     }
   };
 
+  // Business Location Management Functions
+  const handleAddLocation = () => {
+    setEditingLocation({
+      location_name: '',
+      is_primary: businessLocations.length === 0, // First location is primary by default
+      street_address: '',
+      city: '',
+      state: '',
+      postal_code: '',
+      phone: '',
+      email: '',
+      timezone: 'America/New_York',
+    });
+    setShowAddLocationForm(true);
+  };
+
+  const handleEditLocation = (location: BusinessLocation) => {
+    setEditingLocation({ ...location });
+    setShowAddLocationForm(true);
+  };
+
+  const handleSaveLocation = async () => {
+    if (!editingLocation || !editingLocation.location_name) {
+      alert('Location name is required');
+      return;
+    }
+
+    try {
+      const isUpdating = !!editingLocation.id;
+      const method = isUpdating ? 'PUT' : 'POST';
+      const url = '/api/business-locations';
+
+      const locationData = {
+        ...editingLocation,
+        business_id: formData.id, // Will be set after business profile is saved
+        user_id: user.id,
+      };
+
+      // If this is a new business profile, store locations temporarily
+      if (!formData.id) {
+        const updatedLocations = isUpdating 
+          ? businessLocations.map(loc => loc.id === editingLocation.id ? editingLocation : loc)
+          : [...businessLocations, { ...editingLocation, id: `temp-${Date.now()}` }];
+        
+        setBusinessLocations(updatedLocations);
+        setFormData(prev => ({ ...prev, business_locations: updatedLocations }));
+      } else {
+        // Business profile exists, save to API
+        const response = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(locationData),
+        });
+
+        if (response.ok) {
+          const { location } = await response.json();
+          const updatedLocations = isUpdating
+            ? businessLocations.map(loc => loc.id === editingLocation.id ? location : loc)
+            : [...businessLocations, location];
+          
+          setBusinessLocations(updatedLocations);
+        } else {
+          throw new Error('Failed to save location');
+        }
+      }
+
+      setShowAddLocationForm(false);
+      setEditingLocation(null);
+    } catch (error) {
+      console.error('Error saving location:', error);
+      alert('Failed to save location. Please try again.');
+    }
+  };
+
+  const handleDeleteLocation = async (location: BusinessLocation) => {
+    if (!confirm(`Are you sure you want to delete "${location.location_name}"?`)) {
+      return;
+    }
+
+    try {
+      if (location.id && !location.id.startsWith('temp-')) {
+        // Delete from API if it's a real location
+        const response = await fetch(`/api/business-locations?id=${location.id}&user_id=${user.id}`, {
+          method: 'DELETE',
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to delete location');
+        }
+      }
+
+      // Remove from local state
+      const updatedLocations = businessLocations.filter(loc => loc.id !== location.id);
+      setBusinessLocations(updatedLocations);
+      setFormData(prev => ({ ...prev, business_locations: updatedLocations }));
+    } catch (error) {
+      console.error('Error deleting location:', error);
+      alert('Failed to delete location. Please try again.');
+    }
+  };
+
+  const saveTemporaryLocations = async (businessId: string) => {
+    try {
+      const temporaryLocations = businessLocations.filter(loc => loc.id?.startsWith('temp-'));
+      
+      for (const location of temporaryLocations) {
+        const locationData = {
+          ...location,
+          business_id: businessId,
+          user_id: user.id,
+        };
+        delete locationData.id; // Remove temporary ID
+
+        const response = await fetch('/api/business-locations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(locationData),
+        });
+
+        if (response.ok) {
+          const { location: savedLocation } = await response.json();
+          // Update the location in our state with the real ID
+          setBusinessLocations(prev => 
+            prev.map(loc => loc.id === location.id ? savedLocation : loc)
+          );
+        }
+      }
+    } catch (error) {
+      console.error('Error saving temporary locations:', error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -473,7 +659,11 @@ export function BusinessInformationStep({
           user_id: user.id,
           business_name: formData.business_name,
           business_type: formData.business_type,
-          business_address: formData.business_address,
+          business_address: [formData.street_address, formData.city, formData.state, formData.postal_code].filter(Boolean).join(', '),
+          street_address: formData.street_address,
+          city: formData.city,
+          state: formData.state,
+          postal_code: formData.postal_code,
           business_phone: formData.business_phone,
           business_email: formData.business_email,
           business_website: formData.business_website,
@@ -500,6 +690,16 @@ export function BusinessInformationStep({
 
       const result = await response.json();
       console.log('Business profile saved successfully:', result);
+
+      // Update formData with the saved profile ID if this is a new profile
+      if (result.profile?.id && !formData.id) {
+        setFormData(prev => ({ ...prev, id: result.profile.id }));
+        
+        // Save any temporary business locations
+        if (businessLocations.length > 0) {
+          await saveTemporaryLocations(result.profile.id);
+        }
+      }
 
       setSaveStatus('success');
       onBusinessProfileUpdate(true);
@@ -697,7 +897,7 @@ export function BusinessInformationStep({
           <CardContent className="space-y-4">
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="business-phone">Business Phone</Label>
+                <Label htmlFor="business-phone">Business Phone *</Label>
                 <Input
                   id="business-phone"
                   type="tel"
@@ -706,6 +906,7 @@ export function BusinessInformationStep({
                     handleInputChange('business_phone', e.target.value)
                   }
                   placeholder="(555) 123-4567"
+                  required
                 />
               </div>
               <div>
@@ -723,16 +924,45 @@ export function BusinessInformationStep({
             </div>
 
             <div>
-              <Label htmlFor="business-address">Business Address</Label>
-              <Textarea
-                id="business-address"
-                value={formData.business_address}
+              <Label htmlFor="street-address">Street Address</Label>
+              <Input
+                id="street-address"
+                value={formData.street_address}
                 onChange={e =>
-                  handleInputChange('business_address', e.target.value)
+                  handleInputChange('street_address', e.target.value)
                 }
-                placeholder="123 Main Street, City, State, ZIP"
-                rows={2}
+                placeholder="123 Main Street, Suite 100"
               />
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="city">City</Label>
+                <Input
+                  id="city"
+                  value={formData.city}
+                  onChange={e => handleInputChange('city', e.target.value)}
+                  placeholder="City"
+                />
+              </div>
+              <div>
+                <Label htmlFor="state">State/Province</Label>
+                <Input
+                  id="state"
+                  value={formData.state}
+                  onChange={e => handleInputChange('state', e.target.value)}
+                  placeholder="State"
+                />
+              </div>
+              <div>
+                <Label htmlFor="postal-code">ZIP/Postal Code</Label>
+                <Input
+                  id="postal-code"
+                  value={formData.postal_code}
+                  onChange={e => handleInputChange('postal_code', e.target.value)}
+                  placeholder="12345"
+                />
+              </div>
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
@@ -786,6 +1016,262 @@ export function BusinessInformationStep({
                 />
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Business Locations Management */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Building className="h-5 w-5" />
+                  Business Locations
+                </CardTitle>
+                <CardDescription>
+                  Manage multiple business locations. Staff can be assigned to specific locations for better organization and scheduling.
+                </CardDescription>
+              </div>
+              <Button
+                type="button"
+                onClick={handleAddLocation}
+                variant="outline"
+                size="sm"
+              >
+                <PlusIcon className="h-4 w-4 mr-2" />
+                Add Location
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {businessLocations.length === 0 ? (
+              <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                <Building className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  No Business Locations
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  Add your first business location to help organize staff and services.
+                  A default location will be created automatically when you save your business information.
+                </p>
+                <Button type="button" onClick={handleAddLocation} variant="outline">
+                  <PlusIcon className="h-4 w-4 mr-2" />
+                  Add First Location
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {businessLocations.map((location, index) => (
+                  <div
+                    key={location.id || index}
+                    className={`border rounded-lg p-4 ${
+                      location.is_primary ? 'border-blue-200 bg-blue-50' : 'border-gray-200'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                            location.is_primary ? 'bg-blue-100' : 'bg-gray-100'
+                          }`}>
+                            <Building className={`h-5 w-5 ${
+                              location.is_primary ? 'text-blue-600' : 'text-gray-600'
+                            }`} />
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+                              {location.location_name}
+                              {location.is_primary && (
+                                <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                                  Primary
+                                </span>
+                              )}
+                            </h4>
+                            <p className="text-sm text-gray-600">
+                              {[location.street_address, location.city, location.state, location.postal_code]
+                                .filter(Boolean)
+                                .join(', ') || 'No address specified'}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="grid md:grid-cols-2 gap-4 mt-3">
+                          {location.phone && (
+                            <div>
+                              <p className="text-sm text-gray-600">Phone</p>
+                              <p className="text-sm font-medium">{location.phone}</p>
+                            </div>
+                          )}
+                          {location.email && (
+                            <div>
+                              <p className="text-sm text-gray-600">Email</p>
+                              <p className="text-sm font-medium">{location.email}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 ml-4">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditLocation(location)}
+                        >
+                          <EditIcon className="h-4 w-4" />
+                        </Button>
+                        {!location.is_primary && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteLocation(location)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Location Add/Edit Form */}
+            {showAddLocationForm && editingLocation && (
+              <div className="mt-6 border-t pt-6">
+                <div className="bg-gray-50 rounded-lg p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="font-medium text-gray-900">
+                      {editingLocation.id ? 'Edit Location' : 'Add New Location'}
+                    </h4>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setShowAddLocationForm(false);
+                        setEditingLocation(null);
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="location-name">Location Name *</Label>
+                        <Input
+                          id="location-name"
+                          value={editingLocation.location_name}
+                          onChange={e => setEditingLocation(prev => prev ? { ...prev, location_name: e.target.value } : null)}
+                          placeholder="Main Office, Branch Location, etc."
+                          required
+                        />
+                      </div>
+                      <div className="flex items-center gap-2 pt-6">
+                        <input
+                          type="checkbox"
+                          id="is-primary"
+                          checked={editingLocation.is_primary}
+                          onChange={e => setEditingLocation(prev => prev ? { ...prev, is_primary: e.target.checked } : null)}
+                          className="rounded border-gray-300"
+                        />
+                        <Label htmlFor="is-primary" className="text-sm">
+                          Set as primary location
+                        </Label>
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="location-street">Street Address</Label>
+                      <Input
+                        id="location-street"
+                        value={editingLocation.street_address || ''}
+                        onChange={e => setEditingLocation(prev => prev ? { ...prev, street_address: e.target.value } : null)}
+                        placeholder="123 Main Street, Suite 100"
+                      />
+                    </div>
+
+                    <div className="grid md:grid-cols-3 gap-4">
+                      <div>
+                        <Label htmlFor="location-city">City</Label>
+                        <Input
+                          id="location-city"
+                          value={editingLocation.city || ''}
+                          onChange={e => setEditingLocation(prev => prev ? { ...prev, city: e.target.value } : null)}
+                          placeholder="City"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="location-state">State</Label>
+                        <Input
+                          id="location-state"
+                          value={editingLocation.state || ''}
+                          onChange={e => setEditingLocation(prev => prev ? { ...prev, state: e.target.value } : null)}
+                          placeholder="State"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="location-postal">ZIP Code</Label>
+                        <Input
+                          id="location-postal"
+                          value={editingLocation.postal_code || ''}
+                          onChange={e => setEditingLocation(prev => prev ? { ...prev, postal_code: e.target.value } : null)}
+                          placeholder="12345"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="location-phone">Phone</Label>
+                        <Input
+                          id="location-phone"
+                          type="tel"
+                          value={editingLocation.phone || ''}
+                          onChange={e => setEditingLocation(prev => prev ? { ...prev, phone: e.target.value } : null)}
+                          placeholder="(555) 123-4567"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="location-email">Email</Label>
+                        <Input
+                          id="location-email"
+                          type="email"
+                          value={editingLocation.email || ''}
+                          onChange={e => setEditingLocation(prev => prev ? { ...prev, email: e.target.value } : null)}
+                          placeholder="location@business.com"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-4">
+                      <Button
+                        type="button"
+                        onClick={handleSaveLocation}
+                        disabled={!editingLocation.location_name}
+                      >
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        {editingLocation.id ? 'Update Location' : 'Add Location'}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setShowAddLocationForm(false);
+                          setEditingLocation(null);
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -1084,7 +1570,7 @@ export function BusinessInformationStep({
         </Card>
 
         {/* Validation Summary */}
-        {(!formData.business_name || !formData.business_type) && (
+        {(!formData.business_name || !formData.business_type || !formData.business_phone) && (
           <Card className="bg-yellow-50 border-yellow-200">
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
@@ -1108,6 +1594,12 @@ export function BusinessInformationStep({
                       <li className="flex items-center gap-2">
                         <span className="w-1.5 h-1.5 bg-yellow-600 rounded-full"></span>
                         Business Type
+                      </li>
+                    )}
+                    {!formData.business_phone && (
+                      <li className="flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 bg-yellow-600 rounded-full"></span>
+                        Business Phone
                       </li>
                     )}
                   </ul>
@@ -1159,7 +1651,7 @@ export function BusinessInformationStep({
                     ? 'You can now proceed to Staff Management. Your information will be used across all AI agents.'
                     : saveStatus === 'error'
                       ? 'There was an error saving your information. Please try again.'
-                      : !formData.business_name || !formData.business_type
+                      : !formData.business_name || !formData.business_type || !formData.business_phone
                         ? 'Please fill in the required fields above to enable saving.'
                         : 'This information will be used across all your AI agents and can be updated anytime.'}
                 </p>
@@ -1167,10 +1659,10 @@ export function BusinessInformationStep({
               <Button
                 type="submit"
                 disabled={
-                  saving || !formData.business_name || !formData.business_type
+                  saving || !formData.business_name || !formData.business_type || !formData.business_phone
                 }
                 className={`${
-                  saving || !formData.business_name || !formData.business_type
+                  saving || !formData.business_name || !formData.business_type || !formData.business_phone
                     ? 'bg-gray-400 cursor-not-allowed'
                     : saveStatus === 'success'
                       ? 'bg-green-600 hover:bg-green-700'
@@ -1194,7 +1686,7 @@ export function BusinessInformationStep({
                     <AlertCircle className="h-4 w-4 mr-2" />
                     Try Again
                   </>
-                ) : !formData.business_name || !formData.business_type ? (
+                ) : !formData.business_name || !formData.business_type || !formData.business_phone ? (
                   <>
                     <AlertCircle className="h-4 w-4 mr-2" />
                     Complete Required Fields

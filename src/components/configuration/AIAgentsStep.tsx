@@ -185,27 +185,10 @@ export function AIAgentsStep({
     try {
       setGeneratingPrompt(true);
 
-      // Fetch business context
-      const contextResponse = await fetch(
-        `/api/business-context?user_id=${user.id}`
+      // Use new enhanced prompt generation endpoint
+      const promptResponse = await fetch(
+        `/api/generate-agent-prompt?user_id=${user.id}&agent_type=${formData.agent_type}&personality=${formData.agent_personality}`
       );
-      if (!contextResponse.ok) {
-        throw new Error('Failed to fetch business context');
-      }
-      const contextData = await contextResponse.json();
-
-      // Generate prompt
-      const promptResponse = await fetch('/api/generate-agent-prompt', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          agent_type: formData.agent_type,
-          agent_personality: formData.agent_personality,
-          business_context: contextData.business_context,
-        }),
-      });
 
       if (!promptResponse.ok) {
         throw new Error('Failed to generate prompt');
@@ -222,7 +205,7 @@ export function AIAgentsStep({
     } catch (error) {
       console.error('Error generating prompt:', error);
       alert(
-        'Failed to generate prompt. Please ensure you have completed:\n\n• Business Information (Step 1)\n• Products (Step 2) \n• Services (Step 3)\n• Appointment System (Step 4)\n• Staff Management (Step 5)\n\nThen try generating the prompt again.'
+        'Failed to generate prompt. Please ensure you have completed:\n\n• Business Information (Step 1)\n• Products & Services (Step 2-3) \n• Staff Management (Step 4)\n• Business Locations (if applicable)\n• Insurance Setup (for healthcare)\n\nThen try generating the prompt again.'
       );
     } finally {
       setGeneratingPrompt(false);
@@ -649,6 +632,8 @@ export function AIAgentsStep({
                           <li>• Business information and hours</li>
                           <li>• Products and services catalog</li>
                           <li>• Staff specialties and availability</li>
+                          <li>• Multiple business locations</li>
+                          <li>• Insurance providers (healthcare)</li>
                           <li>• Agent type and personality settings</li>
                         </ul>
                       </div>

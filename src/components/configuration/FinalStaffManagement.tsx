@@ -51,9 +51,24 @@ interface JobType {
   is_system_default: boolean;
 }
 
+interface BusinessLocation {
+  id: string;
+  business_id: string;
+  location_name: string;
+  is_primary: boolean;
+  street_address?: string;
+  city?: string;
+  state?: string;
+  postal_code?: string;
+  phone?: string;
+  email?: string;
+  is_active: boolean;
+}
+
 interface StaffMember {
   id: string;
   user_id: string;
+  location_id?: string;
   first_name: string;
   last_name: string;
   email?: string;
@@ -80,6 +95,8 @@ export function FinalStaffManagement({
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [jobCategories, setJobCategories] = useState<JobCategory[]>([]);
   const [jobTypes, setJobTypes] = useState<JobType[]>([]);
+  const [businessLocations, setBusinessLocations] = useState<BusinessLocation[]>([]);
+  const [selectedLocationId, setSelectedLocationId] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -119,14 +136,44 @@ export function FinalStaffManagement({
     onStaffUpdate(staff.length > 0);
   }, [staff.length, onStaffUpdate]);
 
+  // Filter staff by selected location
+  const filteredStaff = selectedLocationId 
+    ? staff.filter(s => s.location_id === selectedLocationId || !s.location_id) // Include staff without location for backward compatibility
+    : staff;
+
   const loadInitialData = async () => {
     setLoading(true);
     try {
-      await Promise.all([loadJobCategories(), loadJobTypes(), loadStaff()]);
+      await Promise.all([
+        loadBusinessLocations(), 
+        loadJobCategories(), 
+        loadJobTypes(), 
+        loadStaff()
+      ]);
     } catch (error) {
       console.error('Failed to load initial data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadBusinessLocations = async () => {
+    try {
+      const response = await fetch(`/api/business-locations?user_id=${user.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setBusinessLocations(data.locations || []);
+        
+        // Set primary location as default
+        const primaryLocation = data.locations?.find((loc: BusinessLocation) => loc.is_primary);
+        if (primaryLocation) {
+          setSelectedLocationId(primaryLocation.id);
+        } else if (data.locations?.length > 0) {
+          setSelectedLocationId(data.locations[0].id);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load business locations:', error);
     }
   };
 
@@ -402,22 +449,46 @@ export function FinalStaffManagement({
                 configured categories and job types.
               </CardDescription>
             </div>
-            <Button
-              onClick={() => {
-                resetForm();
-                setEditingStaff(null);
-                setShowAddForm(true);
-              }}
-              className="flex items-center gap-2"
-            >
-              <PlusIcon className="h-4 w-4" />
-              Add Staff Member
-            </Button>
+            <div className="flex items-center gap-4">
+              {/* Location Selector */}
+              {businessLocations.length > 1 && (
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm font-medium">Location:</Label>
+                  <Select
+                    value={selectedLocationId}
+                    onValueChange={setSelectedLocationId}
+                  >
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="Select location" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {businessLocations.map(location => (
+                        <SelectItem key={location.id} value={location.id}>
+                          {location.location_name}
+                          {location.is_primary && ' (Primary)'}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              <Button
+                onClick={() => {
+                  resetForm();
+                  setEditingStaff(null);
+                  setShowAddForm(true);
+                }}
+                className="flex items-center gap-2"
+              >
+                <PlusIcon className="h-4 w-4" />
+                Add Staff Member
+              </Button>
+            </div>
           </div>
         </CardHeader>
 
         <CardContent>
-          {staff.length === 0 ? (
+          {filteredStaff.length === 0 ? (
             <div className="text-center py-8">
               <UserIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
@@ -440,7 +511,7 @@ export function FinalStaffManagement({
             </div>
           ) : (
             <div className="space-y-4">
-              {staff.map(member => (
+              {filteredStaff.map(member => (
                 <div
                   key={member.id}
                   className="border border-gray-200 rounded-lg p-4"

@@ -16,39 +16,19 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status');
     const limit = searchParams.get('limit') || '50';
 
-    if (!user_id && !business_id) {
+    if (!user_id) {
       return NextResponse.json(
         {
-          error: 'Either user_id or business_id is required',
+          error: 'user_id is required',
         },
         { status: 400 }
       );
     }
 
-    let query = supabase.from('appointments').select(`
-        *,
-        customers (
-          id,
-          first_name,
-          last_name,
-          email,
-          phone
-        ),
-        appointment_types (
-          id,
-          name,
-          duration_minutes,
-          price,
-          color_code
-        )
-      `);
+    let query = supabase.from('appointment_bookings').select('*');
 
     if (user_id) {
       query = query.eq('user_id', user_id);
-    }
-
-    if (business_id) {
-      query = query.eq('business_id', business_id);
     }
 
     if (customer_id) {
@@ -96,11 +76,11 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = supabaseAdmin;
     const body = await request.json();
+    
+    console.log('POST /api/appointments received data:', JSON.stringify(body, null, 2));
 
     const {
-      business_id,
       user_id,
-      customer_id,
       staff_id,
       appointment_type_id,
       appointment_date,
@@ -109,88 +89,105 @@ export async function POST(request: NextRequest) {
       duration_minutes,
       title,
       notes,
-      customer_notes,
-      booking_source = 'online',
-      booked_by,
+      booking_source = 'manual',
+      // Customer info from frontend
+      customer_first_name,
+      customer_last_name,
+      customer_phone,
+      customer_email,
     } = body;
 
     if (
-      !business_id ||
       !user_id ||
-      !customer_id ||
       !staff_id ||
       !appointment_date ||
       !start_time ||
-      !end_time
+      !end_time ||
+      !customer_first_name ||
+      !customer_last_name ||
+      !customer_phone
     ) {
       return NextResponse.json(
         {
           error:
-            'Missing required fields: business_id, user_id, customer_id, staff_id, appointment_date, start_time, end_time',
+            'Missing required fields: user_id, staff_id, appointment_date, start_time, end_time, customer_first_name, customer_last_name, customer_phone',
         },
         { status: 400 }
       );
     }
 
-    // Check if the time slot is available
-    const { data: availabilityCheck } = await supabase.rpc(
-      'is_appointment_slot_available',
-      {
-        p_staff_id: staff_id,
-        p_date: appointment_date,
-        p_start_time: start_time,
-        p_end_time: end_time,
-      }
-    );
+    // Check for conflicting appointments (simplified approach)
+    console.log('Checking time slot availability for:', {
+      staff_id,
+      appointment_date,
+      start_time,
+      end_time
+    });
 
-    if (!availabilityCheck) {
+    // Get all appointments for this staff member on this date
+    const { data: existingAppointments, error: conflictError } = await supabase
+      .from('appointment_bookings')
+      .select('id, start_time, end_time, status')
+      .eq('staff_id', staff_id)
+      .eq('appointment_date', appointment_date)
+      .neq('status', 'cancelled')
+      .neq('status', 'no_show');
+
+    if (conflictError) {
+      console.error('Error checking conflicts:', conflictError);
+      return NextResponse.json({ error: 'Error checking availability' }, { status: 500 });
+    }
+
+    console.log('Found existing appointments:', existingAppointments);
+
+    // Check for time conflicts manually
+    const conflictingAppointments = existingAppointments?.filter(apt => {
+      // Check if appointments overlap
+      // Overlap occurs if: new start < existing end AND new end > existing start
+      return start_time < apt.end_time && end_time > apt.start_time;
+    }) || [];
+
+    if (conflictingAppointments.length > 0) {
+      console.log('Time slot conflict detected:', conflictingAppointments);
       return NextResponse.json(
         {
-          error: 'Selected time slot is not available',
+          error: `Selected time slot conflicts with existing appointment. Conflicting appointments: ${conflictingAppointments.map(a => `${a.start_time}-${a.end_time}`).join(', ')}`,
         },
         { status: 409 }
       );
     }
 
-    // Create the appointment
+    console.log('No conflicts found, creating appointment...');
+
+    // Create the appointment (matching appointment_bookings schema)
+    const appointmentInsertData = {
+      user_id,
+      staff_id,
+      appointment_date,
+      start_time,
+      end_time,
+      duration_minutes: duration_minutes || 30,
+      title,
+      notes,
+      booking_source,
+      status: 'scheduled',
+      // Store customer info directly in appointment
+      customer_name: `${customer_first_name} ${customer_last_name}`,
+      customer_email: customer_email || null,
+      customer_phone: customer_phone,
+    };
+
+    // Add service_id if provided (maps to appointment_type_id from frontend)
+    if (appointment_type_id) {
+      appointmentInsertData.service_id = appointment_type_id;
+    }
+
+    console.log('Inserting appointment with data:', JSON.stringify(appointmentInsertData, null, 2));
+
     const { data, error } = await supabase
-      .from('appointments')
-      .insert({
-        business_id,
-        user_id,
-        customer_id,
-        staff_id,
-        appointment_type_id,
-        appointment_date,
-        start_time,
-        end_time,
-        duration_minutes: duration_minutes || 30,
-        title,
-        notes,
-        customer_notes,
-        booking_source,
-        booked_by,
-        status: 'scheduled',
-      })
-      .select(
-        `
-        *,
-        customers (
-          id,
-          first_name,
-          last_name,
-          email,
-          phone
-        ),
-        appointment_types (
-          id,
-          name,
-          duration_minutes,
-          price,
-          color_code
-        )
-      `
-      )
+      .from('appointment_bookings')
+      .insert(appointmentInsertData)
+      .select('*')
       .single();
 
     if (error) {
@@ -198,18 +195,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // Create appointment history record
-    await supabase.rpc('create_appointment_history', {
-      p_appointment_id: data.id,
-      p_action: 'created',
-      p_changed_by: booked_by || user_id,
-      p_change_reason: `Appointment created via ${booking_source}`,
-    });
+    // Optional: Create appointment history record (skip if function doesn't exist)
+    try {
+      await supabase.rpc('create_appointment_history', {
+        p_appointment_id: data.id,
+        p_action: 'created',
+        p_changed_by: booked_by || user_id,
+        p_change_reason: `Appointment created via ${booking_source}`,
+      });
+    } catch (historyError) {
+      console.log('History function not available:', historyError);
+    }
 
-    // Update customer appointment statistics
-    await supabase.rpc('update_customer_appointment_stats', {
-      p_customer_id: customer_id,
-    });
+    // Optional: Update customer appointment statistics (skip if function doesn't exist)
+    try {
+      await supabase.rpc('update_customer_appointment_stats', {
+        p_customer_id: customer_id,
+      });
+    } catch (statsError) {
+      console.log('Stats function not available:', statsError);
+    }
 
     return NextResponse.json({ appointment: data });
   } catch (error) {
@@ -253,7 +258,7 @@ export async function PUT(request: NextRequest) {
 
     // Get current appointment data for history tracking
     const { data: currentAppointment } = await supabase
-      .from('appointments')
+      .from('appointment_bookings')
       .select('*')
       .eq('id', id)
       .eq('user_id', user_id)
@@ -277,18 +282,28 @@ export async function PUT(request: NextRequest) {
         start_time !== currentAppointment.start_time ||
         end_time !== currentAppointment.end_time)
     ) {
-      const { data: availabilityCheck } = await supabase.rpc(
-        'is_appointment_slot_available',
-        {
-          p_staff_id: currentAppointment.staff_id,
-          p_date: appointment_date,
-          p_start_time: start_time,
-          p_end_time: end_time,
-          p_exclude_appointment_id: id,
-        }
-      );
+      // Get all appointments for this staff member on the new date (excluding current appointment)
+      const { data: existingAppointments, error: conflictError } = await supabase
+        .from('appointment_bookings')
+        .select('id, start_time, end_time, status')
+        .eq('staff_id', currentAppointment.staff_id)
+        .eq('appointment_date', appointment_date)
+        .neq('status', 'cancelled')
+        .neq('status', 'no_show')
+        .neq('id', id); // Exclude current appointment being updated
 
-      if (!availabilityCheck) {
+      if (conflictError) {
+        console.error('Error checking conflicts for update:', conflictError);
+        return NextResponse.json({ error: 'Error checking availability' }, { status: 500 });
+      }
+
+      // Check for time conflicts manually
+      const conflictingAppointments = existingAppointments?.filter(apt => {
+        // Check if appointments overlap
+        return start_time < apt.end_time && end_time > apt.start_time;
+      }) || [];
+
+      if (conflictingAppointments.length > 0) {
         return NextResponse.json(
           {
             error: 'Selected time slot is not available',
@@ -329,29 +344,11 @@ export async function PUT(request: NextRequest) {
     }
 
     const { data, error } = await supabase
-      .from('appointments')
+      .from('appointment_bookings')
       .update(updateData)
       .eq('id', id)
       .eq('user_id', user_id)
-      .select(
-        `
-        *,
-        customers (
-          id,
-          first_name,
-          last_name,
-          email,
-          phone
-        ),
-        appointment_types (
-          id,
-          name,
-          duration_minutes,
-          price,
-          color_code
-        )
-      `
-      )
+      .select('*')
       .single();
 
     if (error) {
@@ -359,19 +356,27 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // Create appointment history record
-    await supabase.rpc('create_appointment_history', {
-      p_appointment_id: id,
-      p_action: 'updated',
-      p_changed_by: changed_by || user_id,
-      p_change_reason: change_reason || 'Appointment updated',
-    });
-
-    // Update customer statistics if status changed to completed
-    if (status === 'completed' || status === 'no_show') {
-      await supabase.rpc('update_customer_appointment_stats', {
-        p_customer_id: currentAppointment.customer_id,
+    // Optional: Create appointment history record (skip if function doesn't exist)
+    try {
+      await supabase.rpc('create_appointment_history', {
+        p_appointment_id: id,
+        p_action: 'updated',
+        p_changed_by: changed_by || user_id,
+        p_change_reason: change_reason || 'Appointment updated',
       });
+    } catch (historyError) {
+      console.log('History function not available:', historyError);
+    }
+
+    // Optional: Update customer statistics if status changed to completed
+    if (status === 'completed' || status === 'no_show') {
+      try {
+        await supabase.rpc('update_customer_appointment_stats', {
+          p_customer_id: currentAppointment.customer_id,
+        });
+      } catch (statsError) {
+        console.log('Stats function not available:', statsError);
+      }
     }
 
     return NextResponse.json({ appointment: data });
@@ -408,7 +413,7 @@ export async function DELETE(request: NextRequest) {
     if (hard_delete) {
       // Permanently delete the appointment
       const { error } = await supabase
-        .from('appointments')
+        .from('appointment_bookings')
         .delete()
         .eq('id', id)
         .eq('user_id', user_id);
@@ -425,7 +430,7 @@ export async function DELETE(request: NextRequest) {
     } else {
       // Soft delete - mark as cancelled
       const { data, error } = await supabase
-        .from('appointments')
+        .from('appointment_bookings')
         .update({
           status: 'cancelled',
           cancelled_at: new Date().toISOString(),
@@ -443,13 +448,17 @@ export async function DELETE(request: NextRequest) {
         return NextResponse.json({ error: error.message }, { status: 500 });
       }
 
-      // Create appointment history record
-      await supabase.rpc('create_appointment_history', {
-        p_appointment_id: id,
-        p_action: 'cancelled',
-        p_changed_by: cancelled_by || user_id,
-        p_change_reason: cancellation_reason || 'Appointment cancelled',
-      });
+      // Optional: Create appointment history record (skip if function doesn't exist)
+      try {
+        await supabase.rpc('create_appointment_history', {
+          p_appointment_id: id,
+          p_action: 'cancelled',
+          p_changed_by: cancelled_by || user_id,
+          p_change_reason: cancellation_reason || 'Appointment cancelled',
+        });
+      } catch (historyError) {
+        console.log('History function not available:', historyError);
+      }
 
       return NextResponse.json({
         success: true,

@@ -159,6 +159,7 @@ export function StaffCalendarConfiguration({
   const [config, setConfig] = useState<StaffCalendarConfig | null>(null);
   const [jobTypes, setJobTypes] = useState<JobType[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
   const [serviceTypeCode, setServiceTypeCode] = useState<string>('');
   const [activeTab, setActiveTab] = useState<
     'calendar' | 'settings' | 'holidays'
@@ -188,8 +189,10 @@ export function StaffCalendarConfiguration({
   // Appointment booking form state
   const [appointmentForm, setAppointmentForm] = useState({
     job_type_id: '',
-    customer_name: '',
+    customer_first_name: '',
+    customer_last_name: '',
     customer_phone: '',
+    customer_email: '',
     start_time: '',
     end_time: '',
     notes: '',
@@ -435,14 +438,30 @@ export function StaffCalendarConfiguration({
     setSelectedTimeSlot({ hour, dateString });
     
     if (hasAppointment) {
-      // If there's already an appointment, just show the details
+      // If there's already an appointment, open edit modal
+      const currentSlotTime = `${hour.toString().padStart(2, '0')}:00`;
+      const nextSlotTime = `${(hour + 1).toString().padStart(2, '0')}:00`;
       const appointment = appointments.find(apt => 
         apt.appointment_date === dateString && 
-        parseInt(apt.start_time.split(':')[0]) === hour
+        !['cancelled', 'no_show'].includes(apt.status) &&
+        (apt.start_time < nextSlotTime && apt.end_time > currentSlotTime)
       );
       if (appointment) {
-        // Show appointment details (you could expand this)
-        alert(`Appointment: ${appointment.customer_name} - ${appointment.customer_phone}`);
+        // Populate the form with existing appointment data for editing
+        const [firstName, lastName] = (appointment.customer_name || '').split(' ', 2);
+        setAppointmentForm({
+          job_type_id: appointment.service_id || appointment.job_type_id || '',
+          customer_first_name: firstName || '',
+          customer_last_name: lastName || '',
+          customer_phone: appointment.customer_phone || '',
+          customer_email: appointment.customer_email || '',
+          start_time: appointment.start_time,
+          end_time: appointment.end_time,
+          notes: appointment.notes || '',
+        });
+        setSelectedAppointment(appointment);
+        setBookingModalType('appointment');
+        setShowBookingModal(true);
         return;
       }
     }
@@ -509,51 +528,95 @@ export function StaffCalendarConfiguration({
   };
 
   const saveAppointment = async () => {
-    if (!selectedTimeSlot || !appointmentForm.job_type_id || !appointmentForm.customer_name || !appointmentForm.customer_phone) {
-      alert('Please fill in all required fields');
+    console.log('saveAppointment called with:', {
+      selectedTimeSlot,
+      appointmentForm,
+      staffMember: staffMember.id,
+      user: user.id
+    });
+
+    if (!selectedTimeSlot || !appointmentForm.job_type_id || !appointmentForm.customer_first_name || !appointmentForm.customer_last_name || !appointmentForm.customer_phone) {
+      alert('Please fill in all required fields (first name, last name, phone number)');
+      return;
+    }
+
+    if (!appointmentForm.start_time || !appointmentForm.end_time) {
+      alert('Start time and end time must be set');
       return;
     }
 
     try {
       setSaving(true);
       
-      const response = await fetch('/api/appointments', {
-        method: 'POST',
+      // Create appointment directly with customer info (simplified approach)
+      const selectedJobType = jobTypes.find(jt => jt.id === appointmentForm.job_type_id);
+      const appointmentData = {
+        user_id: user.id,
+        staff_id: staffMember.id,
+        appointment_type_id: appointmentForm.job_type_id,
+        appointment_date: selectedTimeSlot.dateString,
+        start_time: appointmentForm.start_time,
+        end_time: appointmentForm.end_time,
+        duration_minutes: selectedJobType?.default_duration_minutes || selectedJobType?.duration || 60,
+        title: `${selectedJobType?.job_name || selectedJobType?.name || 'Appointment'} - ${appointmentForm.customer_first_name} ${appointmentForm.customer_last_name}`,
+        notes: appointmentForm.notes || '',
+        booking_source: 'manual',
+        // Customer info
+        customer_first_name: appointmentForm.customer_first_name,
+        customer_last_name: appointmentForm.customer_last_name,
+        customer_phone: appointmentForm.customer_phone,
+        customer_email: appointmentForm.customer_email || null,
+      };
+
+      console.log('Sending appointment data:', appointmentData);
+      console.log('selectedTimeSlot:', selectedTimeSlot);
+      console.log('appointmentForm:', appointmentForm);
+      console.log('Staff ID:', staffMember.id);
+      console.log('Appointment Date:', selectedTimeSlot.dateString);
+      console.log('Start Time:', appointmentForm.start_time);
+      console.log('End Time:', appointmentForm.end_time);
+
+      const isEditing = selectedAppointment !== null;
+      const method = isEditing ? 'PUT' : 'POST';
+      const url = '/api/appointments';
+      
+      if (isEditing) {
+        appointmentData.id = selectedAppointment.id;
+      }
+
+      const response = await fetch(url, {
+        method: method,
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          staff_id: staffMember.id,
-          user_id: user.id,
-          job_type_id: appointmentForm.job_type_id,
-          customer_name: appointmentForm.customer_name,
-          customer_phone: appointmentForm.customer_phone,
-          appointment_date: selectedTimeSlot.dateString,
-          start_time: appointmentForm.start_time,
-          end_time: appointmentForm.end_time,
-          status: 'scheduled',
-          notes: appointmentForm.notes,
-        }),
+        body: JSON.stringify(appointmentData),
       });
 
       if (response.ok) {
         await loadAppointments();
-        setShowBookingModal(false);
+        setBookingModalType('availability');
+        setSelectedAppointment(null);
         setAppointmentForm({
           job_type_id: '',
-          customer_name: '',
+          customer_first_name: '',
+          customer_last_name: '',
           customer_phone: '',
+          customer_email: '',
           start_time: '',
           end_time: '',
           notes: '',
         });
+        alert(isEditing ? 'Appointment updated successfully!' : 'Appointment booked successfully!');
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to save appointment');
+        console.error('Appointment creation failed:', errorData);
+        console.error('Response status:', response.status);
+        console.error('Response headers:', Object.fromEntries(response.headers.entries()));
+        throw new Error(errorData.error || 'Failed to save appointment');
       }
     } catch (error) {
       console.error('Failed to save appointment:', error);
-      alert('Failed to save appointment');
+      alert('Failed to save appointment: ' + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
       setSaving(false);
     }
@@ -956,12 +1019,15 @@ export function StaffCalendarConfiguration({
       const timeString = `${hour.toString().padStart(2, '0')}:00`;
       const isBusinessHour = hour >= 9 && hour <= 17;
       
-      // Check for appointments at this time
+      // Check for appointments at this time (improved to handle custom durations)
+      const currentSlotTime = `${hour.toString().padStart(2, '0')}:00`;
+      const nextSlotTime = `${(hour + 1).toString().padStart(2, '0')}:00`;
+      
       const appointment = appointments.find(apt => 
         apt.appointment_date === dateString && 
-        parseInt(apt.start_time.split(':')[0]) <= hour &&
-        parseInt(apt.end_time.split(':')[0]) > hour &&
-        apt.status === 'scheduled'
+        !['cancelled', 'no_show'].includes(apt.status) &&
+        // Check if appointment overlaps with this hour slot
+        (apt.start_time < nextSlotTime && apt.end_time > currentSlotTime)
       );
       
       const hasAppointment = !!appointment;
@@ -1198,91 +1264,101 @@ export function StaffCalendarConfiguration({
       day: 'numeric' 
     });
 
-    // Generate hourly time slots
-    const timeSlots = [];
-    const startHour = 0;
-    const endHour = 23;
-
-    for (let hour = startHour; hour <= endHour; hour++) {
-      const timeString = `${hour.toString().padStart(2, '0')}:00`;
-      const isBusinessHour = hour >= 9 && hour <= 17; // Default business hours
+    // Outlook-style day calendar
+    const renderOutlookDayCalendar = () => {
+      const hours = [];
       
-      // Check for appointments at this time
-      const appointment = appointments.find(apt => 
+      // Helper function to convert time string to minutes from midnight
+      const timeToMinutes = (timeStr: string): number => {
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        return hours * 60 + minutes;
+      };
+
+      // Helper function to convert minutes to pixels (1 hour = 60px)
+      const minutesToPixels = (minutes: number): number => {
+        return (minutes / 60) * 60;
+      };
+
+      // Get appointments for this day
+      const dayAppointments = appointments.filter(apt => 
         apt.appointment_date === dateString && 
-        parseInt(apt.start_time.split(':')[0]) <= hour &&
-        parseInt(apt.end_time.split(':')[0]) > hour &&
-        apt.status === 'scheduled'
+        !['cancelled', 'no_show'].includes(apt.status)
       );
-      
-      const hasAppointment = !!appointment;
-      
-      // Check for custom availability override
-      const hasAvailability = dayAvailability && 
-        dayAvailability.is_available && 
-        dayAvailability.start_time && 
-        dayAvailability.end_time;
-      
-      let isAvailable = false;
-      if (hasAppointment) {
-        isAvailable = false; // Appointments make slots unavailable
-      } else if (hasAvailability) {
-        const startTime = parseInt(dayAvailability.start_time.split(':')[0]);
-        const endTime = parseInt(dayAvailability.end_time.split(':')[0]);
-        isAvailable = hour >= startTime && hour < endTime;
-      } else {
-        // Business hours are available by default
-        isAvailable = isBusinessHour;
-      }
 
-      timeSlots.push(
-        <div
-          key={hour}
-          className={`
-            flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors hover:ring-2 hover:ring-blue-200
-            ${hasAppointment ? 'bg-gray-200 border-gray-400 opacity-75' : 
-              isAvailable ? 'bg-green-50 border-green-200 hover:bg-green-100' : 
-              isBusinessHour ? 'bg-gray-50 border-gray-200 hover:bg-gray-100' : 
-              'bg-gray-100 border-gray-300 hover:bg-gray-200'}
-          `}
-          onClick={() => handleTimeSlotClick(hour, dateString, isAvailable, hasAppointment)}
-        >
-          <div className="w-16 text-sm font-mono text-gray-600">
-            {timeString}
-          </div>
-          <div className="flex-1">
-            {hasAppointment ? (
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                <span className="text-red-700 text-sm font-medium">
-                  {appointment?.customer_name} - {
-                    (() => {
-                      const jobType = jobTypes.find(j => j.id === (appointment?.job_type_id || appointment?.service_id));
-                      return jobType?.job_name || jobType?.job_type || jobType?.service_name || jobType?.name || jobType?.title || 'Unknown Job';
-                    })()
+      // Generate hour rows
+      for (let hour = 6; hour <= 22; hour++) { // Show 6 AM to 10 PM like Outlook
+        const timeString = `${hour.toString().padStart(2, '0')}:00`;
+        const isBusinessHour = hour >= 9 && hour <= 17;
+        
+        hours.push(
+          <div key={hour} className="relative">
+            {/* Hour row */}
+            <div className="flex border-b border-gray-200">
+              {/* Time column */}
+              <div className="w-20 pr-3 text-right text-sm text-gray-600 font-mono py-2">
+                {hour === 0 ? '12:00 AM' : hour === 12 ? '12:00 PM' : hour > 12 ? `${hour - 12}:00 PM` : `${hour}:00 AM`}
+              </div>
+              
+              {/* Calendar column */}
+              <div 
+                className={`flex-1 relative min-h-[60px] ${isBusinessHour ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50 cursor-pointer border-r border-gray-200`}
+                onClick={() => handleTimeSlotClick(hour, dateString, isBusinessHour, false)}
+              >
+                {/* Half-hour line */}
+                <div className="absolute top-[30px] left-0 right-0 h-px bg-gray-100"></div>
+                
+                {/* Appointment blocks positioned absolutely */}
+                {dayAppointments.map((appointment, idx) => {
+                  const startMinutes = timeToMinutes(appointment.start_time);
+                  const endMinutes = timeToMinutes(appointment.end_time);
+                  const hourStartMinutes = hour * 60;
+                  const hourEndMinutes = (hour + 1) * 60;
+                  
+                  // Check if appointment overlaps with this hour
+                  if (startMinutes < hourEndMinutes && endMinutes > hourStartMinutes) {
+                    const blockStart = Math.max(startMinutes, hourStartMinutes);
+                    const blockEnd = Math.min(endMinutes, hourEndMinutes);
+                    const topOffset = ((blockStart - hourStartMinutes) / 60) * 60;
+                    const height = ((blockEnd - blockStart) / 60) * 60;
+                    
+                    const jobType = jobTypes.find(j => j.id === (appointment?.job_type_id || appointment?.service_id));
+                    const jobName = jobType?.job_name || jobType?.job_type || jobType?.service_name || jobType?.name || jobType?.title || 'Appointment';
+                    
+                    return (
+                      <div
+                        key={`${appointment.id}-${hour}`}
+                        className="absolute left-1 right-1 bg-blue-600 text-white rounded px-2 py-1 text-sm shadow-sm hover:bg-blue-700 cursor-pointer z-10 border border-blue-700"
+                        style={{
+                          top: `${topOffset}px`,
+                          height: `${Math.max(height, 20)}px`, // Minimum height for visibility
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleTimeSlotClick(hour, dateString, false, true);
+                        }}
+                      >
+                        <div className="text-xs font-semibold truncate">
+                          {appointment.customer_name}
+                        </div>
+                        <div className="text-xs opacity-90 truncate">
+                          {jobName}
+                        </div>
+                        <div className="text-xs opacity-75">
+                          {appointment.start_time} - {appointment.end_time}
+                        </div>
+                      </div>
+                    );
                   }
-                </span>
+                  return null;
+                })}
               </div>
-            ) : isAvailable ? (
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-green-700 text-sm">Available</span>
-              </div>
-            ) : isBusinessHour ? (
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                <span className="text-gray-600 text-sm">Business Hours</span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-                <span className="text-gray-500 text-sm">After Hours</span>
-              </div>
-            )}
+            </div>
           </div>
-        </div>
-      );
-    }
+        );
+      }
+      
+      return hours;
+    };
 
     return (
       <div className="space-y-6">
@@ -1292,7 +1368,7 @@ export function StaffCalendarConfiguration({
               <div>
                 <CardTitle className="flex items-center gap-2">
                   <CalendarIcon className="h-5 w-5" />
-                  Daily View: {staffMember.first_name} {staffMember.last_name}
+                  Daily Calendar: {staffMember.first_name} {staffMember.last_name}
                 </CardTitle>
                 <CardDescription>
                   {dayName} - {staffMember.title}
@@ -1367,9 +1443,21 @@ export function StaffCalendarConfiguration({
         </Card>
 
         <Card>
-          <CardContent className="p-6">
-            <div className="space-y-2 max-h-96 overflow-y-auto">
-              {timeSlots}
+          <CardContent className="p-0">
+            {/* Outlook-style day calendar */}
+            <div className="border border-gray-200 rounded-lg overflow-hidden">
+              {/* All-day header */}
+              <div className="flex border-b border-gray-300 bg-gray-50">
+                <div className="w-20 text-right text-sm font-medium text-gray-700 py-2 pr-3">
+                  All day
+                </div>
+                <div className="flex-1 min-h-[40px] bg-gray-100 border-r border-gray-200"></div>
+              </div>
+              
+              {/* Hour slots */}
+              <div className="max-h-[600px] overflow-y-auto">
+                {renderOutlookDayCalendar()}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -1663,10 +1751,13 @@ export function StaffCalendarConfiguration({
     return (
       <Dialog open={bookingModalType === 'appointment'} onOpenChange={() => {
         setBookingModalType('availability');
+        setSelectedAppointment(null);
         setAppointmentForm({
           job_type_id: '',
-          customer_name: '',
+          customer_first_name: '',
+          customer_last_name: '',
           customer_phone: '',
+          customer_email: '',
           start_time: '',
           end_time: '',
           notes: '',
@@ -1676,7 +1767,7 @@ export function StaffCalendarConfiguration({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CalendarIcon className="h-5 w-5" />
-              Book Appointment
+              {selectedAppointment ? 'Edit Appointment' : 'Book Appointment'}
             </DialogTitle>
             <DialogDescription>
               {selectedDateObj.toLocaleDateString('en-US', { 
@@ -1757,19 +1848,31 @@ export function StaffCalendarConfiguration({
             </div>
 
             {/* Customer Information */}
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="customer-name">Customer Name *</Label>
+                <Label htmlFor="customer-first-name">First Name *</Label>
                 <Input
-                  id="customer-name"
-                  value={appointmentForm.customer_name}
+                  id="customer-first-name"
+                  value={appointmentForm.customer_first_name}
                   onChange={(e) =>
-                    setAppointmentForm(prev => ({ ...prev, customer_name: e.target.value }))
+                    setAppointmentForm(prev => ({ ...prev, customer_first_name: e.target.value }))
                   }
-                  placeholder="Enter customer name"
+                  placeholder="First name"
                 />
               </div>
               
+              <div>
+                <Label htmlFor="customer-last-name">Last Name *</Label>
+                <Input
+                  id="customer-last-name"
+                  value={appointmentForm.customer_last_name}
+                  onChange={(e) =>
+                    setAppointmentForm(prev => ({ ...prev, customer_last_name: e.target.value }))
+                  }
+                  placeholder="Last name"
+                />
+              </div>
+
               <div>
                 <Label htmlFor="customer-phone">Phone Number *</Label>
                 <Input
@@ -1780,6 +1883,19 @@ export function StaffCalendarConfiguration({
                     setAppointmentForm(prev => ({ ...prev, customer_phone: e.target.value }))
                   }
                   placeholder="(555) 123-4567"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="customer-email">Email Address</Label>
+                <Input
+                  id="customer-email"
+                  type="email"
+                  value={appointmentForm.customer_email}
+                  onChange={(e) =>
+                    setAppointmentForm(prev => ({ ...prev, customer_email: e.target.value }))
+                  }
+                  placeholder="email@example.com (optional)"
                 />
               </div>
             </div>
@@ -1830,30 +1946,78 @@ export function StaffCalendarConfiguration({
             </div>
 
             {/* Action Buttons */}
-            <div className="flex justify-end gap-2 pt-4">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setBookingModalType('availability');
-                  setAppointmentForm({
-                    job_type_id: '',
-                    customer_name: '',
-                    customer_phone: '',
-                    start_time: '',
-                    end_time: '',
-                    notes: '',
-                  });
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={saveAppointment}
-                disabled={saving || !appointmentForm.job_type_id || !appointmentForm.customer_name || !appointmentForm.customer_phone}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                {saving ? 'Booking...' : 'Book Appointment'}
-              </Button>
+            <div className="flex justify-between pt-4">
+              <div>
+                {selectedAppointment && (
+                  <Button
+                    variant="destructive"
+                    onClick={async () => {
+                      if (confirm('Are you sure you want to delete this appointment?')) {
+                        try {
+                          setSaving(true);
+                          const response = await fetch(`/api/appointments?id=${selectedAppointment.id}&user_id=${user.id}`, {
+                            method: 'DELETE',
+                          });
+                          if (response.ok) {
+                            await loadAppointments();
+                            setBookingModalType('availability');
+                            setSelectedAppointment(null);
+                            setAppointmentForm({
+                              job_type_id: '',
+                              customer_first_name: '',
+                              customer_last_name: '',
+                              customer_phone: '',
+                              customer_email: '',
+                              start_time: '',
+                              end_time: '',
+                              notes: '',
+                            });
+                            alert('Appointment deleted successfully!');
+                          } else {
+                            const errorData = await response.json();
+                            alert('Failed to delete appointment: ' + (errorData.error || 'Unknown error'));
+                          }
+                        } catch (error) {
+                          alert('Failed to delete appointment: ' + (error instanceof Error ? error.message : 'Unknown error'));
+                        } finally {
+                          setSaving(false);
+                        }
+                      }
+                    }}
+                    disabled={saving}
+                  >
+                    Delete
+                  </Button>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setBookingModalType('availability');
+                    setSelectedAppointment(null);
+                    setAppointmentForm({
+                      job_type_id: '',
+                      customer_first_name: '',
+                      customer_last_name: '',
+                      customer_phone: '',
+                      customer_email: '',
+                      start_time: '',
+                      end_time: '',
+                      notes: '',
+                    });
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={saveAppointment}
+                  disabled={saving || !appointmentForm.job_type_id || !appointmentForm.customer_first_name || !appointmentForm.customer_last_name || !appointmentForm.customer_phone}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  {saving ? (selectedAppointment ? 'Updating...' : 'Booking...') : (selectedAppointment ? 'Update Appointment' : 'Book Appointment')}
+                </Button>
+              </div>
             </div>
           </div>
         </DialogContent>
