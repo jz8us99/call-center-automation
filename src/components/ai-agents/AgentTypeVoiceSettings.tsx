@@ -817,8 +817,8 @@ export function AgentTypeVoiceSettings({
                 </label>
                 <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-700">
                   Hello! Thank you for calling{' '}
-                  {businessInfo?.business_name || '[Your Business]'}. I'm your
-                  AI assistant, and I'm here to help you today. How can I assist
+                  {businessInfo?.business_name || '[Your Business]'}. I&apos;m your
+                  AI assistant, and I&apos;m here to help you today. How can I assist
                   you?
                 </div>
               </div>

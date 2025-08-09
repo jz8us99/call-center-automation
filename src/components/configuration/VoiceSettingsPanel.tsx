@@ -412,10 +412,10 @@ export function VoiceSettingsPanel({
               Sample Script:
             </p>
             <p className="text-sm text-gray-600 italic">
-              "Hello! Thank you for calling Sunshine Medical Clinic. I'm your AI
-              assistant, and I'm here to help you today. I can assist you with
+              &quot;Hello! Thank you for calling Sunshine Medical Clinic. I&apos;m your AI
+              assistant, and I&apos;m here to help you today. I can assist you with
               scheduling appointments, providing information about our services,
-              or connecting you with our staff. How may I help you today?"
+              or connecting you with our staff. How may I help you today?&quot;
             </p>
           </div>
 
