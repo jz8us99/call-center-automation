@@ -329,7 +329,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Build update object
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
     };
 

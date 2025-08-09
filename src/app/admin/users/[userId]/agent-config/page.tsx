@@ -47,7 +47,7 @@ export default function AdminUserAgentConfig() {
   const router = useRouter();
   const params = useParams();
   const userId = params.userId as string;
-  const { profile, loading: profileLoading, isAdmin } = useUserProfile(user);
+  const { loading: profileLoading, isAdmin } = useUserProfile(user);
 
   useEffect(() => {
     const getUser = async () => {

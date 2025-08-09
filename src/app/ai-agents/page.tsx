@@ -20,7 +20,6 @@ import {
   SupportedLanguage,
   AIAgent,
   AgentDashboardData,
-  CreateAgentRequest,
   DuplicateAgentRequest,
 } from '@/types/ai-agent-types';
 
@@ -44,7 +43,7 @@ export default function AIAgentsPage() {
   const [error, setError] = useState<string | null>(null);
 
   const router = useRouter();
-  const { profile, loading: profileLoading } = useUserProfile(user);
+  const { loading: profileLoading } = useUserProfile(user);
 
   // Authentication effect
   useEffect(() => {

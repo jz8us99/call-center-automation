@@ -19,7 +19,7 @@ interface PricingTier {
 }
 
 // GET /api/admin/pricing - Fetch all pricing tiers
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Get the authenticated user
     const {
