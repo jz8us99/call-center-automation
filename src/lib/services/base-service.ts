@@ -211,12 +211,10 @@ export abstract class BaseBusinessService {
  * 简化实现，直接修改类的原型
  */
 export function ServiceCapabilities(capabilities: IServiceCapabilities) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return function <T extends new (...args: any[]) => BaseBusinessService>(
     constructor: T
   ): T {
     // 存储能力到类的元数据中
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (constructor as any)._serviceCapabilities = capabilities;
 
     // 返回原构造函数
@@ -230,7 +228,6 @@ export function ServiceCapabilities(capabilities: IServiceCapabilities) {
 export function getServiceCapabilities(
   constructor: new () => BaseBusinessService
 ): IServiceCapabilities | undefined {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (constructor as any)._serviceCapabilities;
 }
 

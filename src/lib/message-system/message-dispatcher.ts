@@ -386,7 +386,6 @@ export class MessageDispatcher {
   /**
    * 从消息中提取用户类型
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private extractUserType<T extends MessageData>(_data: T): string | null {
     // 可以根据 userId 查询用户类型，这里简化处理
     return null;
