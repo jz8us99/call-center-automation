@@ -1,8 +1,8 @@
-# ReceptionPro - Complete Navigation Guide
+# JSX-ReceptionAI - Complete Navigation Guide
 
 ## 🏠 **Getting Started - How to Navigate Through Different Screens**
 
-This guide will help you navigate through all the different screens and features in ReceptionPro, your AI-powered call center automation system.
+This guide will help you navigate through all the different screens and features in JSX-ReceptionAI, your AI-powered call center automation system.
 
 ---
 
@@ -14,7 +14,7 @@ This guide will help you navigate through all the different screens and features
 **Navigation Options**:
 - **Sign In** → Takes you to the authentication page
 - **Sign Up** → Takes you to the registration page  
-- **ReceptionPro Logo** → Always returns to home page
+- **JSX-ReceptionAI Logo** → Always returns to home page
 - **Dashboard/Admin Panel** (if logged in) → Quick access from user menu
 
 **Help Available**: Click the "Help" button in bottom-right corner for page-specific guidance
@@ -26,7 +26,7 @@ This guide will help you navigate through all the different screens and features
 
 **Navigation Options**:
 - **Home** button (top-right) → Return to main landing page
-- **ReceptionPro Logo** → Return to home page
+- **JSX-ReceptionAI Logo** → Return to home page
 - **Sign up** link → Go to registration page
 - **Forgot Password?** → Opens password reset modal
 
@@ -49,7 +49,7 @@ This guide will help you navigate through all the different screens and features
 **Navigation Options**:
 - **Home** button → Return to main landing page
 - **Configuration** button → Go to AI agent setup
-- **ReceptionPro Logo** → Return to home page
+- **JSX-ReceptionAI Logo** → Return to home page
 - **Sign out** → Log out and return to home
 
 **Key Features**:
@@ -93,7 +93,7 @@ This guide will help you navigate through all the different screens and features
 ## 🎯 **Quick Navigation Tips**
 
 ### **Universal Navigation Elements**
-- **ReceptionPro Logo** - Always clickable, returns to home page
+- **JSX-ReceptionAI Logo** - Always clickable, returns to home page
 - **Home Button** (🏠) - Available on all authenticated pages
 - **Help Button** - Available on all pages (bottom-right corner)
 
@@ -171,7 +171,7 @@ This guide will help you navigate through all the different screens and features
 - Try a different browser if issues persist
 
 **❓ "I'm lost and don't know where I am"**
-- Click the ReceptionPro logo to return to home page
+- Click the JSX-ReceptionAI logo to return to home page
 - Use the "Home" button available on all authenticated pages
 - Click "Help" button for page-specific guidance
 

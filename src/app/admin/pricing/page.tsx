@@ -486,7 +486,7 @@ export default function AdminPricingConfig() {
                 <span className="text-white text-xl font-bold">R</span>
               </div>
               <span className="text-xl font-bold text-black dark:text-white">
-                ReceptionPro
+                JSX-ReceptionAI
               </span>
               <span className="text-sm bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
                 Admin - Pricing

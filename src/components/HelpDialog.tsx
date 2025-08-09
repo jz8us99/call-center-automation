@@ -30,7 +30,7 @@ export function HelpDialog({ currentPage = 'home' }: HelpDialogProps) {
   const navigationGuides = {
     home: {
       title: 'Home Page Navigation',
-      description: 'Welcome to ReceptionPro - Your AI Call Center Assistant',
+      description: 'Welcome to JSX-ReceptionAI - Your AI Call Center Assistant',
       sections: [
         {
           title: 'Getting Started',
@@ -282,7 +282,7 @@ export function HelpDialog({ currentPage = 'home' }: HelpDialogProps) {
                       <li>
                         • Home button available on all authenticated pages
                       </li>
-                      <li>• Click the ReceptionPro logo to return home</li>
+                      <li>• Click the JSX-ReceptionAI logo to return home</li>
                       <li>• Use browser back button for previous page</li>
                     </ul>
                   </div>

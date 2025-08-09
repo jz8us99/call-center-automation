@@ -32,7 +32,7 @@ export default function HomePage() {
               <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
                 <span className="text-white text-xl font-bold">R</span>
               </div>
-              <span className="text-xl font-bold text-black">ReceptionPro</span>
+              <span className="text-xl font-bold text-black">JSX-ReceptionAI</span>
             </div>
 
             <nav className="hidden md:flex items-center space-x-8">
@@ -122,14 +122,14 @@ export default function HomePage() {
               <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold">R</span>
               </div>
-              <span className="text-xl font-bold text-black">ReceptionPro</span>
+              <span className="text-xl font-bold text-black">JSX-ReceptionAI</span>
             </div>
             <p className="text-black mb-6">
               Never miss another customer with our professional receptionist
               services.
             </p>
             <p className="text-gray-500 text-sm">
-              © 2024 ReceptionPro. All rights reserved.
+              © 2024 JSX-ReceptionAI. All rights reserved.
             </p>
           </div>
         </div>

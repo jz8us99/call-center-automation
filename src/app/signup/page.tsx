@@ -122,7 +122,7 @@ export default function SignUpPage() {
                 <span className="text-white text-xl font-bold">R</span>
               </div>
               <h1 className="text-2xl font-bold text-black dark:text-white mb-2">
-                ReceptionPro
+                JSX-ReceptionAI
               </h1>
             </Link>
             <p className="text-black dark:text-gray-300 text-sm">

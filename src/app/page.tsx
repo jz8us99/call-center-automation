@@ -91,22 +91,22 @@ export default function HomePage() {
   const testimonials = [
     {
       avatar: '/api/placeholder/60/60',
-      name: 'Sarah Johnson',
-      company: 'Johnson & Associates Law',
+      name: 'Smith Cooper',
+      company: 'Smith test law',
       rating: 5,
       text: 'The AI receptionist has transformed our practice. We never miss a call and clients love the professional service.',
     },
     {
       avatar: '/api/placeholder/60/60',
-      name: 'Michael Chen',
-      company: 'Elite Home Services',
+      name: 'Jenny Backer',
+      company: 'Test user',
       rating: 5,
       text: 'Our booking rate increased by 40% since using the service. The ROI is incredible.',
     },
     {
       avatar: '/api/placeholder/60/60',
-      name: 'Emma Rodriguez',
-      company: 'Bella Spa & Wellness',
+      name: 'Amy Brown',
+      company: 'Bella test spa',
       rating: 5,
       text: 'Professional, reliable, and cost-effective. Our clients love the consistent, high-quality service.',
     },
@@ -132,7 +132,7 @@ export default function HomePage() {
                 <span className="text-white text-xl font-bold">R</span>
               </div>
               <span className="text-xl font-bold text-black dark:text-white">
-                ReceptionPro
+                JSX-ReceptionAI
               </span>
             </div>
 
@@ -522,7 +522,7 @@ export default function HomePage() {
                   <span className="text-white font-bold">R</span>
                 </div>
                 <span className="text-xl font-bold text-black dark:text-white">
-                  ReceptionPro
+                  JSX-ReceptionAI
                 </span>
               </div>
               <p className="text-black dark:text-gray-300 mb-6">
@@ -673,7 +673,7 @@ export default function HomePage() {
           <div className="border-t border-gray-200 dark:border-gray-700 pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center">
               <p className="text-gray-500 dark:text-gray-400 text-sm mb-4 md:mb-0">
-                © 2024 ReceptionPro. All rights reserved.
+                © 2024 JSX-ReceptionAI. All rights reserved.
               </p>
               <div className="flex space-x-6 text-sm">
                 <a

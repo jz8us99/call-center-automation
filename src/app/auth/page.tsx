@@ -168,7 +168,7 @@ export default function AuthPage() {
                   <span className="text-white text-xl font-bold">R</span>
                 </div>
                 <span className="text-xl font-bold text-black dark:text-white">
-                  ReceptionPro
+                  JSX-ReceptionAI
                 </span>
               </Link>
               <Link

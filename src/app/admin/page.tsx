@@ -88,7 +88,7 @@ export default function AdminPage() {
                 <span className="text-white text-xl font-bold">R</span>
               </div>
               <span className="text-xl font-bold text-gray-900 dark:text-white">
-                ReceptionPro
+                JSX-ReceptionAI
               </span>
               <span className="text-sm bg-red-100 text-red-700 px-2 py-1 rounded-full">
                 Admin
@@ -133,7 +133,7 @@ export default function AdminPage() {
               Admin Control Panel
             </h1>
             <p className="text-gray-600 dark:text-gray-300">
-              Manage your ReceptionPro system from here.
+              Manage your JSX-ReceptionAI system from here.
             </p>
           </div>
 

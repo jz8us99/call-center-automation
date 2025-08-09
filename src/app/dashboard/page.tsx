@@ -251,7 +251,7 @@ export default function UserDashboard() {
                 <span className="text-white text-xl font-bold">R</span>
               </div>
               <span className="text-xl font-bold text-black dark:text-white">
-                ReceptionPro
+                JSX-ReceptionAI
               </span>
               <span className="text-sm bg-orange-100 text-orange-700 px-2 py-1 rounded-full">
                 Dashboard
