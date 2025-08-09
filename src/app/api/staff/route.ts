@@ -21,12 +21,12 @@ export async function GET(request: NextRequest) {
       .select('*')
       .eq('user_id', userId)
       .eq('is_active', true);
-    
+
     // If staff_id is provided, filter for specific staff member
     if (staffId) {
       query = query.eq('id', staffId);
     }
-    
+
     query = query.order('created_at', { ascending: true });
 
     const { data: staff, error } = await query;

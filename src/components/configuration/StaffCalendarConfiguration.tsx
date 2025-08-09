@@ -149,12 +149,19 @@ export function StaffCalendarConfiguration({
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [showCalendarView, setShowCalendarView] = useState(false);
   const [calendarViewDate, setCalendarViewDate] = useState(new Date());
-  const [calendarViewMode, setCalendarViewMode] = useState<'yearly' | 'monthly' | 'daily'>('monthly');
+  const [calendarViewMode, setCalendarViewMode] = useState<
+    'yearly' | 'monthly' | 'daily'
+  >('monthly');
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [showDayDetail, setShowDayDetail] = useState(false);
   const [showBookingModal, setShowBookingModal] = useState(false);
-  const [bookingModalType, setBookingModalType] = useState<'availability' | 'appointment'>('availability');
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState<{hour: number, dateString: string} | null>(null);
+  const [bookingModalType, setBookingModalType] = useState<
+    'availability' | 'appointment'
+  >('availability');
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<{
+    hour: number;
+    dateString: string;
+  } | null>(null);
   const [dayAvailability, setDayAvailability] = useState<any>(null);
   const [calendars, setCalendars] = useState<StaffCalendar[]>([]);
   const [holidays, setHolidays] = useState<BusinessHoliday[]>([]);
@@ -243,16 +250,16 @@ export function StaffCalendarConfiguration({
     try {
       // First load business profile to get service_type_code
       await loadBusinessProfile();
-      
+
       // Then load other data (job types depends on service_type_code being set)
       await Promise.all([
-        loadStaffCalendars(), 
-        loadHolidays(), 
+        loadStaffCalendars(),
+        loadHolidays(),
         loadConfig(),
         loadAppointments(),
-        loadOfficeHours()
+        loadOfficeHours(),
       ]);
-      
+
       // Load job types after service type code is available
       await loadJobTypes();
     } catch (error) {
@@ -270,13 +277,19 @@ export function StaffCalendarConfiguration({
         const data = await response.json();
         console.log('Business profile data:', data);
         if (data.profile?.business_type) {
-          console.log('Setting service type code to:', data.profile.business_type);
+          console.log(
+            'Setting service type code to:',
+            data.profile.business_type
+          );
           setServiceTypeCode(data.profile.business_type);
         } else {
           console.log('No business type found in profile data');
         }
       } else {
-        console.log('Business profile request failed with status:', response.status);
+        console.log(
+          'Business profile request failed with status:',
+          response.status
+        );
       }
     } catch (error) {
       console.error('Failed to load business profile:', error);
@@ -302,17 +315,26 @@ export function StaffCalendarConfiguration({
     }
 
     if (!serviceTypeCode) {
-      console.log('No service type code available, current value:', serviceTypeCode, 'skipping job types loading');
+      console.log(
+        'No service type code available, current value:',
+        serviceTypeCode,
+        'skipping job types loading'
+      );
       return;
     }
-    
-    console.log('Loading job types with service_type_code:', serviceTypeCode, 'and user_id:', user.id);
+
+    console.log(
+      'Loading job types with service_type_code:',
+      serviceTypeCode,
+      'and user_id:',
+      user.id
+    );
     try {
       const url = `/api/job-types?service_type_code=${serviceTypeCode}&user_id=${user.id}`;
       console.log('Making request to:', url);
       const response = await fetch(url);
       console.log('Response status:', response.status);
-      
+
       if (response.ok) {
         const data = await response.json();
         console.log('Loaded job types raw data:', data); // Debug log
@@ -339,31 +361,35 @@ export function StaffCalendarConfiguration({
   const calculateEndTime = (startTime: string, jobTypeId: string): string => {
     if (!startTime) return '10:00'; // Default fallback
     if (!jobTypeId) return startTime; // If no job type selected, return start time
-    
+
     const jobType = jobTypes.find(j => j.id === jobTypeId);
-    const durationMinutes = jobType ? (jobType.default_duration_minutes || jobType.duration || 60) : 60;
-    
+    const durationMinutes = jobType
+      ? jobType.default_duration_minutes || jobType.duration || 60
+      : 60;
+
     try {
       // Parse start time
       const [startHour, startMinute] = startTime.split(':').map(Number);
-      
+
       // Validate parsed values
       if (isNaN(startHour) || isNaN(startMinute)) {
         console.warn('Invalid start time format:', startTime);
         return '10:00';
       }
-      
+
       // Calculate end time in minutes
       const totalMinutes = startHour * 60 + startMinute + durationMinutes;
       const endHour = Math.floor(totalMinutes / 60);
       const endMinute = totalMinutes % 60;
-      
+
       // Ensure we don't go past 23:59
       if (endHour >= 24) {
-        console.warn('Calculated end time extends past midnight, capping at 23:59');
+        console.warn(
+          'Calculated end time extends past midnight, capping at 23:59'
+        );
         return '23:59';
       }
-      
+
       return `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`;
     } catch (error) {
       console.error('Error calculating end time:', error);
@@ -373,7 +399,9 @@ export function StaffCalendarConfiguration({
 
   const loadAppointments = async () => {
     try {
-      const response = await fetch(`/api/appointments?user_id=${user.id}&staff_id=${staffMember.id}`);
+      const response = await fetch(
+        `/api/appointments?user_id=${user.id}&staff_id=${staffMember.id}`
+      );
       if (response.ok) {
         const data = await response.json();
         setAppointments(data.appointments || []);
@@ -445,26 +473,36 @@ export function StaffCalendarConfiguration({
     setSelectedDate(dateString);
     setCalendarViewDate(new Date(dateString + 'T00:00:00'));
     setCalendarViewMode('daily');
-    
+
     // Load availability for this specific day
     await loadDayAvailability(dateString);
   };
 
-  const handleTimeSlotClick = (hour: number, dateString: string, isAvailable: boolean, hasAppointment: boolean) => {
+  const handleTimeSlotClick = (
+    hour: number,
+    dateString: string,
+    isAvailable: boolean,
+    hasAppointment: boolean
+  ) => {
     setSelectedTimeSlot({ hour, dateString });
-    
+
     if (hasAppointment) {
       // If there's already an appointment, open edit modal
       const currentSlotTime = `${hour.toString().padStart(2, '0')}:00`;
       const nextSlotTime = `${(hour + 1).toString().padStart(2, '0')}:00`;
-      const appointment = appointments.find(apt => 
-        apt.appointment_date === dateString && 
-        !['cancelled', 'no_show'].includes(apt.status) &&
-        (apt.start_time < nextSlotTime && apt.end_time > currentSlotTime)
+      const appointment = appointments.find(
+        apt =>
+          apt.appointment_date === dateString &&
+          !['cancelled', 'no_show'].includes(apt.status) &&
+          apt.start_time < nextSlotTime &&
+          apt.end_time > currentSlotTime
       );
       if (appointment) {
         // Populate the form with existing appointment data for editing
-        const [firstName, lastName] = (appointment.customer_name || '').split(' ', 2);
+        const [firstName, lastName] = (appointment.customer_name || '').split(
+          ' ',
+          2
+        );
         setAppointmentForm({
           job_type_id: appointment.service_id || appointment.job_type_id || '',
           customer_first_name: firstName || '',
@@ -481,7 +519,7 @@ export function StaffCalendarConfiguration({
         return;
       }
     }
-    
+
     // Show booking options modal
     setShowBookingModal(true);
   };
@@ -491,20 +529,22 @@ export function StaffCalendarConfiguration({
       const response = await fetch(
         `/api/staff-availability?staff_id=${staffMember.id}&user_id=${user.id}&start_date=${dateString}&end_date=${dateString}`
       );
-      
+
       if (response.ok) {
         const data = await response.json();
-        setDayAvailability(data.availability?.[0] || {
-          availability_date: dateString,
-          staff_id: staffMember.id,
-          user_id: user.id,
-          is_available: true,
-          start_time: config?.default_start_time || '09:00',
-          end_time: config?.default_end_time || '17:00',
-          is_override: false,
-          reason: '',
-          notes: ''
-        });
+        setDayAvailability(
+          data.availability?.[0] || {
+            availability_date: dateString,
+            staff_id: staffMember.id,
+            user_id: user.id,
+            is_available: true,
+            start_time: config?.default_start_time || '09:00',
+            end_time: config?.default_end_time || '17:00',
+            is_override: false,
+            reason: '',
+            notes: '',
+          }
+        );
       }
     } catch (error) {
       console.error('Failed to load day availability:', error);
@@ -543,10 +583,16 @@ export function StaffCalendarConfiguration({
     }
   };
 
-  const isWithinBusinessHours = (date: string, startTime: string, endTime: string) => {
+  const isWithinBusinessHours = (
+    date: string,
+    startTime: string,
+    endTime: string
+  ) => {
     const dayOfWeek = new Date(date).getDay();
-    const businessHours = officeHours.find(oh => oh.day_of_week === dayOfWeek && oh.is_active);
-    
+    const businessHours = officeHours.find(
+      oh => oh.day_of_week === dayOfWeek && oh.is_active
+    );
+
     if (!businessHours) {
       return false; // Office is closed on this day
     }
@@ -564,11 +610,19 @@ export function StaffCalendarConfiguration({
       selectedTimeSlot,
       appointmentForm,
       staffMember: staffMember.id,
-      user: user.id
+      user: user.id,
     });
 
-    if (!selectedTimeSlot || !appointmentForm.job_type_id || !appointmentForm.customer_first_name || !appointmentForm.customer_last_name || !appointmentForm.customer_phone) {
-      alert('Please fill in all required fields (first name, last name, phone number)');
+    if (
+      !selectedTimeSlot ||
+      !appointmentForm.job_type_id ||
+      !appointmentForm.customer_first_name ||
+      !appointmentForm.customer_last_name ||
+      !appointmentForm.customer_phone
+    ) {
+      alert(
+        'Please fill in all required fields (first name, last name, phone number)'
+      );
       return;
     }
 
@@ -595,9 +649,11 @@ export function StaffCalendarConfiguration({
 
     try {
       setSaving(true);
-      
+
       // Create appointment directly with customer info (simplified approach)
-      const selectedJobType = jobTypes.find(jt => jt.id === appointmentForm.job_type_id);
+      const selectedJobType = jobTypes.find(
+        jt => jt.id === appointmentForm.job_type_id
+      );
       const appointmentData = {
         user_id: user.id,
         staff_id: staffMember.id,
@@ -605,7 +661,10 @@ export function StaffCalendarConfiguration({
         appointment_date: selectedTimeSlot.dateString,
         start_time: appointmentForm.start_time,
         end_time: appointmentForm.end_time,
-        duration_minutes: selectedJobType?.default_duration_minutes || selectedJobType?.duration || 60,
+        duration_minutes:
+          selectedJobType?.default_duration_minutes ||
+          selectedJobType?.duration ||
+          60,
         title: `${selectedJobType?.job_name || selectedJobType?.name || 'Appointment'} - ${appointmentForm.customer_first_name} ${appointmentForm.customer_last_name}`,
         notes: appointmentForm.notes || '',
         booking_source: 'manual',
@@ -627,7 +686,7 @@ export function StaffCalendarConfiguration({
       const isEditing = selectedAppointment !== null;
       const method = isEditing ? 'PUT' : 'POST';
       const url = '/api/appointments';
-      
+
       if (isEditing) {
         appointmentData.id = selectedAppointment.id;
       }
@@ -654,17 +713,27 @@ export function StaffCalendarConfiguration({
           end_time: '',
           notes: '',
         });
-        alert(isEditing ? 'Appointment updated successfully!' : 'Appointment booked successfully!');
+        alert(
+          isEditing
+            ? 'Appointment updated successfully!'
+            : 'Appointment booked successfully!'
+        );
       } else {
         const errorData = await response.json();
         console.error('Appointment creation failed:', errorData);
         console.error('Response status:', response.status);
-        console.error('Response headers:', Object.fromEntries(response.headers.entries()));
+        console.error(
+          'Response headers:',
+          Object.fromEntries(response.headers.entries())
+        );
         throw new Error(errorData.error || 'Failed to save appointment');
       }
     } catch (error) {
       console.error('Failed to save appointment:', error);
-      alert('Failed to save appointment: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      alert(
+        'Failed to save appointment: ' +
+          (error instanceof Error ? error.message : 'Unknown error')
+      );
     } finally {
       setSaving(false);
     }
@@ -689,27 +758,30 @@ export function StaffCalendarConfiguration({
       if (response.ok) {
         const result = await response.json();
         console.log('Calendar generated successfully:', result);
-        
+
         // Load the fresh calendar data
         await loadStaffCalendars();
-        
+
         // Show the monthly calendar view immediately
         setShowCalendarView(true);
-        
       } else {
         const errorData = await response.json();
         console.error('API Error:', errorData);
-        
+
         // Show more helpful error message
         if (errorData.error.includes('calendar_id')) {
-          alert('Database schema issue detected. Please run the database migration scripts first.');
+          alert(
+            'Database schema issue detected. Please run the database migration scripts first.'
+          );
         } else {
           alert(errorData.error || 'Failed to generate default calendar');
         }
       }
     } catch (error) {
       console.error('Failed to generate default calendar:', error);
-      alert('Failed to generate default calendar. Please check the console for details.');
+      alert(
+        'Failed to generate default calendar. Please check the console for details.'
+      );
     } finally {
       setSaving(false);
     }
@@ -903,10 +975,12 @@ export function StaffCalendarConfiguration({
 
     for (let month = 0; month < 12; month++) {
       const monthDate = new Date(year, month, 1);
-      const monthName = monthDate.toLocaleDateString('en-US', { month: 'long' });
+      const monthName = monthDate.toLocaleDateString('en-US', {
+        month: 'long',
+      });
       const daysInMonth = new Date(year, month + 1, 0).getDate();
       const firstDayOfWeek = monthDate.getDay();
-      
+
       const monthDays = [];
       const totalCells = Math.ceil((daysInMonth + firstDayOfWeek) / 7) * 7;
 
@@ -934,23 +1008,23 @@ export function StaffCalendarConfiguration({
 
       months.push(
         <div key={month} className="p-4 border rounded-lg bg-white">
-          <div className="text-center font-medium mb-2 text-sm">{monthName}</div>
+          <div className="text-center font-medium mb-2 text-sm">
+            {monthName}
+          </div>
           <div className="grid grid-cols-7 gap-1 text-xs text-gray-500 mb-1">
             {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(day => (
-              <div key={day} className="text-center">{day}</div>
+              <div key={day} className="text-center">
+                {day}
+              </div>
             ))}
           </div>
-          <div className="grid grid-cols-7 gap-1">
-            {monthDays}
-          </div>
+          <div className="grid grid-cols-7 gap-1">{monthDays}</div>
         </div>
       );
     }
 
     return (
-      <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
-        {months}
-      </div>
+      <div className="grid grid-cols-3 md:grid-cols-4 gap-4">{months}</div>
     );
   };
 
@@ -972,13 +1046,16 @@ export function StaffCalendarConfiguration({
       const dateString = date.toISOString().split('T')[0];
       const isToday = new Date().toDateString() === date.toDateString();
       const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-      
-      const isHoliday = holidays.some(holiday => 
-        new Date(holiday.holiday_date).toDateString() === date.toDateString()
+
+      const isHoliday = holidays.some(
+        holiday =>
+          new Date(holiday.holiday_date).toDateString() === date.toDateString()
       );
 
       const dayOfWeek = date.getDay();
-      const officeHoursForDay = config && config.working_days & Math.pow(2, dayOfWeek === 0 ? 6 : dayOfWeek - 1);
+      const officeHoursForDay =
+        config &&
+        config.working_days & Math.pow(2, dayOfWeek === 0 ? 6 : dayOfWeek - 1);
 
       calendarDays.push(
         <div
@@ -998,19 +1075,16 @@ export function StaffCalendarConfiguration({
             <>
               <div className="font-medium mb-1">{dayNumber}</div>
               {isHoliday && (
-                <div className="text-xs text-red-600 font-medium">
-                  Holiday
-                </div>
+                <div className="text-xs text-red-600 font-medium">Holiday</div>
               )}
               {!isHoliday && officeHoursForDay && (
                 <div className="text-xs text-green-600">
-                  {config?.default_start_time?.substring(0, 5)} - {config?.default_end_time?.substring(0, 5)}
+                  {config?.default_start_time?.substring(0, 5)} -{' '}
+                  {config?.default_end_time?.substring(0, 5)}
                 </div>
               )}
               {!isHoliday && !officeHoursForDay && (
-                <div className="text-xs text-gray-500">
-                  Closed
-                </div>
+                <div className="text-xs text-gray-500">Closed</div>
               )}
             </>
           )}
@@ -1023,7 +1097,10 @@ export function StaffCalendarConfiguration({
         {/* Day Headers */}
         <div className="grid grid-cols-7 gap-0">
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-            <div key={day} className="p-3 text-center font-medium text-gray-600 border-b">
+            <div
+              key={day}
+              className="p-3 text-center font-medium text-gray-600 border-b"
+            >
               {day}
             </div>
           ))}
@@ -1066,26 +1143,29 @@ export function StaffCalendarConfiguration({
     for (let hour = 0; hour <= 23; hour++) {
       const timeString = `${hour.toString().padStart(2, '0')}:00`;
       const isBusinessHour = hour >= 9 && hour <= 17;
-      
+
       // Check for appointments at this time (improved to handle custom durations)
       const currentSlotTime = `${hour.toString().padStart(2, '0')}:00`;
       const nextSlotTime = `${(hour + 1).toString().padStart(2, '0')}:00`;
-      
-      const appointment = appointments.find(apt => 
-        apt.appointment_date === dateString && 
-        !['cancelled', 'no_show'].includes(apt.status) &&
-        // Check if appointment overlaps with this hour slot
-        (apt.start_time < nextSlotTime && apt.end_time > currentSlotTime)
+
+      const appointment = appointments.find(
+        apt =>
+          apt.appointment_date === dateString &&
+          !['cancelled', 'no_show'].includes(apt.status) &&
+          // Check if appointment overlaps with this hour slot
+          apt.start_time < nextSlotTime &&
+          apt.end_time > currentSlotTime
       );
-      
+
       const hasAppointment = !!appointment;
-      
+
       // Check for custom availability override
-      const hasAvailability = dayAvailability && 
-        dayAvailability.is_available && 
-        dayAvailability.start_time && 
+      const hasAvailability =
+        dayAvailability &&
+        dayAvailability.is_available &&
+        dayAvailability.start_time &&
         dayAvailability.end_time;
-      
+
       let isAvailable = false;
       if (hasAppointment) {
         isAvailable = false; // Appointments make slots unavailable
@@ -1103,12 +1183,19 @@ export function StaffCalendarConfiguration({
           key={hour}
           className={`
             flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-colors hover:ring-2 hover:ring-blue-200
-            ${hasAppointment ? 'bg-gray-200 border-gray-400 opacity-75' : 
-              isAvailable ? 'bg-green-50 border-green-200 hover:bg-green-100' : 
-              isBusinessHour ? 'bg-gray-50 border-gray-200 hover:bg-gray-100' : 
-              'bg-gray-100 border-gray-300 hover:bg-gray-200'}
+            ${
+              hasAppointment
+                ? 'bg-gray-200 border-gray-400 opacity-75'
+                : isAvailable
+                  ? 'bg-green-50 border-green-200 hover:bg-green-100'
+                  : isBusinessHour
+                    ? 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                    : 'bg-gray-100 border-gray-300 hover:bg-gray-200'
+            }
           `}
-          onClick={() => handleTimeSlotClick(hour, dateString, isAvailable, hasAppointment)}
+          onClick={() =>
+            handleTimeSlotClick(hour, dateString, isAvailable, hasAppointment)
+          }
         >
           <div className="w-16 text-sm font-mono text-gray-600">
             {timeString}
@@ -1118,12 +1205,22 @@ export function StaffCalendarConfiguration({
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-red-500 rounded-full"></div>
                 <span className="text-red-700 text-sm font-medium">
-                  {appointment?.customer_name} - {
-                    (() => {
-                      const jobType = jobTypes.find(j => j.id === (appointment?.job_type_id || appointment?.service_id));
-                      return jobType?.job_name || jobType?.job_type || jobType?.service_name || jobType?.name || jobType?.title || 'Unknown Job';
-                    })()
-                  }
+                  {appointment?.customer_name} -{' '}
+                  {(() => {
+                    const jobType = jobTypes.find(
+                      j =>
+                        j.id ===
+                        (appointment?.job_type_id || appointment?.service_id)
+                    );
+                    return (
+                      jobType?.job_name ||
+                      jobType?.job_type ||
+                      jobType?.service_name ||
+                      jobType?.name ||
+                      jobType?.title ||
+                      'Unknown Job'
+                    );
+                  })()}
                 </span>
               </div>
             ) : isAvailable ? (
@@ -1148,9 +1245,7 @@ export function StaffCalendarConfiguration({
     }
 
     return (
-      <div className="space-y-2 max-h-96 overflow-y-auto">
-        {timeSlots}
-      </div>
+      <div className="space-y-2 max-h-96 overflow-y-auto">{timeSlots}</div>
     );
   };
 
@@ -1172,10 +1267,12 @@ export function StaffCalendarConfiguration({
 
     for (let month = 0; month < 12; month++) {
       const monthDate = new Date(year, month, 1);
-      const monthName = monthDate.toLocaleDateString('en-US', { month: 'long' });
+      const monthName = monthDate.toLocaleDateString('en-US', {
+        month: 'long',
+      });
       const daysInMonth = new Date(year, month + 1, 0).getDate();
       const firstDayOfWeek = monthDate.getDay();
-      
+
       // Simple mini calendar for each month
       const monthDays = [];
       const totalCells = Math.ceil((daysInMonth + firstDayOfWeek) / 7) * 7;
@@ -1204,15 +1301,17 @@ export function StaffCalendarConfiguration({
 
       months.push(
         <div key={month} className="p-4 border rounded-lg bg-white">
-          <div className="text-center font-medium mb-2 text-sm">{monthName}</div>
+          <div className="text-center font-medium mb-2 text-sm">
+            {monthName}
+          </div>
           <div className="grid grid-cols-7 gap-1 text-xs text-gray-500 mb-1">
             {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(day => (
-              <div key={day} className="text-center">{day}</div>
+              <div key={day} className="text-center">
+                {day}
+              </div>
             ))}
           </div>
-          <div className="grid grid-cols-7 gap-1">
-            {monthDays}
-          </div>
+          <div className="grid grid-cols-7 gap-1">{monthDays}</div>
         </div>
       );
     }
@@ -1236,8 +1335,8 @@ export function StaffCalendarConfiguration({
                   <button
                     onClick={() => setCalendarViewMode('yearly')}
                     className={`px-3 py-1 text-sm font-medium rounded transition-colors ${
-                      calendarViewMode === 'yearly' 
-                        ? 'bg-white shadow text-blue-600' 
+                      calendarViewMode === 'yearly'
+                        ? 'bg-white shadow text-blue-600'
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
                   >
@@ -1246,8 +1345,8 @@ export function StaffCalendarConfiguration({
                   <button
                     onClick={() => setCalendarViewMode('monthly')}
                     className={`px-3 py-1 text-sm font-medium rounded transition-colors ${
-                      calendarViewMode === 'monthly' 
-                        ? 'bg-white shadow text-blue-600' 
+                      calendarViewMode === 'monthly'
+                        ? 'bg-white shadow text-blue-600'
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
                   >
@@ -1256,8 +1355,8 @@ export function StaffCalendarConfiguration({
                   <button
                     onClick={() => setCalendarViewMode('daily')}
                     className={`px-3 py-1 text-sm font-medium rounded transition-colors ${
-                      calendarViewMode === 'daily' 
-                        ? 'bg-white shadow text-blue-600' 
+                      calendarViewMode === 'daily'
+                        ? 'bg-white shadow text-blue-600'
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
                   >
@@ -1281,7 +1380,10 @@ export function StaffCalendarConfiguration({
                 >
                   <ArrowRightIcon className="h-4 w-4" />
                 </Button>
-                <Button variant="outline" onClick={() => setShowCalendarView(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowCalendarView(false)}
+                >
                   <ArrowLeftIcon className="h-4 w-4 mr-2" />
                   Back to Config
                 </Button>
@@ -1305,17 +1407,17 @@ export function StaffCalendarConfiguration({
   const renderDailyCalendar = () => {
     const selectedDateObj = new Date(calendarViewDate);
     const dateString = selectedDateObj.toISOString().split('T')[0];
-    const dayName = selectedDateObj.toLocaleDateString('en-US', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    const dayName = selectedDateObj.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
     });
 
     // Outlook-style day calendar
     const renderOutlookDayCalendar = () => {
       const hours = [];
-      
+
       // Helper function to convert time string to minutes from midnight
       const timeToMinutes = (timeStr: string): number => {
         const [hours, minutes] = timeStr.split(':').map(Number);
@@ -1328,50 +1430,74 @@ export function StaffCalendarConfiguration({
       };
 
       // Get appointments for this day
-      const dayAppointments = appointments.filter(apt => 
-        apt.appointment_date === dateString && 
-        !['cancelled', 'no_show'].includes(apt.status)
+      const dayAppointments = appointments.filter(
+        apt =>
+          apt.appointment_date === dateString &&
+          !['cancelled', 'no_show'].includes(apt.status)
       );
 
       // Generate hour rows
-      for (let hour = 6; hour <= 22; hour++) { // Show 6 AM to 10 PM like Outlook
+      for (let hour = 6; hour <= 22; hour++) {
+        // Show 6 AM to 10 PM like Outlook
         const timeString = `${hour.toString().padStart(2, '0')}:00`;
         const isBusinessHour = hour >= 9 && hour <= 17;
-        
+
         hours.push(
           <div key={hour} className="relative">
             {/* Hour row */}
             <div className="flex border-b border-gray-200">
               {/* Time column */}
               <div className="w-20 pr-3 text-right text-sm text-gray-600 font-mono py-2">
-                {hour === 0 ? '12:00 AM' : hour === 12 ? '12:00 PM' : hour > 12 ? `${hour - 12}:00 PM` : `${hour}:00 AM`}
+                {hour === 0
+                  ? '12:00 AM'
+                  : hour === 12
+                    ? '12:00 PM'
+                    : hour > 12
+                      ? `${hour - 12}:00 PM`
+                      : `${hour}:00 AM`}
               </div>
-              
+
               {/* Calendar column */}
-              <div 
+              <div
                 className={`flex-1 relative min-h-[60px] ${isBusinessHour ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50 cursor-pointer border-r border-gray-200`}
-                onClick={() => handleTimeSlotClick(hour, dateString, isBusinessHour, false)}
+                onClick={() =>
+                  handleTimeSlotClick(hour, dateString, isBusinessHour, false)
+                }
               >
                 {/* Half-hour line */}
                 <div className="absolute top-[30px] left-0 right-0 h-px bg-gray-100"></div>
-                
+
                 {/* Appointment blocks positioned absolutely */}
                 {dayAppointments.map((appointment, idx) => {
                   const startMinutes = timeToMinutes(appointment.start_time);
                   const endMinutes = timeToMinutes(appointment.end_time);
                   const hourStartMinutes = hour * 60;
                   const hourEndMinutes = (hour + 1) * 60;
-                  
+
                   // Check if appointment overlaps with this hour
-                  if (startMinutes < hourEndMinutes && endMinutes > hourStartMinutes) {
+                  if (
+                    startMinutes < hourEndMinutes &&
+                    endMinutes > hourStartMinutes
+                  ) {
                     const blockStart = Math.max(startMinutes, hourStartMinutes);
                     const blockEnd = Math.min(endMinutes, hourEndMinutes);
-                    const topOffset = ((blockStart - hourStartMinutes) / 60) * 60;
+                    const topOffset =
+                      ((blockStart - hourStartMinutes) / 60) * 60;
                     const height = ((blockEnd - blockStart) / 60) * 60;
-                    
-                    const jobType = jobTypes.find(j => j.id === (appointment?.job_type_id || appointment?.service_id));
-                    const jobName = jobType?.job_name || jobType?.job_type || jobType?.service_name || jobType?.name || jobType?.title || 'Appointment';
-                    
+
+                    const jobType = jobTypes.find(
+                      j =>
+                        j.id ===
+                        (appointment?.job_type_id || appointment?.service_id)
+                    );
+                    const jobName =
+                      jobType?.job_name ||
+                      jobType?.job_type ||
+                      jobType?.service_name ||
+                      jobType?.name ||
+                      jobType?.title ||
+                      'Appointment';
+
                     return (
                       <div
                         key={`${appointment.id}-${hour}`}
@@ -1380,7 +1506,7 @@ export function StaffCalendarConfiguration({
                           top: `${topOffset}px`,
                           height: `${Math.max(height, 20)}px`, // Minimum height for visibility
                         }}
-                        onClick={(e) => {
+                        onClick={e => {
                           e.stopPropagation();
                           handleTimeSlotClick(hour, dateString, false, true);
                         }}
@@ -1404,7 +1530,7 @@ export function StaffCalendarConfiguration({
           </div>
         );
       }
-      
+
       return hours;
     };
 
@@ -1416,7 +1542,8 @@ export function StaffCalendarConfiguration({
               <div>
                 <CardTitle className="flex items-center gap-2">
                   <CalendarIcon className="h-5 w-5" />
-                  Daily Calendar: {staffMember.first_name} {staffMember.last_name}
+                  Daily Calendar: {staffMember.first_name}{' '}
+                  {staffMember.last_name}
                 </CardTitle>
                 <CardDescription>
                   {dayName} - {staffMember.title}
@@ -1427,8 +1554,8 @@ export function StaffCalendarConfiguration({
                   <button
                     onClick={() => setCalendarViewMode('yearly')}
                     className={`px-3 py-1 text-sm font-medium rounded transition-colors ${
-                      calendarViewMode === 'yearly' 
-                        ? 'bg-white shadow text-blue-600' 
+                      calendarViewMode === 'yearly'
+                        ? 'bg-white shadow text-blue-600'
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
                   >
@@ -1437,8 +1564,8 @@ export function StaffCalendarConfiguration({
                   <button
                     onClick={() => setCalendarViewMode('monthly')}
                     className={`px-3 py-1 text-sm font-medium rounded transition-colors ${
-                      calendarViewMode === 'monthly' 
-                        ? 'bg-white shadow text-blue-600' 
+                      calendarViewMode === 'monthly'
+                        ? 'bg-white shadow text-blue-600'
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
                   >
@@ -1447,8 +1574,8 @@ export function StaffCalendarConfiguration({
                   <button
                     onClick={() => setCalendarViewMode('daily')}
                     className={`px-3 py-1 text-sm font-medium rounded transition-colors ${
-                      calendarViewMode === 'daily' 
-                        ? 'bg-white shadow text-blue-600' 
+                      calendarViewMode === 'daily'
+                        ? 'bg-white shadow text-blue-600'
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
                   >
@@ -1481,7 +1608,10 @@ export function StaffCalendarConfiguration({
                 >
                   <ArrowRightIcon className="h-4 w-4" />
                 </Button>
-                <Button variant="outline" onClick={() => setShowCalendarView(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowCalendarView(false)}
+                >
                   <ArrowLeftIcon className="h-4 w-4 mr-2" />
                   Back to Config
                 </Button>
@@ -1501,7 +1631,7 @@ export function StaffCalendarConfiguration({
                 </div>
                 <div className="flex-1 min-h-[40px] bg-gray-100 border-r border-gray-200"></div>
               </div>
-              
+
               {/* Hour slots */}
               <div className="max-h-[600px] overflow-y-auto">
                 {renderOutlookDayCalendar()}
@@ -1515,10 +1645,19 @@ export function StaffCalendarConfiguration({
 
   // Calendar Monthly View Component
   const renderMonthlyCalendar = () => {
-
     const monthNames = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
 
     const currentMonth = calendarViewDate.getMonth();
@@ -1539,15 +1678,18 @@ export function StaffCalendarConfiguration({
       const dateString = date.toISOString().split('T')[0];
       const isToday = new Date().toDateString() === date.toDateString();
       const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-      
+
       // Check if it's a holiday
-      const isHoliday = holidays.some(holiday => 
-        new Date(holiday.holiday_date).toDateString() === date.toDateString()
+      const isHoliday = holidays.some(
+        holiday =>
+          new Date(holiday.holiday_date).toDateString() === date.toDateString()
       );
 
       // Get office hours for this day
       const dayOfWeek = date.getDay();
-      const officeHoursForDay = config && config.working_days & Math.pow(2, dayOfWeek === 0 ? 6 : dayOfWeek - 1);
+      const officeHoursForDay =
+        config &&
+        config.working_days & Math.pow(2, dayOfWeek === 0 ? 6 : dayOfWeek - 1);
 
       calendarDays.push(
         <div
@@ -1567,19 +1709,16 @@ export function StaffCalendarConfiguration({
             <>
               <div className="font-medium mb-1">{dayNumber}</div>
               {isHoliday && (
-                <div className="text-xs text-red-600 font-medium">
-                  Holiday
-                </div>
+                <div className="text-xs text-red-600 font-medium">Holiday</div>
               )}
               {!isHoliday && officeHoursForDay && (
                 <div className="text-xs text-green-600">
-                  {config?.default_start_time?.substring(0, 5)} - {config?.default_end_time?.substring(0, 5)}
+                  {config?.default_start_time?.substring(0, 5)} -{' '}
+                  {config?.default_end_time?.substring(0, 5)}
                 </div>
               )}
               {!isHoliday && !officeHoursForDay && (
-                <div className="text-xs text-gray-500">
-                  Closed
-                </div>
+                <div className="text-xs text-gray-500">Closed</div>
               )}
             </>
           )}
@@ -1606,8 +1745,8 @@ export function StaffCalendarConfiguration({
                   <button
                     onClick={() => setCalendarViewMode('yearly')}
                     className={`px-3 py-1 text-sm font-medium rounded transition-colors ${
-                      calendarViewMode === 'yearly' 
-                        ? 'bg-white shadow text-blue-600' 
+                      calendarViewMode === 'yearly'
+                        ? 'bg-white shadow text-blue-600'
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
                   >
@@ -1616,8 +1755,8 @@ export function StaffCalendarConfiguration({
                   <button
                     onClick={() => setCalendarViewMode('monthly')}
                     className={`px-3 py-1 text-sm font-medium rounded transition-colors ${
-                      calendarViewMode === 'monthly' 
-                        ? 'bg-white shadow text-blue-600' 
+                      calendarViewMode === 'monthly'
+                        ? 'bg-white shadow text-blue-600'
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
                   >
@@ -1626,15 +1765,18 @@ export function StaffCalendarConfiguration({
                   <button
                     onClick={() => setCalendarViewMode('daily')}
                     className={`px-3 py-1 text-sm font-medium rounded transition-colors ${
-                      calendarViewMode === 'daily' 
-                        ? 'bg-white shadow text-blue-600' 
+                      calendarViewMode === 'daily'
+                        ? 'bg-white shadow text-blue-600'
                         : 'text-gray-600 hover:text-gray-900'
                     }`}
                   >
                     Day
                   </button>
                 </div>
-                <Button variant="outline" onClick={() => setShowCalendarView(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowCalendarView(false)}
+                >
                   <ArrowLeftIcon className="h-4 w-4 mr-2" />
                   Back to Config
                 </Button>
@@ -1656,7 +1798,11 @@ export function StaffCalendarConfiguration({
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      const newDate = new Date(currentYear, currentMonth - 1, 1);
+                      const newDate = new Date(
+                        currentYear,
+                        currentMonth - 1,
+                        1
+                      );
                       setCalendarViewDate(newDate);
                     }}
                   >
@@ -1666,7 +1812,11 @@ export function StaffCalendarConfiguration({
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      const newDate = new Date(currentYear, currentMonth + 1, 1);
+                      const newDate = new Date(
+                        currentYear,
+                        currentMonth + 1,
+                        1
+                      );
                       setCalendarViewDate(newDate);
                     }}
                   >
@@ -1678,7 +1828,10 @@ export function StaffCalendarConfiguration({
               {/* Day Headers */}
               <div className="grid grid-cols-7 gap-0">
                 {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                  <div key={day} className="p-3 text-center font-medium text-gray-600 border-b">
+                  <div
+                    key={day}
+                    className="p-3 text-center font-medium text-gray-600 border-b"
+                  >
                     {day}
                   </div>
                 ))}
@@ -1730,12 +1883,13 @@ export function StaffCalendarConfiguration({
               Book Time Slot
             </DialogTitle>
             <DialogDescription>
-              {selectedDateObj.toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })} at {timeString}
+              {selectedDateObj.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}{' '}
+              at {timeString}
             </DialogDescription>
           </DialogHeader>
 
@@ -1772,20 +1926,23 @@ export function StaffCalendarConfiguration({
     const selectedDateObj = new Date(selectedTimeSlot.dateString + 'T00:00:00');
 
     return (
-      <Dialog open={bookingModalType === 'appointment'} onOpenChange={() => {
-        setBookingModalType('availability');
-        setSelectedAppointment(null);
-        setAppointmentForm({
-          job_type_id: '',
-          customer_first_name: '',
-          customer_last_name: '',
-          customer_phone: '',
-          customer_email: '',
-          start_time: '',
-          end_time: '',
-          notes: '',
-        });
-      }}>
+      <Dialog
+        open={bookingModalType === 'appointment'}
+        onOpenChange={() => {
+          setBookingModalType('availability');
+          setSelectedAppointment(null);
+          setAppointmentForm({
+            job_type_id: '',
+            customer_first_name: '',
+            customer_last_name: '',
+            customer_phone: '',
+            customer_email: '',
+            start_time: '',
+            end_time: '',
+            notes: '',
+          });
+        }}
+      >
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -1793,12 +1950,13 @@ export function StaffCalendarConfiguration({
               {selectedAppointment ? 'Edit Appointment' : 'Book Appointment'}
             </DialogTitle>
             <DialogDescription>
-              {selectedDateObj.toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })} - {staffMember.first_name} {staffMember.last_name}
+              {selectedDateObj.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}{' '}
+              - {staffMember.first_name} {staffMember.last_name}
             </DialogDescription>
           </DialogHeader>
 
@@ -1811,32 +1969,55 @@ export function StaffCalendarConfiguration({
                 <div>User ID: {user?.id || 'not loaded'}</div>
                 <div>Booking Modal Type: {bookingModalType}</div>
                 {jobTypes.length > 0 && (
-                  <div>Job Types: {jobTypes.map(j => j.job_name || j.job_type || j.service_name || j.name).join(', ')}</div>
+                  <div>
+                    Job Types:{' '}
+                    {jobTypes
+                      .map(
+                        j =>
+                          j.job_name || j.job_type || j.service_name || j.name
+                      )
+                      .join(', ')}
+                  </div>
                 )}
               </div>
             )}
-            
+
             {/* Job Type Selection */}
             <div>
               <Label htmlFor="job-type">Job Type *</Label>
               <Select
                 value={appointmentForm.job_type_id}
-                onValueChange={(value) => {
+                onValueChange={value => {
                   setAppointmentForm(prev => ({
                     ...prev,
                     job_type_id: value,
-                    end_time: calculateEndTime(prev.start_time, value)
+                    end_time: calculateEndTime(prev.start_time, value),
                   }));
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={jobTypes.length > 0 ? "Select a job type..." : "No job types available"} />
+                  <SelectValue
+                    placeholder={
+                      jobTypes.length > 0
+                        ? 'Select a job type...'
+                        : 'No job types available'
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {jobTypes.length > 0 ? (
                     jobTypes.map(jobType => {
-                      const jobTypeName = jobType.job_name || jobType.job_type || jobType.service_name || jobType.name || jobType.title || 'Unnamed Job';
-                      const duration = jobType.default_duration_minutes || jobType.duration || 60;
+                      const jobTypeName =
+                        jobType.job_name ||
+                        jobType.job_type ||
+                        jobType.service_name ||
+                        jobType.name ||
+                        jobType.title ||
+                        'Unnamed Job';
+                      const duration =
+                        jobType.default_duration_minutes ||
+                        jobType.duration ||
+                        60;
                       const price = jobType.default_price || jobType.price || 0;
                       return (
                         <SelectItem key={jobType.id} value={jobType.id}>
@@ -1846,7 +2027,8 @@ export function StaffCalendarConfiguration({
                     })
                   ) : (
                     <SelectItem value="no-job-types" disabled>
-                      No job types configured. Please add job types in the Services tab.
+                      No job types configured. Please add job types in the
+                      Services tab.
                     </SelectItem>
                   )}
                 </SelectContent>
@@ -1854,11 +2036,12 @@ export function StaffCalendarConfiguration({
               {jobTypes.length === 0 && (
                 <div className="space-y-2">
                   <p className="text-sm text-amber-600">
-                    No job types available. Please configure job types in the Services configuration tab first.
+                    No job types available. Please configure job types in the
+                    Services configuration tab first.
                   </p>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => {
                       console.log('Manually refreshing job types...');
                       loadJobTypes();
@@ -1877,20 +2060,26 @@ export function StaffCalendarConfiguration({
                 <Input
                   id="customer-first-name"
                   value={appointmentForm.customer_first_name}
-                  onChange={(e) =>
-                    setAppointmentForm(prev => ({ ...prev, customer_first_name: e.target.value }))
+                  onChange={e =>
+                    setAppointmentForm(prev => ({
+                      ...prev,
+                      customer_first_name: e.target.value,
+                    }))
                   }
                   placeholder="First name"
                 />
               </div>
-              
+
               <div>
                 <Label htmlFor="customer-last-name">Last Name *</Label>
                 <Input
                   id="customer-last-name"
                   value={appointmentForm.customer_last_name}
-                  onChange={(e) =>
-                    setAppointmentForm(prev => ({ ...prev, customer_last_name: e.target.value }))
+                  onChange={e =>
+                    setAppointmentForm(prev => ({
+                      ...prev,
+                      customer_last_name: e.target.value,
+                    }))
                   }
                   placeholder="Last name"
                 />
@@ -1902,8 +2091,11 @@ export function StaffCalendarConfiguration({
                   id="customer-phone"
                   type="tel"
                   value={appointmentForm.customer_phone}
-                  onChange={(e) =>
-                    setAppointmentForm(prev => ({ ...prev, customer_phone: e.target.value }))
+                  onChange={e =>
+                    setAppointmentForm(prev => ({
+                      ...prev,
+                      customer_phone: e.target.value,
+                    }))
                   }
                   placeholder="(555) 123-4567"
                 />
@@ -1915,8 +2107,11 @@ export function StaffCalendarConfiguration({
                   id="customer-email"
                   type="email"
                   value={appointmentForm.customer_email}
-                  onChange={(e) =>
-                    setAppointmentForm(prev => ({ ...prev, customer_email: e.target.value }))
+                  onChange={e =>
+                    setAppointmentForm(prev => ({
+                      ...prev,
+                      customer_email: e.target.value,
+                    }))
                   }
                   placeholder="email@example.com (optional)"
                 />
@@ -1931,12 +2126,15 @@ export function StaffCalendarConfiguration({
                   id="start-time"
                   type="time"
                   value={appointmentForm.start_time}
-                  onChange={(e) => {
+                  onChange={e => {
                     const newStartTime = e.target.value;
-                    setAppointmentForm(prev => ({ 
-                      ...prev, 
+                    setAppointmentForm(prev => ({
+                      ...prev,
                       start_time: newStartTime,
-                      end_time: calculateEndTime(newStartTime, prev.job_type_id)
+                      end_time: calculateEndTime(
+                        newStartTime,
+                        prev.job_type_id
+                      ),
                     }));
                   }}
                 />
@@ -1947,8 +2145,11 @@ export function StaffCalendarConfiguration({
                   id="end-time"
                   type="time"
                   value={appointmentForm.end_time}
-                  onChange={(e) =>
-                    setAppointmentForm(prev => ({ ...prev, end_time: e.target.value }))
+                  onChange={e =>
+                    setAppointmentForm(prev => ({
+                      ...prev,
+                      end_time: e.target.value,
+                    }))
                   }
                 />
               </div>
@@ -1961,8 +2162,11 @@ export function StaffCalendarConfiguration({
                 id="notes"
                 placeholder="Add any additional notes..."
                 value={appointmentForm.notes}
-                onChange={(e) =>
-                  setAppointmentForm(prev => ({ ...prev, notes: e.target.value }))
+                onChange={e =>
+                  setAppointmentForm(prev => ({
+                    ...prev,
+                    notes: e.target.value,
+                  }))
                 }
                 rows={3}
               />
@@ -1975,12 +2179,19 @@ export function StaffCalendarConfiguration({
                   <Button
                     variant="destructive"
                     onClick={async () => {
-                      if (confirm('Are you sure you want to delete this appointment?')) {
+                      if (
+                        confirm(
+                          'Are you sure you want to delete this appointment?'
+                        )
+                      ) {
                         try {
                           setSaving(true);
-                          const response = await fetch(`/api/appointments?id=${selectedAppointment.id}&user_id=${user.id}`, {
-                            method: 'DELETE',
-                          });
+                          const response = await fetch(
+                            `/api/appointments?id=${selectedAppointment.id}&user_id=${user.id}`,
+                            {
+                              method: 'DELETE',
+                            }
+                          );
                           if (response.ok) {
                             await loadAppointments();
                             setBookingModalType('availability');
@@ -1998,10 +2209,18 @@ export function StaffCalendarConfiguration({
                             alert('Appointment deleted successfully!');
                           } else {
                             const errorData = await response.json();
-                            alert('Failed to delete appointment: ' + (errorData.error || 'Unknown error'));
+                            alert(
+                              'Failed to delete appointment: ' +
+                                (errorData.error || 'Unknown error')
+                            );
                           }
                         } catch (error) {
-                          alert('Failed to delete appointment: ' + (error instanceof Error ? error.message : 'Unknown error'));
+                          alert(
+                            'Failed to delete appointment: ' +
+                              (error instanceof Error
+                                ? error.message
+                                : 'Unknown error')
+                          );
                         } finally {
                           setSaving(false);
                         }
@@ -2035,10 +2254,22 @@ export function StaffCalendarConfiguration({
                 </Button>
                 <Button
                   onClick={saveAppointment}
-                  disabled={saving || !appointmentForm.job_type_id || !appointmentForm.customer_first_name || !appointmentForm.customer_last_name || !appointmentForm.customer_phone}
+                  disabled={
+                    saving ||
+                    !appointmentForm.job_type_id ||
+                    !appointmentForm.customer_first_name ||
+                    !appointmentForm.customer_last_name ||
+                    !appointmentForm.customer_phone
+                  }
                   className="bg-blue-600 hover:bg-blue-700"
                 >
-                  {saving ? (selectedAppointment ? 'Updating...' : 'Booking...') : (selectedAppointment ? 'Update Appointment' : 'Book Appointment')}
+                  {saving
+                    ? selectedAppointment
+                      ? 'Updating...'
+                      : 'Booking...'
+                    : selectedAppointment
+                      ? 'Update Appointment'
+                      : 'Book Appointment'}
                 </Button>
               </div>
             </div>
@@ -2052,9 +2283,12 @@ export function StaffCalendarConfiguration({
     if (!showDayDetail || !selectedDate || !dayAvailability) return null;
 
     const selectedDateObj = new Date(selectedDate + 'T00:00:00');
-    const isWeekend = selectedDateObj.getDay() === 0 || selectedDateObj.getDay() === 6;
-    const isHoliday = holidays.some(holiday => 
-      new Date(holiday.holiday_date).toDateString() === selectedDateObj.toDateString()
+    const isWeekend =
+      selectedDateObj.getDay() === 0 || selectedDateObj.getDay() === 6;
+    const isHoliday = holidays.some(
+      holiday =>
+        new Date(holiday.holiday_date).toDateString() ===
+        selectedDateObj.toDateString()
     );
 
     return (
@@ -2063,15 +2297,16 @@ export function StaffCalendarConfiguration({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CalendarIcon className="h-5 w-5" />
-              {selectedDateObj.toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
+              {selectedDateObj.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
               })}
             </DialogTitle>
             <DialogDescription>
-              Manage availability for {staffMember.first_name} {staffMember.last_name}
+              Manage availability for {staffMember.first_name}{' '}
+              {staffMember.last_name}
             </DialogDescription>
           </DialogHeader>
 
@@ -2082,8 +2317,11 @@ export function StaffCalendarConfiguration({
               <Switch
                 id="available"
                 checked={dayAvailability.is_available}
-                onCheckedChange={(checked) => 
-                  setDayAvailability(prev => ({ ...prev, is_available: checked }))
+                onCheckedChange={checked =>
+                  setDayAvailability(prev => ({
+                    ...prev,
+                    is_available: checked,
+                  }))
                 }
               />
             </div>
@@ -2098,8 +2336,11 @@ export function StaffCalendarConfiguration({
                       id="start-time"
                       type="time"
                       value={dayAvailability.start_time || ''}
-                      onChange={(e) =>
-                        setDayAvailability(prev => ({ ...prev, start_time: e.target.value }))
+                      onChange={e =>
+                        setDayAvailability(prev => ({
+                          ...prev,
+                          start_time: e.target.value,
+                        }))
                       }
                     />
                   </div>
@@ -2109,8 +2350,11 @@ export function StaffCalendarConfiguration({
                       id="end-time"
                       type="time"
                       value={dayAvailability.end_time || ''}
-                      onChange={(e) =>
-                        setDayAvailability(prev => ({ ...prev, end_time: e.target.value }))
+                      onChange={e =>
+                        setDayAvailability(prev => ({
+                          ...prev,
+                          end_time: e.target.value,
+                        }))
                       }
                     />
                   </div>
@@ -2121,33 +2365,39 @@ export function StaffCalendarConfiguration({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setDayAvailability(prev => ({ 
-                      ...prev, 
-                      start_time: '09:00', 
-                      end_time: '17:00' 
-                    }))}
+                    onClick={() =>
+                      setDayAvailability(prev => ({
+                        ...prev,
+                        start_time: '09:00',
+                        end_time: '17:00',
+                      }))
+                    }
                   >
                     9 AM - 5 PM
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setDayAvailability(prev => ({ 
-                      ...prev, 
-                      start_time: '08:00', 
-                      end_time: '18:00' 
-                    }))}
+                    onClick={() =>
+                      setDayAvailability(prev => ({
+                        ...prev,
+                        start_time: '08:00',
+                        end_time: '18:00',
+                      }))
+                    }
                   >
                     8 AM - 6 PM
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setDayAvailability(prev => ({ 
-                      ...prev, 
-                      start_time: '10:00', 
-                      end_time: '14:00' 
-                    }))}
+                    onClick={() =>
+                      setDayAvailability(prev => ({
+                        ...prev,
+                        start_time: '10:00',
+                        end_time: '14:00',
+                      }))
+                    }
                   >
                     Half Day
                   </Button>
@@ -2161,7 +2411,7 @@ export function StaffCalendarConfiguration({
                 <Label htmlFor="reason">Reason (optional)</Label>
                 <Select
                   value={dayAvailability.reason || ''}
-                  onValueChange={(value) =>
+                  onValueChange={value =>
                     setDayAvailability(prev => ({ ...prev, reason: value }))
                   }
                 >
@@ -2187,8 +2437,11 @@ export function StaffCalendarConfiguration({
                 id="notes"
                 placeholder="Add any additional notes..."
                 value={dayAvailability.notes || ''}
-                onChange={(e) =>
-                  setDayAvailability(prev => ({ ...prev, notes: e.target.value }))
+                onChange={e =>
+                  setDayAvailability(prev => ({
+                    ...prev,
+                    notes: e.target.value,
+                  }))
                 }
                 rows={3}
               />
@@ -2197,12 +2450,18 @@ export function StaffCalendarConfiguration({
             {/* Info badges */}
             <div className="flex gap-2">
               {isWeekend && (
-                <Badge variant="secondary" className="bg-gray-100 text-gray-800">
+                <Badge
+                  variant="secondary"
+                  className="bg-gray-100 text-gray-800"
+                >
                   Weekend
                 </Badge>
               )}
               {isHoliday && (
-                <Badge variant="destructive" className="bg-red-100 text-red-800">
+                <Badge
+                  variant="destructive"
+                  className="bg-red-100 text-red-800"
+                >
                   Holiday
                 </Badge>
               )}
@@ -2215,17 +2474,16 @@ export function StaffCalendarConfiguration({
 
             {/* Action Buttons */}
             <div className="flex justify-end gap-2 pt-4">
-              <Button
-                variant="outline"
-                onClick={() => setShowDayDetail(false)}
-              >
+              <Button variant="outline" onClick={() => setShowDayDetail(false)}>
                 Cancel
               </Button>
               <Button
-                onClick={() => saveDayAvailability({
-                  ...dayAvailability,
-                  is_override: true
-                })}
+                onClick={() =>
+                  saveDayAvailability({
+                    ...dayAvailability,
+                    is_override: true,
+                  })
+                }
                 disabled={saving}
                 className="bg-blue-600 hover:bg-blue-700"
               >
@@ -2344,18 +2602,24 @@ export function StaffCalendarConfiguration({
               <div>
                 <CardTitle>Staff Availability Calendar</CardTitle>
                 <CardDescription>
-                  View and manage {staffMember.first_name} {staffMember.last_name}'s availability
+                  View and manage {staffMember.first_name}{' '}
+                  {staffMember.last_name}'s availability
                 </CardDescription>
               </div>
               <div className="flex items-center gap-3">
                 {/* Calendar View Selector */}
                 <div className="flex items-center gap-2">
-                  <Label htmlFor="calendar-view-select" className="text-sm font-medium">
+                  <Label
+                    htmlFor="calendar-view-select"
+                    className="text-sm font-medium"
+                  >
                     View:
                   </Label>
                   <Select
                     value={calendarViewMode}
-                    onValueChange={(value: 'yearly' | 'monthly' | 'daily') => setCalendarViewMode(value)}
+                    onValueChange={(value: 'yearly' | 'monthly' | 'daily') =>
+                      setCalendarViewMode(value)
+                    }
                   >
                     <SelectTrigger className="w-32">
                       <SelectValue />
@@ -2383,7 +2647,8 @@ export function StaffCalendarConfiguration({
                   No Calendar Generated
                 </h3>
                 <p className="text-gray-600 mb-4">
-                  Generate a default calendar based on business hours and holidays.
+                  Generate a default calendar based on business hours and
+                  holidays.
                 </p>
               </div>
             ) : (
@@ -2396,7 +2661,11 @@ export function StaffCalendarConfiguration({
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setCalendarViewDate(new Date(calendarViewDate.getFullYear() - 1, 0, 1))}
+                          onClick={() =>
+                            setCalendarViewDate(
+                              new Date(calendarViewDate.getFullYear() - 1, 0, 1)
+                            )
+                          }
                         >
                           <ArrowLeftIcon className="h-4 w-4" />
                         </Button>
@@ -2406,13 +2675,17 @@ export function StaffCalendarConfiguration({
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setCalendarViewDate(new Date(calendarViewDate.getFullYear() + 1, 0, 1))}
+                          onClick={() =>
+                            setCalendarViewDate(
+                              new Date(calendarViewDate.getFullYear() + 1, 0, 1)
+                            )
+                          }
                         >
                           <ArrowRightIcon className="h-4 w-4" />
                         </Button>
                       </div>
                     )}
-                    
+
                     {calendarViewMode === 'monthly' && (
                       <div className="flex items-center gap-2">
                         <Button
@@ -2427,7 +2700,10 @@ export function StaffCalendarConfiguration({
                           <ArrowLeftIcon className="h-4 w-4" />
                         </Button>
                         <span className="px-3 py-1 bg-gray-100 rounded text-sm font-medium min-w-32 text-center">
-                          {calendarViewDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                          {calendarViewDate.toLocaleDateString('en-US', {
+                            month: 'long',
+                            year: 'numeric',
+                          })}
                         </span>
                         <Button
                           variant="outline"
@@ -2442,7 +2718,7 @@ export function StaffCalendarConfiguration({
                         </Button>
                       </div>
                     )}
-                    
+
                     {calendarViewMode === 'daily' && (
                       <div className="flex items-center gap-2">
                         <Button
@@ -2452,18 +2728,22 @@ export function StaffCalendarConfiguration({
                             const newDate = new Date(calendarViewDate);
                             newDate.setDate(newDate.getDate() - 1);
                             setCalendarViewDate(newDate);
-                            setSelectedDate(newDate.toISOString().split('T')[0]);
-                            loadDayAvailability(newDate.toISOString().split('T')[0]);
+                            setSelectedDate(
+                              newDate.toISOString().split('T')[0]
+                            );
+                            loadDayAvailability(
+                              newDate.toISOString().split('T')[0]
+                            );
                           }}
                         >
                           <ArrowLeftIcon className="h-4 w-4" />
                         </Button>
                         <span className="px-3 py-1 bg-gray-100 rounded text-sm font-medium min-w-40 text-center">
-                          {calendarViewDate.toLocaleDateString('en-US', { 
-                            weekday: 'short', 
-                            month: 'short', 
-                            day: 'numeric', 
-                            year: 'numeric' 
+                          {calendarViewDate.toLocaleDateString('en-US', {
+                            weekday: 'short',
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
                           })}
                         </span>
                         <Button
@@ -2473,8 +2753,12 @@ export function StaffCalendarConfiguration({
                             const newDate = new Date(calendarViewDate);
                             newDate.setDate(newDate.getDate() + 1);
                             setCalendarViewDate(newDate);
-                            setSelectedDate(newDate.toISOString().split('T')[0]);
-                            loadDayAvailability(newDate.toISOString().split('T')[0]);
+                            setSelectedDate(
+                              newDate.toISOString().split('T')[0]
+                            );
+                            loadDayAvailability(
+                              newDate.toISOString().split('T')[0]
+                            );
                           }}
                         >
                           <ArrowRightIcon className="h-4 w-4" />

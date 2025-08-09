@@ -1,7 +1,11 @@
 'use server';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { authenticateRequest, createAuthenticatedClient, checkPermission } from '@/lib/supabase';
+import {
+  authenticateRequest,
+  createAuthenticatedClient,
+  checkPermission,
+} from '@/lib/supabase';
 
 // GET /api/admin/calls - Fetch call logs with optional user filtering
 export async function GET(request: NextRequest) {
@@ -40,7 +44,8 @@ export async function GET(request: NextRequest) {
     // Try to fetch from call_logs table first, then fallback to customer_call_logs
     let query = supabaseWithAuth
       .from('call_logs')
-      .select(`
+      .select(
+        `
         id,
         user_id,
         phone_number,
@@ -50,7 +55,9 @@ export async function GET(request: NextRequest) {
         duration,
         call_summary,
         created_at
-      `, { count: 'exact' })
+      `,
+        { count: 'exact' }
+      )
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
@@ -60,12 +67,13 @@ export async function GET(request: NextRequest) {
     }
 
     let { data: calls, error: callsError, count } = await query;
-    
+
     // If call_logs table doesn't exist, try customer_call_logs
     if (callsError && callsError.code === 'PGRST116') {
       query = supabaseWithAuth
         .from('customer_call_logs')
-        .select(`
+        .select(
+          `
           id,
           user_id,
           phone_number,
@@ -75,7 +83,9 @@ export async function GET(request: NextRequest) {
           duration,
           call_summary,
           created_at
-        `, { count: 'exact' })
+        `,
+          { count: 'exact' }
+        )
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1);
 
@@ -112,7 +122,10 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Unexpected error:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
+      {
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     );
   }

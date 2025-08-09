@@ -81,7 +81,10 @@ export async function authenticateRequest(
         .single();
       profile = profileData;
     } catch (profileError) {
-      console.warn('Could not fetch user profile, using defaults:', profileError);
+      console.warn(
+        'Could not fetch user profile, using defaults:',
+        profileError
+      );
       // Default to admin for existing users if profile table doesn't exist
       profile = { role: 'admin', is_super_admin: false };
     }

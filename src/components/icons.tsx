@@ -30,6 +30,7 @@ import {
   User,
   Save,
   ShoppingBag,
+  Mail,
 } from 'lucide-react';
 
 // Export all icons with consistent naming
@@ -69,3 +70,4 @@ export const MicIcon = Mic;
 export const UserIcon = User;
 export const SaveIcon = Save;
 export const ShoppingBagIcon = ShoppingBag;
+export const MailIcon = Mail;

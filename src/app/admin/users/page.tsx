@@ -21,14 +21,10 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import {
   PlusIcon,
-  EditIcon,
-  TrashIcon,
-  SearchIcon,
   UsersIcon,
   SettingsIcon,
   HomeIcon,
   SignOutIcon,
-  PhoneIcon,
 } from '@/components/icons';
 
 interface UserProfile {
@@ -51,7 +47,7 @@ export default function AdminUserManagement() {
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [,] = useState('');
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [showUserForm, setShowUserForm] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
@@ -141,33 +137,6 @@ export default function AdminUserManagement() {
   const handleEditUser = (userProfile: UserProfile) => {
     setSelectedUser(userProfile);
     setShowUserForm(true);
-  };
-
-  const handleDeleteUser = async (userId: string) => {
-    if (!confirm('Are you sure you want to delete this user?')) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/admin/users/${userId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to delete user');
-      }
-
-      // Reload users after successful deletion
-      await loadUsers();
-      alert('User deleted successfully');
-    } catch (error) {
-      console.error('Failed to delete user:', error);
-      alert('Failed to delete user. Please try again.');
-    }
   };
 
   const handleSaveUser = async (formData: FormData) => {
@@ -270,7 +239,7 @@ export default function AdminUserManagement() {
             Access Denied
           </h1>
           <p className="text-black dark:text-gray-300 mb-6">
-            You don't have permission to access this page.
+            You don&apos;t have permission to access this page.
           </p>
           <button
             onClick={() => router.push('/')}

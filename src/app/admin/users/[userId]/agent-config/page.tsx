@@ -171,8 +171,8 @@ export default function AdminUserAgentConfig() {
             Access Denied
           </h1>
           <p className="text-gray-600 mb-6">
-            You don't have permission to access this page or the user was not
-            found.
+            You don&apos;t have permission to access this page or the user was
+            not found.
           </p>
           <button
             onClick={() => router.push('/admin/users')}

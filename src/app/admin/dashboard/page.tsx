@@ -8,14 +8,6 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 import { User } from '@supabase/supabase-js';
 
 // Components
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { SimpleThemeSwitch } from '@/components/SimpleThemeSwitch';
 
@@ -37,7 +29,7 @@ interface CallLog {
   call_summary?: string;
   transcript?: string;
   call_type?: string;
-  custom_data?: any;
+  custom_data?: Record<string, unknown>;
   profiles?: {
     id: string;
     full_name: string;
@@ -60,7 +52,7 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string>('all');
   const [callsLoading, setCallsLoading] = useState(false);
-  const [usersLoading, setUsersLoading] = useState(false);
+  const [, setUsersLoading] = useState(false);
   const [stats, setStats] = useState({
     totalUsers: 0,
     activeSessions: 0,
@@ -170,7 +162,9 @@ export default function AdminDashboard() {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('API Error Response:', errorText);
-        throw new Error(`Failed to fetch calls: ${response.status} ${response.statusText} - ${errorText}`);
+        throw new Error(
+          `Failed to fetch calls: ${response.status} ${response.statusText} - ${errorText}`
+        );
       }
 
       const data = await response.json();
@@ -670,17 +664,22 @@ export default function AdminDashboard() {
                         <td className="py-4 px-4">
                           <div>
                             <div className="font-medium text-black dark:text-white">
-                              {call.profiles?.full_name || call.user_id || 'Unknown User'}
+                              {call.profiles?.full_name ||
+                                call.user_id ||
+                                'Unknown User'}
                             </div>
                             <div className="text-sm text-black dark:text-gray-300">
                               {call.profiles?.business_name ||
-                                call.profiles?.email || 'No profile data'}
+                                call.profiles?.email ||
+                                'No profile data'}
                             </div>
                           </div>
                         </td>
                         <td className="py-4 px-4">
                           <span className="text-black dark:text-white">
-                            {call.direction === 'inbound' ? call.from_number : call.to_number || call.phone_number || '-'}
+                            {call.direction === 'inbound'
+                              ? call.from_number
+                              : call.to_number || call.phone_number || '-'}
                           </span>
                         </td>
                         <td className="py-4 px-4">
@@ -712,12 +711,16 @@ export default function AdminDashboard() {
                           <div>
                             <div className="text-black dark:text-white">
                               {call.start_timestamp || call.created_at
-                                ? new Date(call.start_timestamp || call.created_at).toLocaleDateString()
+                                ? new Date(
+                                    call.start_timestamp || call.created_at
+                                  ).toLocaleDateString()
                                 : '-'}
                             </div>
                             <div className="text-sm text-black dark:text-gray-300">
                               {call.start_timestamp || call.created_at
-                                ? new Date(call.start_timestamp || call.created_at).toLocaleTimeString()
+                                ? new Date(
+                                    call.start_timestamp || call.created_at
+                                  ).toLocaleTimeString()
                                 : '-'}
                             </div>
                           </div>

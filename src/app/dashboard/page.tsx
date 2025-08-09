@@ -188,7 +188,9 @@ export default function UserDashboard() {
       <div className="min-h-screen bg-white dark:bg-gray-800 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-orange-300 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-black dark:text-white">Loading your dashboard...</p>
+          <p className="text-black dark:text-white">
+            Loading your dashboard...
+          </p>
         </div>
       </div>
     );
@@ -261,8 +263,18 @@ export default function UserDashboard() {
                 onClick={() => router.back()}
                 className="flex items-center gap-2 text-black dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-400 transition-colors"
               >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
                 </svg>
                 <span className="hidden sm:inline">Back</span>
               </button>
@@ -357,7 +369,7 @@ export default function UserDashboard() {
           />
         </div>
       </main>
-      
+
       {/* Help Button */}
       <HelpButton currentPage="dashboard" />
     </div>

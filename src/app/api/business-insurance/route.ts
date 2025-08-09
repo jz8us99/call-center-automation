@@ -18,7 +18,8 @@ export async function GET(request: NextRequest) {
 
     let query = supabase
       .from('business_accepted_insurance')
-      .select(`
+      .select(
+        `
         *,
         insurance_providers (
           id,
@@ -28,19 +29,21 @@ export async function GET(request: NextRequest) {
           website,
           phone
         )
-      `)
+      `
+      )
       .eq('is_active', true);
 
     if (userId) {
       query = query.eq('user_id', userId);
     }
-    
+
     if (businessId) {
       query = query.eq('business_id', businessId);
     }
 
-    const { data: acceptedInsurance, error } = await query
-      .order('created_at', { ascending: true });
+    const { data: acceptedInsurance, error } = await query.order('created_at', {
+      ascending: true,
+    });
 
     if (error) {
       console.error('Error fetching business insurance:', error);
@@ -80,7 +83,9 @@ export async function POST(request: NextRequest) {
 
     if (!business_id || !user_id || !insurance_provider_id) {
       return NextResponse.json(
-        { error: 'business_id, user_id, and insurance_provider_id are required' },
+        {
+          error: 'business_id, user_id, and insurance_provider_id are required',
+        },
         { status: 400 }
       );
     }
@@ -99,7 +104,8 @@ export async function POST(request: NextRequest) {
         expiration_date,
         is_active: true,
       })
-      .select(`
+      .select(
+        `
         *,
         insurance_providers (
           id,
@@ -109,7 +115,8 @@ export async function POST(request: NextRequest) {
           website,
           phone
         )
-      `)
+      `
+      )
       .single();
 
     if (error) {
@@ -169,7 +176,8 @@ export async function PUT(request: NextRequest) {
       })
       .eq('id', id)
       .eq('user_id', user_id)
-      .select(`
+      .select(
+        `
         *,
         insurance_providers (
           id,
@@ -179,13 +187,17 @@ export async function PUT(request: NextRequest) {
           website,
           phone
         )
-      `)
+      `
+      )
       .single();
 
     if (error) {
       console.error('Error updating business insurance:', error);
       return NextResponse.json(
-        { error: 'Failed to update business insurance', details: error.message },
+        {
+          error: 'Failed to update business insurance',
+          details: error.message,
+        },
         { status: 500 }
       );
     }

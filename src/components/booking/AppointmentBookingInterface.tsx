@@ -104,7 +104,6 @@ export function AppointmentBookingInterface({
     note: '',
   });
 
-
   useEffect(() => {
     loadAppointmentTypes();
   }, [businessId]);
@@ -211,7 +210,8 @@ export function AppointmentBookingInterface({
         if (customerSearchResponse.ok) {
           const customerData = await customerSearchResponse.json();
           const existingCustomer = customerData.customers.find(
-            (c: any) => c.email?.toLowerCase() === customerForm.email?.toLowerCase()
+            (c: any) =>
+              c.email?.toLowerCase() === customerForm.email?.toLowerCase()
           );
 
           if (existingCustomer) {
@@ -655,7 +655,6 @@ export function AppointmentBookingInterface({
                   rows={3}
                 />
               </div>
-
 
               <Button
                 onClick={handleCustomerSubmit}

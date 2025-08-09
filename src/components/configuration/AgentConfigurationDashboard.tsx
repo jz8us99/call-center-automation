@@ -107,17 +107,20 @@ export function AgentConfigurationDashboard({
   const loadAgentConfigurations = async () => {
     try {
       setLoading(true);
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/agent-configurations', {
-      //   headers: { Authorization: `Bearer ${token}` }
-      // });
-      // const result = await response.json();
-      // setAgents(result.data || []);
+      
+      if (!user) return;
 
-      // Mock data for now
-      setAgents([]);
+      const response = await fetch(`/api/agent-configurations?user_id=${user.id}`);
+      if (response.ok) {
+        const result = await response.json();
+        setAgents(result.configurations || []);
+      } else {
+        console.error('Failed to load agent configurations');
+        setAgents([]);
+      }
     } catch (error) {
       console.error('Failed to load agent configurations:', error);
+      setAgents([]);
     } finally {
       setLoading(false);
     }
@@ -187,7 +190,7 @@ export function AgentConfigurationDashboard({
   };
 
   const saveConfiguration = async (
-    configType: 'call_scripts' | 'voice_settings' | 'call_routing',
+    configType: 'call_scripts' | 'voice_settings' | 'call_routing' | 'basic_info_prompt' | 'call_scripts_prompt',
     configData: any
   ) => {
     try {
@@ -212,6 +215,39 @@ export function AgentConfigurationDashboard({
         throw new Error('Agent type not found');
       }
 
+      // Generate enhanced prompts if needed
+      let enhancedData = { ...configData };
+      if (configType === 'call_scripts' || configType === 'voice_settings') {
+        try {
+          const promptResponse = await fetch('/api/generate-enhanced-prompts', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              agent_type: selectedAgentType,
+              agent_personality: 'professional',
+              business_context: {
+                business_profile: businessProfile,
+                services: [],
+                staff: [],
+                office_hours: [],
+              },
+              prompt_type: 'combined',
+            }),
+          });
+
+          if (promptResponse.ok) {
+            const promptData = await promptResponse.json();
+            enhancedData.basic_info_prompt = promptData.prompts.basic_info_prompt;
+            enhancedData.call_scripts_prompt = promptData.prompts.call_scripts_prompt;
+            enhancedData.greeting_message = promptData.prompts.greeting_message;
+          }
+        } catch (promptError) {
+          console.warn('Failed to generate enhanced prompts:', promptError);
+        }
+      }
+
       const response = await fetch('/api/agent-configurations', {
         method: 'POST',
         headers: {
@@ -220,7 +256,9 @@ export function AgentConfigurationDashboard({
         body: JSON.stringify({
           client_id: clientId,
           agent_type_id: agentTypeObj.id,
+          agent_name: `${AGENT_TYPE_CONFIGS[selectedAgentType].name} - ${businessProfile.business_name}`,
           [configType]: configData,
+          ...enhancedData,
         }),
       });
 
@@ -231,11 +269,14 @@ export function AgentConfigurationDashboard({
       const result = await response.json();
       console.log(`${configType} saved successfully:`, result);
 
-      // Show success message or update UI
-      // You might want to add a toast notification here
+      // Update local state
+      await loadAgentConfigurations();
+
+      // Show success message
+      alert(`${configType.replace('_', ' ')} saved successfully!`);
     } catch (error) {
       console.error(`Error saving ${configType}:`, error);
-      alert(`Error saving ${configType}. Please try again.`);
+      alert(`Error saving ${configType.replace('_', ' ')}. Please try again.`);
     }
   };
 

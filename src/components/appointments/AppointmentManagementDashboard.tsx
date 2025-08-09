@@ -134,7 +134,9 @@ export function AppointmentManagementDashboard({
     useState<Appointment | null>(null);
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [showBookingDialog, setShowBookingDialog] = useState(false);
-  const [appointmentTypes, setAppointmentTypes] = useState<AppointmentType[]>([]);
+  const [appointmentTypes, setAppointmentTypes] = useState<AppointmentType[]>(
+    []
+  );
   const [bookingForm, setBookingForm] = useState<ManualBookingForm>({
     appointment_type_id: '',
     staff_id: '',
@@ -162,7 +164,11 @@ export function AppointmentManagementDashboard({
   const loadInitialData = async () => {
     setLoading(true);
     try {
-      await Promise.all([loadStaff(), loadAppointments(), loadAppointmentTypes()]);
+      await Promise.all([
+        loadStaff(),
+        loadAppointments(),
+        loadAppointmentTypes(),
+      ]);
     } catch (error) {
       console.error('Failed to load initial data:', error);
     } finally {
@@ -184,7 +190,9 @@ export function AppointmentManagementDashboard({
 
   const loadAppointmentTypes = async () => {
     try {
-      const response = await fetch(`/api/appointment-types?business_id=${businessId}&is_active=true`);
+      const response = await fetch(
+        `/api/appointment-types?business_id=${businessId}&is_active=true`
+      );
       if (response.ok) {
         const data = await response.json();
         setAppointmentTypes(data.appointment_types || []);
@@ -272,8 +280,14 @@ export function AppointmentManagementDashboard({
   };
 
   const createManualAppointment = async () => {
-    if (!bookingForm.customer.first_name || !bookingForm.customer.last_name || !bookingForm.customer.phone) {
-      alert('Please fill in all required customer fields (first name, last name, phone).');
+    if (
+      !bookingForm.customer.first_name ||
+      !bookingForm.customer.last_name ||
+      !bookingForm.customer.phone
+    ) {
+      alert(
+        'Please fill in all required customer fields (first name, last name, phone).'
+      );
       return;
     }
 
@@ -296,7 +310,9 @@ export function AppointmentManagementDashboard({
         if (customerSearchResponse.ok) {
           const customerData = await customerSearchResponse.json();
           const existingCustomer = customerData.customers?.find(
-            (c: any) => c.email?.toLowerCase() === bookingForm.customer.email?.toLowerCase()
+            (c: any) =>
+              c.email?.toLowerCase() ===
+              bookingForm.customer.email?.toLowerCase()
           );
 
           if (existingCustomer) {
@@ -352,7 +368,9 @@ export function AppointmentManagementDashboard({
       const endTimeString = endTime.toTimeString().substring(0, 5);
 
       // Create the appointment
-      const selectedType = appointmentTypes.find(t => t.id === bookingForm.appointment_type_id);
+      const selectedType = appointmentTypes.find(
+        t => t.id === bookingForm.appointment_type_id
+      );
       const appointmentResponse = await fetch('/api/appointments', {
         method: 'POST',
         headers: {
@@ -1010,12 +1028,14 @@ export function AppointmentManagementDashboard({
                   <Label htmlFor="appointment-type">Appointment Type *</Label>
                   <Select
                     value={bookingForm.appointment_type_id}
-                    onValueChange={(value) => {
-                      const selectedType = appointmentTypes.find(t => t.id === value);
+                    onValueChange={value => {
+                      const selectedType = appointmentTypes.find(
+                        t => t.id === value
+                      );
                       setBookingForm(prev => ({
                         ...prev,
                         appointment_type_id: value,
-                        duration_minutes: selectedType?.duration_minutes || 30
+                        duration_minutes: selectedType?.duration_minutes || 30,
                       }));
                     }}
                   >
@@ -1036,7 +1056,9 @@ export function AppointmentManagementDashboard({
                   <Label htmlFor="staff-member">Staff Member *</Label>
                   <Select
                     value={bookingForm.staff_id}
-                    onValueChange={(value) => setBookingForm(prev => ({ ...prev, staff_id: value }))}
+                    onValueChange={value =>
+                      setBookingForm(prev => ({ ...prev, staff_id: value }))
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select staff member" />
@@ -1044,7 +1066,8 @@ export function AppointmentManagementDashboard({
                     <SelectContent>
                       {staff.map(member => (
                         <SelectItem key={member.id} value={member.id}>
-                          {member.first_name} {member.last_name} - {member.title}
+                          {member.first_name} {member.last_name} -{' '}
+                          {member.title}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -1057,7 +1080,12 @@ export function AppointmentManagementDashboard({
                     id="appointment-date"
                     type="date"
                     value={bookingForm.appointment_date}
-                    onChange={(e) => setBookingForm(prev => ({ ...prev, appointment_date: e.target.value }))}
+                    onChange={e =>
+                      setBookingForm(prev => ({
+                        ...prev,
+                        appointment_date: e.target.value,
+                      }))
+                    }
                     min={new Date().toISOString().split('T')[0]}
                   />
                 </div>
@@ -1068,7 +1096,12 @@ export function AppointmentManagementDashboard({
                     id="start-time"
                     type="time"
                     value={bookingForm.start_time}
-                    onChange={(e) => setBookingForm(prev => ({ ...prev, start_time: e.target.value }))}
+                    onChange={e =>
+                      setBookingForm(prev => ({
+                        ...prev,
+                        start_time: e.target.value,
+                      }))
+                    }
                   />
                 </div>
               </div>
@@ -1083,10 +1116,15 @@ export function AppointmentManagementDashboard({
                   <Input
                     id="customer-first-name"
                     value={bookingForm.customer.first_name}
-                    onChange={(e) => setBookingForm(prev => ({
-                      ...prev,
-                      customer: { ...prev.customer, first_name: e.target.value }
-                    }))}
+                    onChange={e =>
+                      setBookingForm(prev => ({
+                        ...prev,
+                        customer: {
+                          ...prev.customer,
+                          first_name: e.target.value,
+                        },
+                      }))
+                    }
                     placeholder="Customer's first name"
                   />
                 </div>
@@ -1096,10 +1134,15 @@ export function AppointmentManagementDashboard({
                   <Input
                     id="customer-last-name"
                     value={bookingForm.customer.last_name}
-                    onChange={(e) => setBookingForm(prev => ({
-                      ...prev,
-                      customer: { ...prev.customer, last_name: e.target.value }
-                    }))}
+                    onChange={e =>
+                      setBookingForm(prev => ({
+                        ...prev,
+                        customer: {
+                          ...prev.customer,
+                          last_name: e.target.value,
+                        },
+                      }))
+                    }
                     placeholder="Customer's last name"
                   />
                 </div>
@@ -1110,10 +1153,12 @@ export function AppointmentManagementDashboard({
                     id="customer-phone"
                     type="tel"
                     value={bookingForm.customer.phone}
-                    onChange={(e) => setBookingForm(prev => ({
-                      ...prev,
-                      customer: { ...prev.customer, phone: e.target.value }
-                    }))}
+                    onChange={e =>
+                      setBookingForm(prev => ({
+                        ...prev,
+                        customer: { ...prev.customer, phone: e.target.value },
+                      }))
+                    }
                     placeholder="Customer's phone number"
                   />
                 </div>
@@ -1124,10 +1169,12 @@ export function AppointmentManagementDashboard({
                     id="customer-email"
                     type="email"
                     value={bookingForm.customer.email}
-                    onChange={(e) => setBookingForm(prev => ({
-                      ...prev,
-                      customer: { ...prev.customer, email: e.target.value }
-                    }))}
+                    onChange={e =>
+                      setBookingForm(prev => ({
+                        ...prev,
+                        customer: { ...prev.customer, email: e.target.value },
+                      }))
+                    }
                     placeholder="Customer's email (optional)"
                   />
                 </div>
@@ -1140,7 +1187,9 @@ export function AppointmentManagementDashboard({
               <Textarea
                 id="appointment-notes"
                 value={bookingForm.notes}
-                onChange={(e) => setBookingForm(prev => ({ ...prev, notes: e.target.value }))}
+                onChange={e =>
+                  setBookingForm(prev => ({ ...prev, notes: e.target.value }))
+                }
                 placeholder="Any additional notes or instructions"
                 rows={3}
               />

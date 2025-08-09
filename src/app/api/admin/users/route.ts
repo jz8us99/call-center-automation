@@ -1,7 +1,11 @@
 'use server';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { authenticateRequest, createAuthenticatedClient, checkPermission } from '@/lib/supabase';
+import {
+  authenticateRequest,
+  createAuthenticatedClient,
+  checkPermission,
+} from '@/lib/supabase';
 
 // GET /api/admin/users - Fetch all users
 export async function GET(request: NextRequest) {
@@ -32,12 +36,14 @@ export async function GET(request: NextRequest) {
     // Start with basic columns that should exist
     let { data: users, error: usersError } = await supabaseWithAuth
       .from('profiles')
-      .select(`
+      .select(
+        `
         id,
         email,
         full_name,
         created_at
-      `)
+      `
+      )
       .order('created_at', { ascending: false });
 
     // If basic query fails, try with just essential columns
@@ -46,7 +52,7 @@ export async function GET(request: NextRequest) {
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
-      
+
       users = basicUsers;
       usersError = basicError;
     }
@@ -54,9 +60,9 @@ export async function GET(request: NextRequest) {
     if (usersError) {
       console.error('Error fetching users:', usersError);
       // Return empty result instead of error to prevent 500
-      return NextResponse.json({ 
+      return NextResponse.json({
         users: [],
-        warning: 'Could not fetch users: ' + usersError.message 
+        warning: 'Could not fetch users: ' + usersError.message,
       });
     }
 

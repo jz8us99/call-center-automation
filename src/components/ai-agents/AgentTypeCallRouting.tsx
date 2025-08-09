@@ -106,7 +106,7 @@ export function AgentTypeCallRouting({
     const defaultRules: CallRoutingRule[] = [];
 
     // Add agent-type specific default rules
-    if (agentType === AgentType.INBOUND_CALL) {
+    if (agentType === AgentType.INBOUND_RECEPTIONIST) {
       defaultRules.push({
         id: '1',
         name: 'Emergency Keywords',
@@ -120,7 +120,7 @@ export function AgentTypeCallRouting({
       });
     }
 
-    if (agentType === AgentType.CUSTOMER_SUPPORT) {
+    if (agentType === AgentType.INBOUND_CUSTOMER_SUPPORT) {
       defaultRules.push({
         id: '2',
         name: 'Technical Issues',
@@ -130,6 +130,33 @@ export function AgentTypeCallRouting({
         target_number: businessPhone,
         message: 'Let me connect you with our technical support team.',
         priority: 2,
+        is_active: true,
+      });
+    }
+
+    if (agentType === AgentType.OUTBOUND_FOLLOW_UP) {
+      defaultRules.push({
+        id: '3',
+        name: 'Reschedule Requests',
+        condition: 'keyword',
+        condition_value: 'reschedule,change,cancel,postpone',
+        action: 'transfer',
+        target_number: businessPhone,
+        message: 'Let me connect you with our scheduling team for assistance.',
+        priority: 1,
+        is_active: true,
+      });
+    }
+
+    if (agentType === AgentType.OUTBOUND_MARKETING) {
+      defaultRules.push({
+        id: '4',
+        name: 'Not Interested',
+        condition: 'keyword',
+        condition_value: 'not interested,remove,unsubscribe,do not call',
+        action: 'callback',
+        message: 'I understand. I\'ll make sure to update your preferences.',
+        priority: 1,
         is_active: true,
       });
     }
@@ -255,7 +282,7 @@ export function AgentTypeCallRouting({
               </CardTitle>
               <CardDescription>
                 Configure call routing, transfers, and fallback options for your{' '}
-                {agentType.replace('_', ' ').toLowerCase()} agent
+                {agentType.replace(/_/g, ' ').toLowerCase()} agent
               </CardDescription>
             </div>
             <Button variant="outline" onClick={() => setIsEditing(!isEditing)}>

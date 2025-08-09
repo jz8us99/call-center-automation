@@ -206,9 +206,12 @@ export function BusinessInformationStep({
   const [uploadingFiles, setUploadingFiles] = useState<Set<string>>(new Set());
   const [extractingWebsite, setExtractingWebsite] = useState(false);
   const [showAddLocationForm, setShowAddLocationForm] = useState(false);
-  const [editingLocation, setEditingLocation] = useState<BusinessLocation | null>(null);
+  const [editingLocation, setEditingLocation] =
+    useState<BusinessLocation | null>(null);
   const [newInsuranceInput, setNewInsuranceInput] = useState('');
-  const [businessLocations, setBusinessLocations] = useState<BusinessLocation[]>([]);
+  const [businessLocations, setBusinessLocations] = useState<
+    BusinessLocation[]
+  >([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load existing business profile data
@@ -234,8 +237,13 @@ export function BusinessInformationStep({
               city: profile.city || '',
               state: profile.state || '',
               postal_code: profile.postal_code || '',
-              business_phone: profile.business_phone || profile.contact_phone || '',
-              business_email: profile.business_email || profile.contact_email || user.email || '',
+              business_phone:
+                profile.business_phone || profile.contact_phone || '',
+              business_email:
+                profile.business_email ||
+                profile.contact_email ||
+                user.email ||
+                '',
               business_website: profile.business_website || '',
               contact_person_name: profile.contact_person_name || '',
               contact_person_role: profile.contact_person_role || '',
@@ -253,7 +261,7 @@ export function BusinessInformationStep({
 
             // Notify parent that business info is already completed
             onBusinessProfileUpdate(true);
-            
+
             // Load business locations for this profile
             if (profile.id) {
               await loadBusinessLocations(profile.id);
@@ -276,7 +284,9 @@ export function BusinessInformationStep({
 
     const loadBusinessLocations = async (businessId: string) => {
       try {
-        const response = await fetch(`/api/business-locations?business_id=${businessId}`);
+        const response = await fetch(
+          `/api/business-locations?business_id=${businessId}`
+        );
         if (response.ok) {
           const data = await response.json();
           setBusinessLocations(data.locations || []);
@@ -295,9 +305,17 @@ export function BusinessInformationStep({
 
   // Notify parent when form data changes
   useEffect(() => {
-    const hasRequiredInfo = formData.business_name && formData.business_type && formData.business_phone;
+    const hasRequiredInfo =
+      formData.business_name &&
+      formData.business_type &&
+      formData.business_phone;
     onBusinessProfileUpdate(!!hasRequiredInfo);
-  }, [formData.business_name, formData.business_type, formData.business_phone, onBusinessProfileUpdate]);
+  }, [
+    formData.business_name,
+    formData.business_type,
+    formData.business_phone,
+    onBusinessProfileUpdate,
+  ]);
 
   const handleInputChange = (
     field: keyof BusinessProfile,
@@ -577,12 +595,20 @@ export function BusinessInformationStep({
 
       // If this is a new business profile, store locations temporarily
       if (!formData.id) {
-        const updatedLocations = isUpdating 
-          ? businessLocations.map(loc => loc.id === editingLocation.id ? editingLocation : loc)
-          : [...businessLocations, { ...editingLocation, id: `temp-${Date.now()}` }];
-        
+        const updatedLocations = isUpdating
+          ? businessLocations.map(loc =>
+              loc.id === editingLocation.id ? editingLocation : loc
+            )
+          : [
+              ...businessLocations,
+              { ...editingLocation, id: `temp-${Date.now()}` },
+            ];
+
         setBusinessLocations(updatedLocations);
-        setFormData(prev => ({ ...prev, business_locations: updatedLocations }));
+        setFormData(prev => ({
+          ...prev,
+          business_locations: updatedLocations,
+        }));
       } else {
         // Business profile exists, save to API
         const response = await fetch(url, {
@@ -594,9 +620,11 @@ export function BusinessInformationStep({
         if (response.ok) {
           const { location } = await response.json();
           const updatedLocations = isUpdating
-            ? businessLocations.map(loc => loc.id === editingLocation.id ? location : loc)
+            ? businessLocations.map(loc =>
+                loc.id === editingLocation.id ? location : loc
+              )
             : [...businessLocations, location];
-          
+
           setBusinessLocations(updatedLocations);
         } else {
           throw new Error('Failed to save location');
@@ -612,16 +640,21 @@ export function BusinessInformationStep({
   };
 
   const handleDeleteLocation = async (location: BusinessLocation) => {
-    if (!confirm(`Are you sure you want to delete "${location.location_name}"?`)) {
+    if (
+      !confirm(`Are you sure you want to delete "${location.location_name}"?`)
+    ) {
       return;
     }
 
     try {
       if (location.id && !location.id.startsWith('temp-')) {
         // Delete from API if it's a real location
-        const response = await fetch(`/api/business-locations?id=${location.id}&user_id=${user.id}`, {
-          method: 'DELETE',
-        });
+        const response = await fetch(
+          `/api/business-locations?id=${location.id}&user_id=${user.id}`,
+          {
+            method: 'DELETE',
+          }
+        );
 
         if (!response.ok) {
           throw new Error('Failed to delete location');
@@ -629,7 +662,9 @@ export function BusinessInformationStep({
       }
 
       // Remove from local state
-      const updatedLocations = businessLocations.filter(loc => loc.id !== location.id);
+      const updatedLocations = businessLocations.filter(
+        loc => loc.id !== location.id
+      );
       setBusinessLocations(updatedLocations);
       setFormData(prev => ({ ...prev, business_locations: updatedLocations }));
     } catch (error) {
@@ -640,8 +675,10 @@ export function BusinessInformationStep({
 
   const saveTemporaryLocations = async (businessId: string) => {
     try {
-      const temporaryLocations = businessLocations.filter(loc => loc.id?.startsWith('temp-'));
-      
+      const temporaryLocations = businessLocations.filter(loc =>
+        loc.id?.startsWith('temp-')
+      );
+
       for (const location of temporaryLocations) {
         const locationData = {
           ...location,
@@ -659,8 +696,8 @@ export function BusinessInformationStep({
         if (response.ok) {
           const { location: savedLocation } = await response.json();
           // Update the location in our state with the real ID
-          setBusinessLocations(prev => 
-            prev.map(loc => loc.id === location.id ? savedLocation : loc)
+          setBusinessLocations(prev =>
+            prev.map(loc => (loc.id === location.id ? savedLocation : loc))
           );
         }
       }
@@ -671,10 +708,13 @@ export function BusinessInformationStep({
 
   const addInsurance = () => {
     const insuranceName = newInsuranceInput.trim();
-    if (insuranceName && !formData.accepted_insurances.includes(insuranceName)) {
+    if (
+      insuranceName &&
+      !formData.accepted_insurances?.includes(insuranceName)
+    ) {
       setFormData(prev => ({
         ...prev,
-        accepted_insurances: [...prev.accepted_insurances, insuranceName],
+        accepted_insurances: [...(prev.accepted_insurances || []), insuranceName],
       }));
       setNewInsuranceInput('');
     }
@@ -696,7 +736,14 @@ export function BusinessInformationStep({
           user_id: user.id,
           business_name: formData.business_name,
           business_type: formData.business_type,
-          business_address: [formData.street_address, formData.city, formData.state, formData.postal_code].filter(Boolean).join(', '),
+          business_address: [
+            formData.street_address,
+            formData.city,
+            formData.state,
+            formData.postal_code,
+          ]
+            .filter(Boolean)
+            .join(', '),
           street_address: formData.street_address,
           city: formData.city,
           state: formData.state,
@@ -731,7 +778,7 @@ export function BusinessInformationStep({
       // Update formData with the saved profile ID if this is a new profile
       if (result.profile?.id && !formData.id) {
         setFormData(prev => ({ ...prev, id: result.profile.id }));
-        
+
         // Save any temporary business locations
         if (businessLocations.length > 0) {
           await saveTemporaryLocations(result.profile.id);
@@ -996,7 +1043,9 @@ export function BusinessInformationStep({
                 <Input
                   id="postal-code"
                   value={formData.postal_code}
-                  onChange={e => handleInputChange('postal_code', e.target.value)}
+                  onChange={e =>
+                    handleInputChange('postal_code', e.target.value)
+                  }
                   placeholder="12345"
                 />
               </div>
@@ -1061,16 +1110,17 @@ export function BusinessInformationStep({
           <CardHeader>
             <CardTitle>Insurance Acceptance</CardTitle>
             <CardDescription>
-              List the insurance providers your business accepts. This helps customers know which insurances you work with.
+              List the insurance providers your business accepts. This helps
+              customers know which insurances you work with.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
               <Label>Accepted Insurance Providers</Label>
               <div className="mt-2">
-                {formData.accepted_insurances.length > 0 ? (
+                {(formData.accepted_insurances?.length || 0) > 0 ? (
                   <div className="space-y-2">
-                    {formData.accepted_insurances.map((insurance, index) => (
+                    {formData.accepted_insurances?.map((insurance, index) => (
                       <div
                         key={index}
                         className="flex items-center justify-between bg-gray-50 p-3 rounded-lg"
@@ -1081,9 +1131,10 @@ export function BusinessInformationStep({
                           variant="ghost"
                           size="sm"
                           onClick={() => {
-                            const newInsurances = formData.accepted_insurances.filter(
-                              (_, i) => i !== index
-                            );
+                            const newInsurances =
+                              (formData.accepted_insurances || []).filter(
+                                (_, i) => i !== index
+                              );
                             setFormData(prev => ({
                               ...prev,
                               accepted_insurances: newInsurances,
@@ -1106,8 +1157,8 @@ export function BusinessInformationStep({
                   <Input
                     placeholder="Enter insurance provider name"
                     value={newInsuranceInput}
-                    onChange={(e) => setNewInsuranceInput(e.target.value)}
-                    onKeyPress={(e) => {
+                    onChange={e => setNewInsuranceInput(e.target.value)}
+                    onKeyPress={e => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
                         addInsurance();
@@ -1125,10 +1176,13 @@ export function BusinessInformationStep({
                 </div>
 
                 <div className="mt-3">
-                  <p className="text-xs text-gray-600 mb-2">Common Insurance Providers:</p>
+                  <p className="text-xs text-gray-600 mb-2">
+                    Common Insurance Providers:
+                  </p>
                   <div className="flex flex-wrap gap-2">
                     {COMMON_INSURANCES.filter(
-                      insurance => !formData.accepted_insurances.includes(insurance)
+                      insurance =>
+                        !(formData.accepted_insurances || []).includes(insurance)
                     ).map(insurance => (
                       <Button
                         key={insurance}
@@ -1138,7 +1192,10 @@ export function BusinessInformationStep({
                         onClick={() => {
                           setFormData(prev => ({
                             ...prev,
-                            accepted_insurances: [...prev.accepted_insurances, insurance],
+                            accepted_insurances: [
+                              ...(prev.accepted_insurances || []),
+                              insurance,
+                            ],
                           }));
                         }}
                         className="text-xs h-7"
@@ -1163,7 +1220,8 @@ export function BusinessInformationStep({
                   Business Locations
                 </CardTitle>
                 <CardDescription>
-                  Manage multiple business locations. Staff can be assigned to specific locations for better organization and scheduling.
+                  Manage multiple business locations. Staff can be assigned to
+                  specific locations for better organization and scheduling.
                 </CardDescription>
               </div>
               <Button
@@ -1185,10 +1243,15 @@ export function BusinessInformationStep({
                   No Business Locations
                 </h3>
                 <p className="text-gray-600 mb-4">
-                  Add your first business location to help organize staff and services.
-                  A default location will be created automatically when you save your business information.
+                  Add your first business location to help organize staff and
+                  services. A default location will be created automatically
+                  when you save your business information.
                 </p>
-                <Button type="button" onClick={handleAddLocation} variant="outline">
+                <Button
+                  type="button"
+                  onClick={handleAddLocation}
+                  variant="outline"
+                >
                   <PlusIcon className="h-4 w-4 mr-2" />
                   Add First Location
                 </Button>
@@ -1199,18 +1262,28 @@ export function BusinessInformationStep({
                   <div
                     key={location.id || index}
                     className={`border rounded-lg p-4 ${
-                      location.is_primary ? 'border-blue-200 bg-blue-50' : 'border-gray-200'
+                      location.is_primary
+                        ? 'border-blue-200 bg-blue-50'
+                        : 'border-gray-200'
                     }`}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                            location.is_primary ? 'bg-blue-100' : 'bg-gray-100'
-                          }`}>
-                            <Building className={`h-5 w-5 ${
-                              location.is_primary ? 'text-blue-600' : 'text-gray-600'
-                            }`} />
+                          <div
+                            className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                              location.is_primary
+                                ? 'bg-blue-100'
+                                : 'bg-gray-100'
+                            }`}
+                          >
+                            <Building
+                              className={`h-5 w-5 ${
+                                location.is_primary
+                                  ? 'text-blue-600'
+                                  : 'text-gray-600'
+                              }`}
+                            />
                           </div>
                           <div>
                             <h4 className="font-semibold text-gray-900 flex items-center gap-2">
@@ -1222,7 +1295,12 @@ export function BusinessInformationStep({
                               )}
                             </h4>
                             <p className="text-sm text-gray-600">
-                              {[location.street_address, location.city, location.state, location.postal_code]
+                              {[
+                                location.street_address,
+                                location.city,
+                                location.state,
+                                location.postal_code,
+                              ]
                                 .filter(Boolean)
                                 .join(', ') || 'No address specified'}
                             </p>
@@ -1233,13 +1311,17 @@ export function BusinessInformationStep({
                           {location.phone && (
                             <div>
                               <p className="text-sm text-gray-600">Phone</p>
-                              <p className="text-sm font-medium">{location.phone}</p>
+                              <p className="text-sm font-medium">
+                                {location.phone}
+                              </p>
                             </div>
                           )}
                           {location.email && (
                             <div>
                               <p className="text-sm text-gray-600">Email</p>
-                              <p className="text-sm font-medium">{location.email}</p>
+                              <p className="text-sm font-medium">
+                                {location.email}
+                              </p>
                             </div>
                           )}
                         </div>
@@ -1278,7 +1360,9 @@ export function BusinessInformationStep({
                 <div className="bg-gray-50 rounded-lg p-6">
                   <div className="flex items-center justify-between mb-4">
                     <h4 className="font-medium text-gray-900">
-                      {editingLocation.id ? 'Edit Location' : 'Add New Location'}
+                      {editingLocation.id
+                        ? 'Edit Location'
+                        : 'Add New Location'}
                     </h4>
                     <Button
                       type="button"
@@ -1300,7 +1384,13 @@ export function BusinessInformationStep({
                         <Input
                           id="location-name"
                           value={editingLocation.location_name}
-                          onChange={e => setEditingLocation(prev => prev ? { ...prev, location_name: e.target.value } : null)}
+                          onChange={e =>
+                            setEditingLocation(prev =>
+                              prev
+                                ? { ...prev, location_name: e.target.value }
+                                : null
+                            )
+                          }
                           placeholder="Main Office, Branch Location, etc."
                           required
                         />
@@ -1310,7 +1400,13 @@ export function BusinessInformationStep({
                           type="checkbox"
                           id="is-primary"
                           checked={editingLocation.is_primary}
-                          onChange={e => setEditingLocation(prev => prev ? { ...prev, is_primary: e.target.checked } : null)}
+                          onChange={e =>
+                            setEditingLocation(prev =>
+                              prev
+                                ? { ...prev, is_primary: e.target.checked }
+                                : null
+                            )
+                          }
                           className="rounded border-gray-300"
                         />
                         <Label htmlFor="is-primary" className="text-sm">
@@ -1324,7 +1420,13 @@ export function BusinessInformationStep({
                       <Input
                         id="location-street"
                         value={editingLocation.street_address || ''}
-                        onChange={e => setEditingLocation(prev => prev ? { ...prev, street_address: e.target.value } : null)}
+                        onChange={e =>
+                          setEditingLocation(prev =>
+                            prev
+                              ? { ...prev, street_address: e.target.value }
+                              : null
+                          )
+                        }
                         placeholder="123 Main Street, Suite 100"
                       />
                     </div>
@@ -1335,7 +1437,11 @@ export function BusinessInformationStep({
                         <Input
                           id="location-city"
                           value={editingLocation.city || ''}
-                          onChange={e => setEditingLocation(prev => prev ? { ...prev, city: e.target.value } : null)}
+                          onChange={e =>
+                            setEditingLocation(prev =>
+                              prev ? { ...prev, city: e.target.value } : null
+                            )
+                          }
                           placeholder="City"
                         />
                       </div>
@@ -1344,7 +1450,11 @@ export function BusinessInformationStep({
                         <Input
                           id="location-state"
                           value={editingLocation.state || ''}
-                          onChange={e => setEditingLocation(prev => prev ? { ...prev, state: e.target.value } : null)}
+                          onChange={e =>
+                            setEditingLocation(prev =>
+                              prev ? { ...prev, state: e.target.value } : null
+                            )
+                          }
                           placeholder="State"
                         />
                       </div>
@@ -1353,7 +1463,13 @@ export function BusinessInformationStep({
                         <Input
                           id="location-postal"
                           value={editingLocation.postal_code || ''}
-                          onChange={e => setEditingLocation(prev => prev ? { ...prev, postal_code: e.target.value } : null)}
+                          onChange={e =>
+                            setEditingLocation(prev =>
+                              prev
+                                ? { ...prev, postal_code: e.target.value }
+                                : null
+                            )
+                          }
                           placeholder="12345"
                         />
                       </div>
@@ -1366,7 +1482,11 @@ export function BusinessInformationStep({
                           id="location-phone"
                           type="tel"
                           value={editingLocation.phone || ''}
-                          onChange={e => setEditingLocation(prev => prev ? { ...prev, phone: e.target.value } : null)}
+                          onChange={e =>
+                            setEditingLocation(prev =>
+                              prev ? { ...prev, phone: e.target.value } : null
+                            )
+                          }
                           placeholder="(555) 123-4567"
                         />
                       </div>
@@ -1376,7 +1496,11 @@ export function BusinessInformationStep({
                           id="location-email"
                           type="email"
                           value={editingLocation.email || ''}
-                          onChange={e => setEditingLocation(prev => prev ? { ...prev, email: e.target.value } : null)}
+                          onChange={e =>
+                            setEditingLocation(prev =>
+                              prev ? { ...prev, email: e.target.value } : null
+                            )
+                          }
                           placeholder="location@business.com"
                         />
                       </div>
@@ -1389,7 +1513,9 @@ export function BusinessInformationStep({
                         disabled={!editingLocation.location_name}
                       >
                         <CheckCircle className="h-4 w-4 mr-2" />
-                        {editingLocation.id ? 'Update Location' : 'Add Location'}
+                        {editingLocation.id
+                          ? 'Update Location'
+                          : 'Add Location'}
                       </Button>
                       <Button
                         type="button"
@@ -1704,7 +1830,9 @@ export function BusinessInformationStep({
         </Card>
 
         {/* Validation Summary */}
-        {(!formData.business_name || !formData.business_type || !formData.business_phone) && (
+        {(!formData.business_name ||
+          !formData.business_type ||
+          !formData.business_phone) && (
           <Card className="bg-yellow-50 border-yellow-200">
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
@@ -1785,7 +1913,9 @@ export function BusinessInformationStep({
                     ? 'You can now proceed to Staff Management. Your information will be used across all AI agents.'
                     : saveStatus === 'error'
                       ? 'There was an error saving your information. Please try again.'
-                      : !formData.business_name || !formData.business_type || !formData.business_phone
+                      : !formData.business_name ||
+                          !formData.business_type ||
+                          !formData.business_phone
                         ? 'Please fill in the required fields above to enable saving.'
                         : 'This information will be used across all your AI agents and can be updated anytime.'}
                 </p>
@@ -1793,10 +1923,16 @@ export function BusinessInformationStep({
               <Button
                 type="submit"
                 disabled={
-                  saving || !formData.business_name || !formData.business_type || !formData.business_phone
+                  saving ||
+                  !formData.business_name ||
+                  !formData.business_type ||
+                  !formData.business_phone
                 }
                 className={`${
-                  saving || !formData.business_name || !formData.business_type || !formData.business_phone
+                  saving ||
+                  !formData.business_name ||
+                  !formData.business_type ||
+                  !formData.business_phone
                     ? 'bg-gray-400 cursor-not-allowed'
                     : saveStatus === 'success'
                       ? 'bg-green-600 hover:bg-green-700'
@@ -1820,7 +1956,9 @@ export function BusinessInformationStep({
                     <AlertCircle className="h-4 w-4 mr-2" />
                     Try Again
                   </>
-                ) : !formData.business_name || !formData.business_type || !formData.business_phone ? (
+                ) : !formData.business_name ||
+                  !formData.business_type ||
+                  !formData.business_phone ? (
                   <>
                     <AlertCircle className="h-4 w-4 mr-2" />
                     Complete Required Fields

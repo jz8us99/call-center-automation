@@ -235,7 +235,10 @@ export async function POST(request: NextRequest) {
           .single();
 
         if (locationError) {
-          console.error('Failed to create default business location:', locationError);
+          console.error(
+            'Failed to create default business location:',
+            locationError
+          );
         }
 
         // Get user data from auth to get email
@@ -262,7 +265,10 @@ export async function POST(request: NextRequest) {
         }
       } catch (staffError) {
         // Log error but don't fail the business profile creation
-        console.error('Failed to create admin staff member or location:', staffError);
+        console.error(
+          'Failed to create admin staff member or location:',
+          staffError
+        );
       }
     }
 
@@ -397,7 +403,11 @@ export async function PUT(request: NextRequest) {
       updated_at: new Date().toISOString(),
     };
 
-    const query = supabase.from('business_profiles').update(updateData).select().single();
+    const query = supabase
+      .from('business_profiles')
+      .update(updateData)
+      .select()
+      .single();
 
     if (id) {
       query.eq('id', id);

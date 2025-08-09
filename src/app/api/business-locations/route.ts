@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     if (userId) {
       query = query.eq('user_id', userId);
     }
-    
+
     if (businessId) {
       query = query.eq('business_id', businessId);
     }
@@ -197,7 +197,9 @@ export async function PUT(request: NextRequest) {
         email,
         website,
         timezone,
-        business_hours: business_hours ? JSON.stringify(business_hours) : undefined,
+        business_hours: business_hours
+          ? JSON.stringify(business_hours)
+          : undefined,
         is_active,
         updated_at: new Date().toISOString(),
       })
@@ -265,7 +267,10 @@ export async function DELETE(request: NextRequest) {
 
       if (otherLocations && otherLocations.length > 0) {
         return NextResponse.json(
-          { error: 'Cannot delete primary location. Set another location as primary first.' },
+          {
+            error:
+              'Cannot delete primary location. Set another location as primary first.',
+          },
           { status: 400 }
         );
       }

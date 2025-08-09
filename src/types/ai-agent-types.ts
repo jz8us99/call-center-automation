@@ -2,10 +2,10 @@
 // Comprehensive type definitions for multi-agent, multi-language support
 
 export enum AgentType {
-  INBOUND_CALL = 'inbound_call',
-  OUTBOUND_APPOINTMENT = 'outbound_appointment',
+  INBOUND_RECEPTIONIST = 'inbound_receptionist',
+  INBOUND_CUSTOMER_SUPPORT = 'inbound_customer_support',
+  OUTBOUND_FOLLOW_UP = 'outbound_follow_up',
   OUTBOUND_MARKETING = 'outbound_marketing',
-  CUSTOMER_SUPPORT = 'customer_support',
 }
 
 export enum AgentStatus {
@@ -607,19 +607,20 @@ export interface ValidationError {
 // ===== Configuration Templates =====
 
 export const AGENT_TYPE_CONFIGS: Record<AgentType, Partial<AgentTypeConfig>> = {
-  [AgentType.INBOUND_CALL]: {
-    type_code: AgentType.INBOUND_CALL,
-    name: 'Inbound Call Agent',
+  [AgentType.INBOUND_RECEPTIONIST]: {
+    type_code: AgentType.INBOUND_RECEPTIONIST,
+    name: 'Inbound Receptionist',
     description:
-      'Handles incoming customer calls, routing, and initial support',
+      'Professional phone receptionist handling incoming calls, routing, and scheduling',
     icon: '📞',
     default_personality: AgentPersonality.PROFESSIONAL,
     default_capabilities: [
-      'Call routing and transfer',
-      'Appointment scheduling',
+      'Professional call greeting and routing',
+      'Appointment scheduling and management',
       'Basic inquiry handling',
       'Customer information collection',
-      'Emergency call identification',
+      'Call transfer and message taking',
+      'Business hours and location information',
     ],
     suggested_voice_settings: {
       speed: 1.0,
@@ -627,19 +628,41 @@ export const AGENT_TYPE_CONFIGS: Record<AgentType, Partial<AgentTypeConfig>> = {
       tone: 'professional',
     },
   },
-  [AgentType.OUTBOUND_APPOINTMENT]: {
-    type_code: AgentType.OUTBOUND_APPOINTMENT,
-    name: 'Outbound Appointment Follow-up Agent',
+  [AgentType.INBOUND_CUSTOMER_SUPPORT]: {
+    type_code: AgentType.INBOUND_CUSTOMER_SUPPORT,
+    name: 'Inbound Customer Support',
     description:
-      'Manages appointment confirmations, reminders, and rescheduling',
+      'Dedicated support agent for handling customer issues, complaints, and technical assistance',
+    icon: '🛠️',
+    default_personality: AgentPersonality.TECHNICAL,
+    default_capabilities: [
+      'Technical troubleshooting and support',
+      'Issue resolution and problem solving',
+      'Complaint handling and de-escalation',
+      'Service explanations and guidance',
+      'Follow-up coordination',
+      'Escalation management',
+    ],
+    suggested_voice_settings: {
+      speed: 0.9,
+      pitch: 0.9,
+      tone: 'calm',
+    },
+  },
+  [AgentType.OUTBOUND_FOLLOW_UP]: {
+    type_code: AgentType.OUTBOUND_FOLLOW_UP,
+    name: 'Outbound Follow-up',
+    description:
+      'Follow-up agent for appointment confirmations, reminders, and post-service check-ins',
     icon: '📅',
     default_personality: AgentPersonality.FRIENDLY,
     default_capabilities: [
-      'Appointment confirmations',
-      'Reminder calls',
-      'Rescheduling requests',
-      'Cancellation handling',
-      'Follow-up after appointments',
+      'Appointment confirmations and reminders',
+      'Rescheduling and cancellation handling',
+      'Post-service follow-up calls',
+      'Customer satisfaction surveys',
+      'Feedback collection and documentation',
+      'Gentle payment reminders',
     ],
     suggested_voice_settings: {
       speed: 0.9,
@@ -649,43 +672,23 @@ export const AGENT_TYPE_CONFIGS: Record<AgentType, Partial<AgentTypeConfig>> = {
   },
   [AgentType.OUTBOUND_MARKETING]: {
     type_code: AgentType.OUTBOUND_MARKETING,
-    name: 'Outbound Marketing Agent',
+    name: 'Outbound Marketing',
     description:
-      'Conducts sales calls, lead qualification, and promotional campaigns',
+      'Marketing agent for lead generation, sales calls, and promotional campaigns',
     icon: '📈',
     default_personality: AgentPersonality.FRIENDLY,
     default_capabilities: [
-      'Lead qualification',
-      'Sales presentations',
-      'Promotional campaigns',
-      'Service introductions',
-      'Follow-up on inquiries',
-      'Appointment setting for consultations',
+      'Lead qualification and nurturing',
+      'Sales presentations and demos',
+      'Promotional campaign execution',
+      'New service introductions',
+      'Consultation scheduling',
+      'Market research and surveys',
     ],
     suggested_voice_settings: {
       speed: 1.1,
       pitch: 1.0,
       tone: 'energetic',
-    },
-  },
-  [AgentType.CUSTOMER_SUPPORT]: {
-    type_code: AgentType.CUSTOMER_SUPPORT,
-    name: 'Customer Support Agent',
-    description: 'Provides detailed technical support and issue resolution',
-    icon: '🛠️',
-    default_personality: AgentPersonality.TECHNICAL,
-    default_capabilities: [
-      'Technical troubleshooting',
-      'Detailed issue resolution',
-      'Service explanation',
-      'Complaint handling',
-      'Multi-step problem solving',
-      'Escalation management',
-    ],
-    suggested_voice_settings: {
-      speed: 0.9,
-      pitch: 0.9,
-      tone: 'calm',
     },
   },
 };

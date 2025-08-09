@@ -365,7 +365,7 @@ export function BusinessInformationForm({
                 placeholder="123 Main Street, Suite 100"
               />
             </div>
-            
+
             <div className="grid md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -393,7 +393,9 @@ export function BusinessInformationForm({
                 </label>
                 <Input
                   value={formData.postal_code}
-                  onChange={e => handleInputChange('postal_code', e.target.value)}
+                  onChange={e =>
+                    handleInputChange('postal_code', e.target.value)
+                  }
                   placeholder="12345"
                 />
               </div>

@@ -76,8 +76,11 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = supabaseAdmin;
     const body = await request.json();
-    
-    console.log('POST /api/appointments received data:', JSON.stringify(body, null, 2));
+
+    console.log(
+      'POST /api/appointments received data:',
+      JSON.stringify(body, null, 2)
+    );
 
     const {
       user_id,
@@ -121,7 +124,7 @@ export async function POST(request: NextRequest) {
       staff_id,
       appointment_date,
       start_time,
-      end_time
+      end_time,
     });
 
     // Get all appointments for this staff member on this date
@@ -135,17 +138,21 @@ export async function POST(request: NextRequest) {
 
     if (conflictError) {
       console.error('Error checking conflicts:', conflictError);
-      return NextResponse.json({ error: 'Error checking availability' }, { status: 500 });
+      return NextResponse.json(
+        { error: 'Error checking availability' },
+        { status: 500 }
+      );
     }
 
     console.log('Found existing appointments:', existingAppointments);
 
     // Check for time conflicts manually
-    const conflictingAppointments = existingAppointments?.filter(apt => {
-      // Check if appointments overlap
-      // Overlap occurs if: new start < existing end AND new end > existing start
-      return start_time < apt.end_time && end_time > apt.start_time;
-    }) || [];
+    const conflictingAppointments =
+      existingAppointments?.filter(apt => {
+        // Check if appointments overlap
+        // Overlap occurs if: new start < existing end AND new end > existing start
+        return start_time < apt.end_time && end_time > apt.start_time;
+      }) || [];
 
     if (conflictingAppointments.length > 0) {
       console.log('Time slot conflict detected:', conflictingAppointments);
@@ -182,7 +189,10 @@ export async function POST(request: NextRequest) {
       appointmentInsertData.service_id = appointment_type_id;
     }
 
-    console.log('Inserting appointment with data:', JSON.stringify(appointmentInsertData, null, 2));
+    console.log(
+      'Inserting appointment with data:',
+      JSON.stringify(appointmentInsertData, null, 2)
+    );
 
     const { data, error } = await supabase
       .from('appointment_bookings')
@@ -283,25 +293,30 @@ export async function PUT(request: NextRequest) {
         end_time !== currentAppointment.end_time)
     ) {
       // Get all appointments for this staff member on the new date (excluding current appointment)
-      const { data: existingAppointments, error: conflictError } = await supabase
-        .from('appointment_bookings')
-        .select('id, start_time, end_time, status')
-        .eq('staff_id', currentAppointment.staff_id)
-        .eq('appointment_date', appointment_date)
-        .neq('status', 'cancelled')
-        .neq('status', 'no_show')
-        .neq('id', id); // Exclude current appointment being updated
+      const { data: existingAppointments, error: conflictError } =
+        await supabase
+          .from('appointment_bookings')
+          .select('id, start_time, end_time, status')
+          .eq('staff_id', currentAppointment.staff_id)
+          .eq('appointment_date', appointment_date)
+          .neq('status', 'cancelled')
+          .neq('status', 'no_show')
+          .neq('id', id); // Exclude current appointment being updated
 
       if (conflictError) {
         console.error('Error checking conflicts for update:', conflictError);
-        return NextResponse.json({ error: 'Error checking availability' }, { status: 500 });
+        return NextResponse.json(
+          { error: 'Error checking availability' },
+          { status: 500 }
+        );
       }
 
       // Check for time conflicts manually
-      const conflictingAppointments = existingAppointments?.filter(apt => {
-        // Check if appointments overlap
-        return start_time < apt.end_time && end_time > apt.start_time;
-      }) || [];
+      const conflictingAppointments =
+        existingAppointments?.filter(apt => {
+          // Check if appointments overlap
+          return start_time < apt.end_time && end_time > apt.start_time;
+        }) || [];
 
       if (conflictingAppointments.length > 0) {
         return NextResponse.json(

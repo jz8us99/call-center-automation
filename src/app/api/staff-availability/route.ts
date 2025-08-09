@@ -130,11 +130,14 @@ export async function POST(request: NextRequest) {
 
       if (createError) {
         console.error('Error creating staff calendar:', createError);
-        return NextResponse.json({ 
-          error: 'Could not create staff calendar for this year.' 
-        }, { status: 500 });
+        return NextResponse.json(
+          {
+            error: 'Could not create staff calendar for this year.',
+          },
+          { status: 500 }
+        );
       }
-      
+
       calendarId = newCalendar.id;
     }
 

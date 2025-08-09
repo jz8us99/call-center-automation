@@ -54,20 +54,24 @@ export default function StaffCalendarPage() {
       const response = await fetch(
         `/api/staff?user_id=${userId}&staff_id=${staffId}`
       );
-      
+
       if (!response.ok) {
         const errorData = await response.text();
         console.error('API Error:', response.status, errorData);
-        setError(`Failed to load staff data: ${response.status} - ${errorData}`);
+        setError(
+          `Failed to load staff data: ${response.status} - ${errorData}`
+        );
         return;
       }
-      
+
       const data = await response.json();
       console.log('Staff API response:', data);
-      
+
       if (data.staff && data.staff.length > 0) {
         // Find the specific staff member by ID if provided
-        const targetStaff = data.staff.find((staff: any) => staff.id === staffId) || data.staff[0];
+        const targetStaff =
+          data.staff.find((staff: any) => staff.id === staffId) ||
+          data.staff[0];
         setStaffMember(targetStaff);
       }
     } catch (error) {
@@ -78,13 +82,17 @@ export default function StaffCalendarPage() {
   const loadBusinessProfile = async (userId: string) => {
     try {
       const response = await fetch(`/api/business-profile?user_id=${userId}`);
-      
+
       if (!response.ok) {
         const errorData = await response.text();
-        console.error('Business Profile API Error:', response.status, errorData);
+        console.error(
+          'Business Profile API Error:',
+          response.status,
+          errorData
+        );
         return;
       }
-      
+
       const data = await response.json();
       console.log('Business Profile API response:', data);
       setBusinessProfile(data.profile);

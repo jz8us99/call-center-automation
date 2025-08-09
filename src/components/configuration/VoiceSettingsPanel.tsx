@@ -83,15 +83,20 @@ export function VoiceSettingsPanel({
         if (response.ok) {
           const data = await response.json();
           setAvailableVoices(data.voices || []);
-          
+
           // Set default voice if none selected
-          if (data.voices && data.voices.length > 0 && !voiceSettings.voice_id) {
+          if (
+            data.voices &&
+            data.voices.length > 0 &&
+            !voiceSettings.voice_id
+          ) {
             const defaultVoice = data.voices[0];
             setVoiceSettings(prev => ({
               ...prev,
               voice_id: defaultVoice.id,
               voice_name: defaultVoice.name,
-              style: defaultVoice.style || defaultVoice.gender || 'professional',
+              style:
+                defaultVoice.style || defaultVoice.gender || 'professional',
             }));
           }
         } else {
@@ -132,21 +137,23 @@ export function VoiceSettingsPanel({
   const handleTestVoice = async () => {
     setIsPlaying(true);
     try {
-      const selectedVoice = availableVoices.find(v => v.id === voiceSettings.voice_id);
-      
+      const selectedVoice = availableVoices.find(
+        v => v.id === voiceSettings.voice_id
+      );
+
       if (selectedVoice?.preview_audio_url) {
         // Play the preview audio from Retell AI
         const audio = new Audio(selectedVoice.preview_audio_url);
-        
+
         audio.onended = () => {
           setIsPlaying(false);
         };
-        
+
         audio.onerror = () => {
           console.error('Error playing preview audio');
           setIsPlaying(false);
         };
-        
+
         await audio.play();
       } else {
         console.log('Testing voice with settings:', voiceSettings);

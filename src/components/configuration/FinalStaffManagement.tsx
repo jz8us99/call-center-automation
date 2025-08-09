@@ -95,7 +95,9 @@ export function FinalStaffManagement({
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [jobCategories, setJobCategories] = useState<JobCategory[]>([]);
   const [jobTypes, setJobTypes] = useState<JobType[]>([]);
-  const [businessLocations, setBusinessLocations] = useState<BusinessLocation[]>([]);
+  const [businessLocations, setBusinessLocations] = useState<
+    BusinessLocation[]
+  >([]);
   const [selectedLocationId, setSelectedLocationId] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -137,7 +139,7 @@ export function FinalStaffManagement({
   }, [staff.length, onStaffUpdate]);
 
   // Filter staff by selected location
-  const filteredStaff = selectedLocationId 
+  const filteredStaff = selectedLocationId
     ? staff.filter(s => s.location_id === selectedLocationId || !s.location_id) // Include staff without location for backward compatibility
     : staff;
 
@@ -145,10 +147,10 @@ export function FinalStaffManagement({
     setLoading(true);
     try {
       await Promise.all([
-        loadBusinessLocations(), 
-        loadJobCategories(), 
-        loadJobTypes(), 
-        loadStaff()
+        loadBusinessLocations(),
+        loadJobCategories(),
+        loadJobTypes(),
+        loadStaff(),
       ]);
     } catch (error) {
       console.error('Failed to load initial data:', error);
@@ -159,13 +161,17 @@ export function FinalStaffManagement({
 
   const loadBusinessLocations = async () => {
     try {
-      const response = await fetch(`/api/business-locations?user_id=${user.id}`);
+      const response = await fetch(
+        `/api/business-locations?user_id=${user.id}`
+      );
       if (response.ok) {
         const data = await response.json();
         setBusinessLocations(data.locations || []);
-        
+
         // Set primary location as default
-        const primaryLocation = data.locations?.find((loc: BusinessLocation) => loc.is_primary);
+        const primaryLocation = data.locations?.find(
+          (loc: BusinessLocation) => loc.is_primary
+        );
         if (primaryLocation) {
           setSelectedLocationId(primaryLocation.id);
         } else if (data.locations?.length > 0) {
@@ -394,7 +400,9 @@ export function FinalStaffManagement({
       setConfiguringCalendar(member);
     } catch (error) {
       console.error('Error configuring calendar:', error);
-      alert('An error occurred while opening calendar configuration. Please try again.');
+      alert(
+        'An error occurred while opening calendar configuration. Please try again.'
+      );
     }
   };
 
@@ -750,19 +758,28 @@ export function FinalStaffManagement({
               </p>
 
               <div>
-                <Label htmlFor="job-category">Job Categories (Select Multiple)</Label>
+                <Label htmlFor="job-category">
+                  Job Categories (Select Multiple)
+                </Label>
                 <div className="border rounded-lg p-3 max-h-48 overflow-y-auto">
                   {jobCategories.map(category => (
-                    <div key={category.id} className="flex items-start space-x-2 py-2">
+                    <div
+                      key={category.id}
+                      className="flex items-start space-x-2 py-2"
+                    >
                       <Checkbox
                         id={`category-${category.id}`}
-                        checked={formData.job_category_ids.includes(category.id)}
+                        checked={formData.job_category_ids.includes(
+                          category.id
+                        )}
                         onCheckedChange={checked => {
                           setFormData(prev => ({
                             ...prev,
                             job_category_ids: checked
                               ? [...prev.job_category_ids, category.id]
-                              : prev.job_category_ids.filter(id => id !== category.id),
+                              : prev.job_category_ids.filter(
+                                  id => id !== category.id
+                                ),
                             selected_job_types: [], // Reset job types when categories change
                           }));
                         }}
@@ -812,7 +829,10 @@ export function FinalStaffManagement({
                 {(() => {
                   const categoryJobTypes = formData.job_category_ids.reduce(
                     (allTypes, categoryId) => {
-                      return [...allTypes, ...getJobTypesForCategory(categoryId)];
+                      return [
+                        ...allTypes,
+                        ...getJobTypesForCategory(categoryId),
+                      ];
                     },
                     [] as JobType[]
                   );
@@ -834,11 +854,14 @@ export function FinalStaffManagement({
                   return (
                     <div className="space-y-4 max-h-64 overflow-y-auto border rounded-lg p-4">
                       {formData.job_category_ids.map(categoryId => {
-                        const category = jobCategories.find(c => c.id === categoryId);
-                        const categoryTypes = getJobTypesForCategory(categoryId);
-                        
+                        const category = jobCategories.find(
+                          c => c.id === categoryId
+                        );
+                        const categoryTypes =
+                          getJobTypesForCategory(categoryId);
+
                         if (categoryTypes.length === 0) return null;
-                        
+
                         return (
                           <div key={categoryId} className="space-y-2">
                             <h5 className="text-sm font-semibold text-blue-700 border-b border-blue-200 pb-1">
@@ -980,11 +1003,10 @@ export function FinalStaffManagement({
                       Error Loading Calendar Configuration
                     </h3>
                     <p className="text-gray-600 mb-4">
-                      There was an error loading the calendar configuration. Please try again.
+                      There was an error loading the calendar configuration.
+                      Please try again.
                     </p>
-                    <Button onClick={handleBackFromCalendar}>
-                      Close
-                    </Button>
+                    <Button onClick={handleBackFromCalendar}>Close</Button>
                   </div>
                 );
               }

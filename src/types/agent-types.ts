@@ -1,8 +1,8 @@
 export enum AgentType {
-  INBOUND_CALL = 'inbound_call',
-  OUTBOUND_APPOINTMENT = 'outbound_appointment',
+  INBOUND_RECEPTIONIST = 'inbound_receptionist',
+  INBOUND_CUSTOMER_SUPPORT = 'inbound_customer_support',
+  OUTBOUND_FOLLOW_UP = 'outbound_follow_up',
   OUTBOUND_MARKETING = 'outbound_marketing',
-  CUSTOMER_SUPPORT = 'customer_support',
 }
 
 export interface AgentTypeConfig {
@@ -20,53 +20,84 @@ export interface AgentTypeConfig {
 }
 
 export const AGENT_TYPE_CONFIGS: Record<AgentType, AgentTypeConfig> = {
-  [AgentType.INBOUND_CALL]: {
-    type: AgentType.INBOUND_CALL,
-    name: 'Inbound Call Agent',
+  [AgentType.INBOUND_RECEPTIONIST]: {
+    type: AgentType.INBOUND_RECEPTIONIST,
+    name: 'Inbound Receptionist',
     description:
-      'Handles incoming customer calls, routing, and initial support',
+      'Professional phone receptionist handling incoming calls, routing, and scheduling',
     icon: '📞',
     capabilities: [
-      'Call routing and transfer',
-      'Appointment scheduling',
+      'Professional call greeting and routing',
+      'Appointment scheduling and management',
       'Basic inquiry handling',
       'Customer information collection',
-      'Emergency call identification',
+      'Call transfer and message taking',
+      'Business hours and location information',
     ],
     defaultPrompt: `You are a professional receptionist for {business_name}. Your role is to:
-- Greet callers warmly and professionally
-- Identify the caller's needs quickly
-- Schedule appointments when requested
-- Route calls to appropriate staff members
-- Collect basic customer information
-- Handle common inquiries about services and hours
-- Maintain a helpful and courteous tone throughout the call`,
+- Answer all calls with a warm, professional greeting
+- Identify the caller's needs quickly and efficiently
+- Schedule appointments according to availability
+- Route calls to the appropriate staff members
+- Collect and update customer contact information
+- Provide information about services, hours, and location
+- Handle routine inquiries with courtesy and accuracy`,
     suggestedVoiceSettings: {
       speed: 1.0,
       pitch: 1.0,
       tone: 'professional',
     },
   },
-  [AgentType.OUTBOUND_APPOINTMENT]: {
-    type: AgentType.OUTBOUND_APPOINTMENT,
-    name: 'Outbound Appointment Follow-up Agent',
+  [AgentType.INBOUND_CUSTOMER_SUPPORT]: {
+    type: AgentType.INBOUND_CUSTOMER_SUPPORT,
+    name: 'Inbound Customer Support',
     description:
-      'Manages appointment confirmations, reminders, and rescheduling',
+      'Dedicated support agent for handling customer issues, complaints, and technical assistance',
+    icon: '🛠️',
+    capabilities: [
+      'Technical troubleshooting and support',
+      'Issue resolution and problem solving',
+      'Complaint handling and de-escalation',
+      'Service explanations and guidance',
+      'Follow-up coordination',
+      'Escalation management',
+    ],
+    defaultPrompt: `You are a customer support specialist for {business_name}. Your responsibilities include:
+- Listening actively to customer concerns and issues
+- Providing clear, step-by-step solutions
+- Troubleshooting problems with patience and expertise
+- Handling complaints with empathy and professionalism
+- Escalating complex issues to appropriate departments
+- Following up to ensure customer satisfaction
+- Maintaining detailed records of all interactions`,
+    suggestedVoiceSettings: {
+      speed: 0.9,
+      pitch: 0.9,
+      tone: 'calm',
+    },
+  },
+  [AgentType.OUTBOUND_FOLLOW_UP]: {
+    type: AgentType.OUTBOUND_FOLLOW_UP,
+    name: 'Outbound Follow-up',
+    description:
+      'Follow-up agent for appointment confirmations, reminders, and post-service check-ins',
     icon: '📅',
     capabilities: [
-      'Appointment confirmations',
-      'Reminder calls',
-      'Rescheduling requests',
-      'Cancellation handling',
-      'Follow-up after appointments',
+      'Appointment confirmations and reminders',
+      'Rescheduling and cancellation handling',
+      'Post-service follow-up calls',
+      'Customer satisfaction surveys',
+      'Feedback collection and documentation',
+      'Gentle payment reminders',
     ],
-    defaultPrompt: `You are calling on behalf of {business_name} to follow up on appointments. Your responsibilities include:
+    defaultPrompt: `You are making follow-up calls on behalf of {business_name}. Your duties include:
 - Confirming upcoming appointments professionally
-- Offering rescheduling options if needed
-- Sending appointment reminders
-- Collecting any required pre-appointment information
-- Handling cancellations politely
-- Following up on completed appointments for feedback`,
+- Sending timely appointment reminders
+- Offering rescheduling options when needed
+- Following up after completed services
+- Collecting customer feedback and satisfaction ratings
+- Handling cancellations with understanding
+- Maintaining positive customer relationships`,
     suggestedVoiceSettings: {
       speed: 0.9,
       pitch: 1.1,
@@ -75,57 +106,30 @@ export const AGENT_TYPE_CONFIGS: Record<AgentType, AgentTypeConfig> = {
   },
   [AgentType.OUTBOUND_MARKETING]: {
     type: AgentType.OUTBOUND_MARKETING,
-    name: 'Outbound Marketing Agent',
+    name: 'Outbound Marketing',
     description:
-      'Conducts sales calls, lead qualification, and promotional campaigns',
+      'Marketing agent for lead generation, sales calls, and promotional campaigns',
     icon: '📈',
     capabilities: [
-      'Lead qualification',
-      'Sales presentations',
-      'Promotional campaigns',
-      'Service introductions',
-      'Follow-up on inquiries',
-      'Appointment setting for consultations',
+      'Lead qualification and nurturing',
+      'Sales presentations and demos',
+      'Promotional campaign execution',
+      'New service introductions',
+      'Consultation scheduling',
+      'Market research and surveys',
     ],
-    defaultPrompt: `You are a sales representative for {business_name}. Your goal is to:
+    defaultPrompt: `You are a marketing representative for {business_name}. Your objectives are to:
 - Introduce our services to potential customers
-- Qualify leads and identify genuine interest
-- Present promotional offers clearly and compellingly
-- Schedule consultation appointments
-- Handle objections professionally
-- Maintain compliance with marketing regulations
-- Build positive relationships with prospects`,
+- Qualify leads and assess customer needs
+- Present promotional offers clearly and persuasively
+- Schedule consultations and appointments
+- Handle objections professionally and respectfully
+- Build positive relationships with prospects
+- Comply with all marketing and privacy regulations`,
     suggestedVoiceSettings: {
       speed: 1.1,
       pitch: 1.0,
       tone: 'energetic',
-    },
-  },
-  [AgentType.CUSTOMER_SUPPORT]: {
-    type: AgentType.CUSTOMER_SUPPORT,
-    name: 'Customer Support Agent',
-    description: 'Provides detailed technical support and issue resolution',
-    icon: '🛠️',
-    capabilities: [
-      'Technical troubleshooting',
-      'Detailed issue resolution',
-      'Service explanation',
-      'Complaint handling',
-      'Multi-step problem solving',
-      'Escalation management',
-    ],
-    defaultPrompt: `You are a customer support specialist for {business_name}. Your role involves:
-- Listening carefully to customer issues and concerns
-- Providing detailed explanations and solutions
-- Troubleshooting problems step-by-step
-- Escalating complex issues when necessary
-- Following up to ensure resolution
-- Maintaining detailed records of interactions
-- Demonstrating empathy and patience throughout`,
-    suggestedVoiceSettings: {
-      speed: 0.9,
-      pitch: 0.9,
-      tone: 'calm',
     },
   },
 };

@@ -289,12 +289,12 @@ export function StaffCalendarView({
   const getEffectiveAvailability = (date: string) => {
     const dateAvailability = getDateAvailability(date);
     const officeHoursForDay = getOfficeHoursForDay(date);
-    
+
     // If staff has specific availability set, use that
     if (dateAvailability) {
       return dateAvailability;
     }
-    
+
     // If no specific availability but office is open, consider staff available
     if (officeHoursForDay) {
       return {
@@ -304,10 +304,10 @@ export function StaffCalendarView({
         is_available: true,
         is_override: false,
         reason: 'Office Hours',
-        notes: 'Default availability during office hours'
+        notes: 'Default availability during office hours',
       };
     }
-    
+
     // Office is closed
     return null;
   };
@@ -344,7 +344,8 @@ export function StaffCalendarView({
       classes += 'bg-yellow-50 border-yellow-200 text-yellow-700 ';
     } else if (officeHoursForDay) {
       // Show office hours as available (green) instead of blue
-      classes += 'bg-green-50 border-green-200 text-green-700 hover:bg-green-100 ';
+      classes +=
+        'bg-green-50 border-green-200 text-green-700 hover:bg-green-100 ';
     } else {
       classes += 'bg-gray-50 border-gray-200 text-gray-500 ';
     }

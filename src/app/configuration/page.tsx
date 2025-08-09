@@ -76,8 +76,20 @@ export default function ConfigurationPage() {
   // Restore saved active step after workflow state is loaded
   useEffect(() => {
     if (mounted && workflowState.businessInfo.canAccess) {
-      const savedActiveStep = sessionStorage.getItem('configuration-active-step');
-      if (savedActiveStep && ['business', 'products', 'services', 'staff', 'appointments', 'agent'].includes(savedActiveStep)) {
+      const savedActiveStep = sessionStorage.getItem(
+        'configuration-active-step'
+      );
+      if (
+        savedActiveStep &&
+        [
+          'business',
+          'products',
+          'services',
+          'staff',
+          'appointments',
+          'agent',
+        ].includes(savedActiveStep)
+      ) {
         const stepKey = savedActiveStep as keyof WorkflowState;
         const stepMapping = {
           business: 'businessInfo',
@@ -85,12 +97,20 @@ export default function ConfigurationPage() {
           services: 'services',
           staff: 'staffManagement',
           appointments: 'appointmentSystem',
-          agent: 'aiAgentSetup'
+          agent: 'aiAgentSetup',
         } as const;
-        
+
         const workflowKey = stepMapping[stepKey] || 'businessInfo';
         if (workflowState[workflowKey]?.canAccess) {
-          setActiveStep(savedActiveStep as 'business' | 'products' | 'services' | 'staff' | 'appointments' | 'agent');
+          setActiveStep(
+            savedActiveStep as
+              | 'business'
+              | 'products'
+              | 'services'
+              | 'staff'
+              | 'appointments'
+              | 'agent'
+          );
         }
       }
     }
@@ -100,7 +120,10 @@ export default function ConfigurationPage() {
   useEffect(() => {
     if (mounted) {
       sessionStorage.setItem('configuration-active-step', activeStep);
-      sessionStorage.setItem('configuration-workflow-state', JSON.stringify(workflowState));
+      sessionStorage.setItem(
+        'configuration-workflow-state',
+        JSON.stringify(workflowState)
+      );
     }
   }, [activeStep, workflowState, mounted]);
 
@@ -130,27 +153,42 @@ export default function ConfigurationPage() {
 
     try {
       // Check business information
-      const businessResponse = await fetch(`/api/business-profile?user_id=${user.id}`);
+      const businessResponse = await fetch(
+        `/api/business-profile?user_id=${user.id}`
+      );
       const businessData = await businessResponse.json();
-      const hasBusinessInfo = businessData.profiles && businessData.profiles.length > 0;
+      const hasBusinessInfo =
+        businessData.profiles && businessData.profiles.length > 0;
 
       // Check products
-      const productsResponse = await fetch(`/api/business-products?user_id=${user.id}`);
+      const productsResponse = await fetch(
+        `/api/business-products?user_id=${user.id}`
+      );
       const productsData = await productsResponse.json();
-      const hasProducts = productsData.products && productsData.products.length > 0;
+      const hasProducts =
+        productsData.products && productsData.products.length > 0;
 
       // Check services
-      const servicesResponse = await fetch(`/api/business-services?user_id=${user.id}`);
+      const servicesResponse = await fetch(
+        `/api/business-services?user_id=${user.id}`
+      );
       const servicesData = await servicesResponse.json();
-      const hasServices = servicesData.services && servicesData.services.length > 0;
+      const hasServices =
+        servicesData.services && servicesData.services.length > 0;
 
       // Check appointments
-      const appointmentsResponse = await fetch(`/api/appointment-types?user_id=${user.id}`);
+      const appointmentsResponse = await fetch(
+        `/api/appointment-types?user_id=${user.id}`
+      );
       const appointmentsData = await appointmentsResponse.json();
-      const hasAppointments = appointmentsData.appointment_types && appointmentsData.appointment_types.length > 0;
+      const hasAppointments =
+        appointmentsData.appointment_types &&
+        appointmentsData.appointment_types.length > 0;
 
       // Check staff
-      const staffResponse = await fetch(`/api/staff-members?user_id=${user.id}`);
+      const staffResponse = await fetch(
+        `/api/staff-members?user_id=${user.id}`
+      );
       const staffData = await staffResponse.json();
       const hasStaff = staffData.staff && staffData.staff.length > 0;
 
@@ -164,14 +202,22 @@ export default function ConfigurationPage() {
         businessInfo: { completed: hasBusinessInfo, canAccess: true },
         products: { completed: hasProducts, canAccess: hasBusinessInfo },
         services: { completed: hasServices, canAccess: hasBusinessInfo },
-        appointmentSystem: { completed: hasAppointments, canAccess: hasBusinessInfo && hasServices },
-        staffManagement: { 
-          completed: hasStaff, 
-          canAccess: hasBusinessInfo && hasServices && hasAppointments 
+        appointmentSystem: {
+          completed: hasAppointments,
+          canAccess: hasBusinessInfo && hasServices,
         },
-        aiAgentSetup: { 
-          completed: hasAgents, 
-          canAccess: hasBusinessInfo && hasProducts && hasServices && hasAppointments && hasStaff 
+        staffManagement: {
+          completed: hasStaff,
+          canAccess: hasBusinessInfo && hasServices && hasAppointments,
+        },
+        aiAgentSetup: {
+          completed: hasAgents,
+          canAccess:
+            hasBusinessInfo &&
+            hasProducts &&
+            hasServices &&
+            hasAppointments &&
+            hasStaff,
         },
       });
     } catch (error) {

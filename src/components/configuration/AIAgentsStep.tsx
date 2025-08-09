@@ -33,6 +33,7 @@ import {
 import { AgentTypeCallScripts } from '../ai-agents/AgentTypeCallScripts';
 import { AgentTypeVoiceSettings } from '../ai-agents/AgentTypeVoiceSettings';
 import { AgentTypeCallRouting } from '../ai-agents/AgentTypeCallRouting';
+import { AgentType, AGENT_TYPE_CONFIGS } from '@/types/agent-types';
 
 interface AIAgent {
   id: string;
@@ -41,6 +42,8 @@ interface AIAgent {
   agent_personality: 'professional' | 'friendly' | 'technical';
   greeting_message?: string;
   custom_instructions?: string;
+  basic_info_prompt?: string;
+  call_scripts_prompt?: string;
   status: 'draft' | 'active' | 'inactive';
   retell_agent_id?: string;
   webhook_url?: string;
@@ -57,41 +60,52 @@ interface AIAgentsStepProps {
 }
 
 const AGENT_TYPES = {
-  inbound_call: {
-    name: 'Inbound Call Handler',
-    description: 'Handles incoming calls from customers',
+  [AgentType.INBOUND_RECEPTIONIST]: {
+    name: 'Inbound Receptionist',
+    description: 'Professional phone receptionist handling incoming calls',
     icon: PhoneIcon,
     capabilities: [
-      'Answer calls',
-      'Book appointments',
-      'Provide information',
-      'Transfer calls',
-    ],
-  },
-  outbound_call: {
-    name: 'Outbound Call Agent',
-    description: 'Makes outbound calls for follow-ups and reminders',
-    icon: PhoneIcon,
-    capabilities: ['Appointment reminders', 'Follow-up calls', 'Survey calls'],
-  },
-  appointment_booking: {
-    name: 'Appointment Specialist',
-    description: 'Specialized in scheduling and managing appointments',
-    icon: UserIcon,
-    capabilities: [
+      'Answer calls professionally',
       'Schedule appointments',
-      'Reschedule appointments',
-      'Send confirmations',
+      'Provide business information',
+      'Route calls to staff',
+      'Take messages',
     ],
   },
-  customer_support: {
-    name: 'Customer Support',
-    description: 'Provides customer support and assistance',
+  [AgentType.INBOUND_CUSTOMER_SUPPORT]: {
+    name: 'Inbound Customer Support',
+    description: 'Dedicated support for customer issues and complaints',
     icon: UserIcon,
     capabilities: [
-      'Answer questions',
-      'Troubleshoot issues',
-      'Provide information',
+      'Technical troubleshooting',
+      'Issue resolution',
+      'Complaint handling',
+      'Service explanations',
+      'Escalation management',
+    ],
+  },
+  [AgentType.OUTBOUND_FOLLOW_UP]: {
+    name: 'Outbound Follow-up',
+    description: 'Follow-up calls for appointments and customer care',
+    icon: PhoneIcon,
+    capabilities: [
+      'Appointment confirmations',
+      'Reminder calls',
+      'Post-service follow-up',
+      'Rescheduling assistance',
+      'Customer satisfaction surveys',
+    ],
+  },
+  [AgentType.OUTBOUND_MARKETING]: {
+    name: 'Outbound Marketing',
+    description: 'Marketing calls for lead generation and promotions',
+    icon: PhoneIcon,
+    capabilities: [
+      'Lead qualification',
+      'Sales presentations',
+      'Promotional campaigns',
+      'Consultation scheduling',
+      'Market research',
     ],
   },
 };
@@ -117,32 +131,88 @@ export function AIAgentsStep({
       | 'technical',
     greeting_message: '',
     custom_instructions: '',
+    basic_info_prompt: '',
+    call_scripts_prompt: '',
+    voice_settings: {
+      speed: 1.0,
+      pitch: 1.0,
+      tone: 'professional',
+      voice_id: 'sarah-professional',
+      accent: 'american',
+      gender: 'female',
+    },
+    call_routing: {
+      default_action: 'transfer',
+      escalation_number: '',
+      business_hours_action: 'transfer',
+      after_hours_action: 'voicemail',
+      rules: [] as any[],
+    },
   });
 
   const [generatingPrompt, setGeneratingPrompt] = useState(false);
+  const [savingTab, setSavingTab] = useState<string | null>(null);
+  const [saveStatus, setSaveStatus] = useState<{[key: string]: 'success' | 'error' | null}>({});
+  const [businessInfo, setBusinessInfo] = useState<any>(null);
 
   useEffect(() => {
     loadAgents();
+    loadBusinessInfo();
   }, [user]);
+
+  const loadBusinessInfo = async () => {
+    try {
+      const response = await fetch(`/api/business-profile?user_id=${user.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setBusinessInfo(data.profile);
+      }
+    } catch (error) {
+      console.error('Failed to load business info:', error);
+    }
+  };
 
   useEffect(() => {
     onConfigurationUpdate(agents.length > 0);
   }, [agents.length, onConfigurationUpdate]);
 
+  useEffect(() => {
+    loadAgents();
+  }, [user.id]);
+
   const loadAgents = async () => {
     try {
       setLoading(true);
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/ai-agents', {
-      //   headers: { Authorization: `Bearer ${token}` }
-      // });
-      // const data = await response.json();
-      // setAgents(data.agents || []);
-
-      // Mock data for now
-      setAgents([]);
+      
+      // Fetch agent configurations from API
+      const response = await fetch(`/api/agent-configurations?user_id=${user.id}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        // Transform the API response to match our AIAgent interface
+        const transformedAgents = (data.configurations || []).map((config: any) => ({
+          id: config.id,
+          agent_name: config.agent_name,
+          agent_type: config.agent_types?.type_code || config.agent_type,
+          agent_personality: config.agent_personality || 'professional',
+          greeting_message: config.greeting_message,
+          custom_instructions: config.custom_instructions,
+          basic_info_prompt: config.basic_info_prompt,
+          call_scripts: config.call_scripts || {},
+          voice_settings: config.voice_settings || {},
+          call_routing: config.call_routing || {},
+          status: config.is_active ? 'active' : 'inactive',
+          created_at: config.created_at,
+          updated_at: config.updated_at
+        }));
+        setAgents(transformedAgents);
+      } else {
+        console.warn('Failed to fetch agents, using empty array');
+        setAgents([]);
+      }
     } catch (error) {
       console.error('Failed to load AI agents:', error);
+      setAgents([]);
     } finally {
       setLoading(false);
     }
@@ -169,6 +239,23 @@ export function AIAgentsStep({
       agent_personality: agent.agent_personality,
       greeting_message: agent.greeting_message || '',
       custom_instructions: agent.custom_instructions || '',
+      basic_info_prompt: agent.basic_info_prompt || '',
+      call_scripts_prompt: agent.call_scripts_prompt || '',
+      voice_settings: agent.voice_settings || {
+        speed: 1.0,
+        pitch: 1.0,
+        tone: 'professional',
+        voice_id: 'sarah-professional',
+        accent: 'american',
+        gender: 'female',
+      },
+      call_routing: agent.call_routing || {
+        default_action: 'transfer',
+        escalation_number: '',
+        business_hours_action: 'transfer',
+        after_hours_action: 'voicemail',
+        rules: [],
+      },
     });
     setActiveSection('basic');
     setShowCreateForm(true);
@@ -185,23 +272,32 @@ export function AIAgentsStep({
     try {
       setGeneratingPrompt(true);
 
-      // Use new enhanced prompt generation endpoint
-      const promptResponse = await fetch(
-        `/api/generate-agent-prompt?user_id=${user.id}&agent_type=${formData.agent_type}&personality=${formData.agent_personality}`
-      );
+      // Generate both regular prompts and basic info prompt in parallel
+      const [promptResponse, basicPromptResponse] = await Promise.all([
+        fetch(`/api/generate-agent-prompt?user_id=${user.id}&agent_type=${formData.agent_type}&personality=${formData.agent_personality}`),
+        fetch(`/api/generate-basic-prompt?user_id=${user.id}&agent_type=${formData.agent_type}`)
+      ]);
 
-      if (!promptResponse.ok) {
-        throw new Error('Failed to generate prompt');
+      if (!promptResponse.ok || !basicPromptResponse.ok) {
+        throw new Error('Failed to generate prompts');
       }
 
-      const promptData = await promptResponse.json();
+      const [promptData, basicPromptData] = await Promise.all([
+        promptResponse.json(),
+        basicPromptResponse.json()
+      ]);
 
-      // Update form with generated content
+      // Update form with all generated content
       setFormData(prev => ({
         ...prev,
         greeting_message: promptData.generated_prompt.greeting_message,
         custom_instructions: promptData.generated_prompt.custom_instructions,
+        basic_info_prompt: basicPromptData.basic_info_prompt,
       }));
+
+      // Show success message
+      alert(`✅ Generated comprehensive prompts using your business data:\n• Greeting Message\n• Basic Information Prompt\n• Custom Instructions\n\nUsing data from: ${basicPromptData.business_data_used.business_name}`);
+
     } catch (error) {
       console.error('Error generating prompt:', error);
       alert(
@@ -274,9 +370,130 @@ export function AIAgentsStep({
       setShowCreateForm(false);
       setEditingAgent(null);
 
-      // TODO: Save to API
+      // Save to database
+      await saveAgentConfiguration('all');
     } catch (error) {
       console.error('Failed to save agent:', error);
+    }
+  };
+
+  const saveAgentConfiguration = async (section: 'basic' | 'scripts' | 'voice' | 'routing' | 'all') => {
+    if (!formData.agent_type || !formData.agent_name) {
+      alert('Please fill in agent name and type before saving');
+      return;
+    }
+
+    try {
+      setSavingTab(section);
+      setSaveStatus(prev => ({ ...prev, [section]: null }));
+
+      // Get business profile to get client_id
+      const businessProfileResponse = await fetch(`/api/business-profile?user_id=${user.id}`);
+      
+      if (!businessProfileResponse.ok) {
+        const errorData = await businessProfileResponse.json().catch(() => ({}));
+        console.error('Business profile error:', errorData);
+        throw new Error('Please complete business profile first');
+      }
+      const businessData = await businessProfileResponse.json();
+      const clientId = businessData.profile?.id;
+
+      if (!clientId) {
+        throw new Error('Business profile not found. Please complete Step 1 first.');
+      }
+
+      // Get agent type ID
+      const agentTypesResponse = await fetch('/api/agent-types');
+      const agentTypesData = await agentTypesResponse.json();
+      
+      const agentTypeObj = agentTypesData.agent_types?.find(
+        (at: any) => at.type_code === formData.agent_type
+      );
+
+      if (!agentTypeObj) {
+        throw new Error(`Agent type not found: ${formData.agent_type}`);
+      }
+
+      // Prepare data based on section
+      let saveData: any = {
+        client_id: clientId,
+        agent_type_id: agentTypeObj.id,
+        agent_name: formData.agent_name,
+        greeting_message: formData.greeting_message,
+      };
+
+      if (section === 'basic' || section === 'all') {
+        saveData = {
+          ...saveData,
+          basic_info_prompt: formData.basic_info_prompt,
+          agent_personality: formData.agent_personality,
+          custom_instructions: formData.custom_instructions,
+        };
+      }
+
+      if (section === 'scripts' || section === 'all') {
+        saveData = {
+          ...saveData,
+          call_scripts_prompt: formData.call_scripts_prompt,
+          call_scripts: formData.call_scripts || {},
+        };
+      }
+
+      if (section === 'voice' || section === 'all') {
+        saveData = {
+          ...saveData,
+          voice_settings: formData.voice_settings,
+        };
+      }
+
+      if (section === 'routing' || section === 'all') {
+        saveData = {
+          ...saveData,
+          call_routing: formData.call_routing,
+        };
+      }
+
+      console.log('Saving agent configuration:', saveData);
+
+      const response = await fetch('/api/agent-configurations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(saveData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Save configuration error:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorData
+        });
+        throw new Error(errorData.error || errorData.details || 'Failed to save configuration');
+      }
+
+      const result = await response.json();
+      console.log(`${section} configuration saved:`, result);
+      
+      setSaveStatus(prev => ({ ...prev, [section]: 'success' }));
+      
+      // Refresh agents list to show the new/updated agent
+      if (section === 'basic' || section === 'all') {
+        await loadAgents();
+      }
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setSaveStatus(prev => ({ ...prev, [section]: null }));
+      }, 3000);
+
+    } catch (error) {
+      console.error(`Error saving ${section} configuration:`, error);
+      setSaveStatus(prev => ({ ...prev, [section]: 'error' }));
+      alert(`Error saving ${section} configuration: ${error.message}`);
+    } finally {
+      setSavingTab(null);
     }
   };
 
@@ -401,9 +618,9 @@ export function AIAgentsStep({
                             {agent.agent_name}
                           </h4>
                           <p className="text-sm text-gray-600">
-                            {AGENT_TYPES[
-                              agent.agent_type as keyof typeof AGENT_TYPES
-                            ]?.name || agent.agent_type}
+                            {AGENT_TYPES[agent.agent_type as AgentType]?.name || 
+                             AGENT_TYPE_CONFIGS[agent.agent_type as AgentType]?.name || 
+                             agent.agent_type}
                           </p>
                         </div>
                         <Badge className={getStatusColor(agent.status)}>
@@ -502,7 +719,7 @@ export function AIAgentsStep({
         <Card>
           <CardHeader>
             <CardTitle>
-              {editingAgent ? 'Edit AI Agent' : 'Create New AI Agent'}
+              {editingAgent ? `Edit Agent: ${editingAgent.agent_name}` : 'Create New AI Agent'}
             </CardTitle>
             <CardDescription>
               Configure your AI agent's basic information, personality, and
@@ -556,27 +773,40 @@ export function AIAgentsStep({
                     <Label htmlFor="agent-type">Agent Type *</Label>
                     <Select
                       value={formData.agent_type}
-                      onValueChange={value =>
-                        setFormData(prev => ({ ...prev, agent_type: value }))
-                      }
+                      onValueChange={value => {
+                        setFormData(prev => ({ ...prev, agent_type: value }));
+                      }}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select agent type" />
+                        <SelectValue placeholder="Select agent type">
+                          {formData.agent_type && AGENT_TYPES[formData.agent_type] && (() => {
+                            const config = AGENT_TYPES[formData.agent_type];
+                            return (
+                              <div className="flex items-center gap-2">
+                                <config.icon className="h-4 w-4" />
+                                <span>{config.name}</span>
+                              </div>
+                            );
+                          })()}
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
-                        {Object.entries(AGENT_TYPES).map(([key, type]) => (
-                          <SelectItem key={key} value={key}>
-                            <div className="flex items-center gap-2">
-                              <type.icon className="h-4 w-4" />
-                              <div>
-                                <div className="font-medium">{type.name}</div>
-                                <div className="text-xs text-gray-500">
-                                  {type.description}
+                        {Object.entries(AGENT_TYPES).map(([key, type]) => {
+                          // key is already the enum value (e.g., "inbound_receptionist")
+                          return (
+                            <SelectItem key={key} value={key}>
+                              <div className="flex items-center gap-2">
+                                <type.icon className="h-4 w-4" />
+                                <div>
+                                  <div className="font-medium">{type.name}</div>
+                                  <div className="text-xs text-gray-500">
+                                    {type.description}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          </SelectItem>
-                        ))}
+                            </SelectItem>
+                          );
+                        })}
                       </SelectContent>
                     </Select>
                   </div>
@@ -586,12 +816,12 @@ export function AIAgentsStep({
                   <Label htmlFor="agent-personality">Agent Personality</Label>
                   <Select
                     value={formData.agent_personality}
-                    onValueChange={(value: any) =>
+                    onValueChange={(value: any) => {
                       setFormData(prev => ({
                         ...prev,
                         agent_personality: value,
-                      }))
-                    }
+                      }));
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -624,9 +854,8 @@ export function AIAgentsStep({
                           </h4>
                         </div>
                         <p className="text-sm text-blue-700 dark:text-blue-300 mb-1">
-                          Generate professional greeting message and detailed
-                          instructions automatically based on your business
-                          setup:
+                          Generate comprehensive AI agent prompts automatically based on your business
+                          setup (greeting message, basic info prompt, and custom instructions):
                         </p>
                         <ul className="text-xs text-blue-600 dark:text-blue-400 space-y-1 ml-4">
                           <li>• Business information and hours</li>
@@ -696,6 +925,27 @@ export function AIAgentsStep({
                 </div>
 
                 <div>
+                  <Label htmlFor="basic-info-prompt">
+                    Basic Information Prompt
+                  </Label>
+                  <Textarea
+                    id="basic-info-prompt"
+                    value={formData.basic_info_prompt}
+                    onChange={e =>
+                      setFormData(prev => ({
+                        ...prev,
+                        basic_info_prompt: e.target.value,
+                      }))
+                    }
+                    placeholder="You are a professional [Agent Type] for [Business Name]. Your role is to..."
+                    rows={6}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    This prompt defines the agent's core identity and includes all your business information from previous steps.
+                  </p>
+                </div>
+
+                <div>
                   <Label htmlFor="custom-instructions">
                     Custom Instructions
                   </Label>
@@ -708,49 +958,209 @@ export function AIAgentsStep({
                         custom_instructions: e.target.value,
                       }))
                     }
-                    placeholder="Any specific instructions for how this agent should behave..."
+                    placeholder="Instructions for escalation, when to transfer calls, how to handle difficult situations..."
                     rows={4}
                   />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Specific instructions for handling situations, escalation procedures, and behavioral guidelines.
+                  </p>
+                </div>
+                
+                {/* Save Button for Basic Info */}
+                <div className="flex justify-end pt-4 border-t">
+                  <div className="flex items-center gap-3">
+                    {saveStatus.basic === 'success' && (
+                      <span className="text-green-600 text-sm">✓ Basic info saved successfully</span>
+                    )}
+                    {saveStatus.basic === 'error' && (
+                      <span className="text-red-600 text-sm">✗ Failed to save basic info</span>
+                    )}
+                    <Button
+                      type="button"
+                      onClick={() => saveAgentConfiguration('basic')}
+                      disabled={savingTab === 'basic' || !formData.agent_name || !formData.agent_type}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      {savingTab === 'basic' ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                          Saving...
+                        </>
+                      ) : (
+                        'Save Basic Info'
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
 
             {/* Call Scripts */}
             {activeSection === 'scripts' && (
-              <div>
+              <div className="space-y-4">
                 <AgentTypeCallScripts
                   agentType={formData.agent_type as any}
-                  clientId={user.id}
-                  onScriptsUpdate={(scripts: any) => {
-                    console.log('Scripts updated:', scripts);
+                  initialScripts={formData.call_scripts}
+                  initialPrompt={formData.call_scripts_prompt}
+                  onSave={async (scripts: any) => {
+                    // Handle different script formats
+                    let scriptData = {};
+                    let scriptPrompt = '';
+                    
+                    if (Array.isArray(scripts)) {
+                      const firstScript = scripts[0];
+                      scriptData = {
+                        greeting_script: firstScript?.greeting_script || '',
+                        main_script: firstScript?.main_script || '',
+                        closing_script: firstScript?.closing_script || '',
+                        escalation_script: firstScript?.escalation_script || ''
+                      };
+                      scriptPrompt = firstScript?.main_script || firstScript?.greeting_script || '';
+                    } else {
+                      scriptData = scripts;
+                      scriptPrompt = scripts?.main_script || scripts?.greeting_script || '';
+                    }
+                    
+                    setFormData(prev => ({
+                      ...prev,
+                      call_scripts: scriptData,
+                      call_scripts_prompt: scriptPrompt,
+                    }));
+                    
+                    // Auto-save to database when scripts are generated
+                    setTimeout(async () => {
+                      try {
+                        await saveAgentConfiguration('scripts');
+                      } catch (error) {
+                        console.error('Failed to auto-save scripts:', error);
+                      }
+                    }, 100);
                   }}
+                  businessInfo={{...businessInfo, user_id: user.id}}
                 />
+                
+                {/* Save Button for Call Scripts */}
+                <div className="flex justify-end pt-4 border-t">
+                  <div className="flex items-center gap-3">
+                    {saveStatus.scripts === 'success' && (
+                      <span className="text-green-600 text-sm">✓ Call scripts saved successfully</span>
+                    )}
+                    {saveStatus.scripts === 'error' && (
+                      <span className="text-red-600 text-sm">✗ Failed to save call scripts</span>
+                    )}
+                    <Button
+                      type="button"
+                      onClick={() => saveAgentConfiguration('scripts')}
+                      disabled={savingTab === 'scripts' || !formData.agent_name || !formData.agent_type}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      {savingTab === 'scripts' ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                          Saving...
+                        </>
+                      ) : (
+                        'Save Call Scripts'
+                      )}
+                    </Button>
+                  </div>
+                </div>
               </div>
             )}
 
             {/* Voice Settings */}
             {activeSection === 'voice' && (
-              <div>
+              <div className="space-y-4">
                 <AgentTypeVoiceSettings
                   agentType={formData.agent_type as any}
-                  clientId={user.id}
-                  onVoiceUpdate={(settings: any) => {
-                    console.log('Voice settings updated:', settings);
+                  initialVoiceSettings={formData.voice_settings}
+                  businessInfo={{...businessInfo, user_id: user.id}}
+                  onSave={async (voiceProfile: any) => {
+                    setFormData(prev => ({
+                      ...prev,
+                      voice_settings: voiceProfile.voice_settings,
+                    }));
+                    
+                    // Auto-save to database
+                    setTimeout(async () => {
+                      try {
+                        await saveAgentConfiguration('voice');
+                      } catch (error) {
+                        console.error('Failed to auto-save voice settings:', error);
+                      }
+                    }, 100);
                   }}
                 />
+                
+                {/* Save Button for Voice Settings */}
+                <div className="flex justify-end pt-4 border-t">
+                  <div className="flex items-center gap-3">
+                    {saveStatus.voice === 'success' && (
+                      <span className="text-green-600 text-sm">✓ Voice settings saved successfully</span>
+                    )}
+                    {saveStatus.voice === 'error' && (
+                      <span className="text-red-600 text-sm">✗ Failed to save voice settings</span>
+                    )}
+                    <Button
+                      type="button"
+                      onClick={() => saveAgentConfiguration('voice')}
+                      disabled={savingTab === 'voice' || !formData.agent_name || !formData.agent_type}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      {savingTab === 'voice' ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                          Saving...
+                        </>
+                      ) : (
+                        'Save Voice Settings'
+                      )}
+                    </Button>
+                  </div>
+                </div>
               </div>
             )}
 
             {/* Call Routing */}
             {activeSection === 'routing' && (
-              <div>
+              <div className="space-y-4">
                 <AgentTypeCallRouting
                   agentType={formData.agent_type as any}
                   clientId={user.id}
                   onRoutingUpdate={(routing: any) => {
-                    console.log('Routing updated:', routing);
+                    setFormData(prev => ({
+                      ...prev,
+                      call_routing: routing,
+                    }));
                   }}
                 />
+                
+                {/* Save Button for Call Routing */}
+                <div className="flex justify-end pt-4 border-t">
+                  <div className="flex items-center gap-3">
+                    {saveStatus.routing === 'success' && (
+                      <span className="text-green-600 text-sm">✓ Call routing saved successfully</span>
+                    )}
+                    {saveStatus.routing === 'error' && (
+                      <span className="text-red-600 text-sm">✗ Failed to save call routing</span>
+                    )}
+                    <Button
+                      type="button"
+                      onClick={() => saveAgentConfiguration('routing')}
+                      disabled={savingTab === 'routing' || !formData.agent_name || !formData.agent_type}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      {savingTab === 'routing' ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                          Saving...
+                        </>
+                      ) : (
+                        'Save Call Routing'
+                      )}
+                    </Button>
+                  </div>
+                </div>
               </div>
             )}
 

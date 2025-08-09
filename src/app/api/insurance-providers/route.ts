@@ -44,13 +44,8 @@ export async function POST(request: NextRequest) {
     const supabase = createServerSupabaseClient();
     const body = await request.json();
 
-    const {
-      provider_name,
-      provider_code,
-      provider_type,
-      website,
-      phone,
-    } = body;
+    const { provider_name, provider_code, provider_type, website, phone } =
+      body;
 
     if (!provider_name || !provider_type) {
       return NextResponse.json(
@@ -75,7 +70,10 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('Error creating insurance provider:', error);
       return NextResponse.json(
-        { error: 'Failed to create insurance provider', details: error.message },
+        {
+          error: 'Failed to create insurance provider',
+          details: error.message,
+        },
         { status: 500 }
       );
     }

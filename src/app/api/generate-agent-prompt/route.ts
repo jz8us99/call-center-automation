@@ -67,10 +67,10 @@ function generateAgentPrompt(
 
   // Generate greeting message based on agent type
   const greetings = {
-    inbound_call: `Hello! Thank you for calling ${businessName}. I'm your AI assistant and I'm here to help you today. How may I assist you?`,
-    outbound_call: `Hi! This is your AI assistant from ${businessName}. I hope I'm reaching you at a good time. I'm calling regarding your ${businessType === 'healthcare' ? 'appointment' : 'service'} with us.`,
-    appointment_booking: `Hello! Thank you for calling ${businessName}. I'm your appointment specialist and I'd be happy to help you schedule your ${businessType === 'healthcare' ? 'appointment' : 'service'}. What can I help you with today?`,
-    customer_support: `Hi! Thank you for contacting ${businessName}. I'm your customer support assistant and I'm here to help resolve any questions or concerns you may have. How can I assist you today?`,
+    inbound_receptionist: `Hello! Thank you for calling ${businessName}. I'm your AI receptionist and I'm here to help you today. How may I assist you?`,
+    inbound_customer_support: `Hi! Thank you for contacting ${businessName}. I'm your customer support assistant and I'm here to help resolve any questions or concerns you may have. How can I assist you today?`,
+    outbound_follow_up: `Hi! This is your AI assistant from ${businessName}. I hope I'm reaching you at a good time. I'm calling to follow up regarding your recent ${businessType === 'healthcare' ? 'appointment' : 'service'} with us.`,
+    outbound_marketing: `Hello! This is your marketing assistant from ${businessName}. I hope you're having a great day! I'm reaching out because we have some exciting services that might interest you.`,
   };
 
   // Generate business hours section
@@ -84,21 +84,25 @@ function generateAgentPrompt(
   let servicesText = '';
   if (context.services.length > 0) {
     // Group services by category
-    const servicesByCategory = context.services.reduce((acc: any, service: any) => {
-      const categoryName = service.category || 'General Services';
-      if (!acc[categoryName]) {
-        acc[categoryName] = [];
-      }
-      acc[categoryName].push(service);
-      return acc;
-    }, {});
+    const servicesByCategory = context.services.reduce(
+      (acc: any, service: any) => {
+        const categoryName = service.category || 'General Services';
+        if (!acc[categoryName]) {
+          acc[categoryName] = [];
+        }
+        acc[categoryName].push(service);
+        return acc;
+      },
+      {}
+    );
 
     // Format services by category
     servicesText = `\n\nServices we offer:\n${Object.entries(servicesByCategory)
       .map(([category, services]: [string, any[]]) => {
         const serviceList = services
-          .map(s => 
-            `  • ${s.name}${s.duration ? ` (${s.duration} minutes)` : ''}${s.price ? ` - $${s.price}` : ''}${s.description ? `: ${s.description}` : ''}`
+          .map(
+            s =>
+              `  • ${s.name}${s.duration ? ` (${s.duration} minutes)` : ''}${s.price ? ` - $${s.price}` : ''}${s.description ? `: ${s.description}` : ''}`
           )
           .join('\n');
         return `\n${category}:\n${serviceList}`;
@@ -122,17 +126,17 @@ function generateAgentPrompt(
     staffText = `\n\nOur team members:\n${context.staff
       .map(s => {
         let staffInfo = `- ${s.first_name} ${s.last_name}, ${s.title}`;
-        
+
         // Add job types if available
         if (s.job_types && s.job_types.length > 0) {
           staffInfo += ` (can handle: ${s.job_types.join(', ')})`;
         }
-        
+
         // Add specialties if different from job types
         if (s.specialties.length > 0) {
           staffInfo += ` (specializes in: ${s.specialties.join(', ')})`;
         }
-        
+
         return staffInfo;
       })
       .join('\n')}`;
@@ -141,11 +145,14 @@ function generateAgentPrompt(
   // Generate appointment types section (using services/job types)
   let appointmentTypesText = '';
   if (context.services.length > 0) {
-    const appointmentServices = context.services.filter(s => s.duration && s.duration > 0);
+    const appointmentServices = context.services.filter(
+      s => s.duration && s.duration > 0
+    );
     if (appointmentServices.length > 0) {
       appointmentTypesText = `\n\nAvailable appointment types:\n${appointmentServices
-        .map(a =>
-          `- ${a.name}${a.duration ? ` (${a.duration} minutes)` : ''}${a.price ? ` - $${a.price}` : ''}${a.description ? `: ${a.description}` : ''}`
+        .map(
+          a =>
+            `- ${a.name}${a.duration ? ` (${a.duration} minutes)` : ''}${a.price ? ` - $${a.price}` : ''}${a.description ? `: ${a.description}` : ''}`
         )
         .join('\n')}`;
     }
@@ -167,15 +174,20 @@ function generateAgentPrompt(
   if (context.business_locations && context.business_locations.length > 0) {
     locationsText = `\n\nOur business locations:\n${context.business_locations
       .map(location => {
-        const address = [location.street_address, location.city, location.state, location.postal_code]
+        const address = [
+          location.street_address,
+          location.city,
+          location.state,
+          location.postal_code,
+        ]
           .filter(Boolean)
           .join(', ');
-        
+
         let locationInfo = `- ${location.location_name}${location.is_primary ? ' (Main Location)' : ''}`;
         if (address) locationInfo += `\n  Address: ${address}`;
         if (location.phone) locationInfo += `\n  Phone: ${location.phone}`;
         if (location.email) locationInfo += `\n  Email: ${location.email}`;
-        
+
         return locationInfo;
       })
       .join('\n\n')}`;
@@ -193,74 +205,157 @@ function generateAgentPrompt(
 
   // Agent type specific instructions
   const agentTypeInstructions = {
-    inbound_call: `
-**PRIMARY ROLE:** Handle incoming customer calls with efficiency and care.
+    inbound_receptionist: `
+**PRIMARY ROLE:** Professional phone receptionist handling all incoming calls with warmth and efficiency.
 
 **KEY RESPONSIBILITIES:**
-1. Answer calls promptly and professionally
-2. Identify customer needs quickly
-3. Book appointments when requested
-4. Provide accurate information about services and products
-5. Transfer calls to appropriate staff when necessary
-6. Handle basic customer service inquiries
-7. Schedule callbacks if needed
+1. Answer calls promptly with a warm, professional greeting
+2. Identify caller needs quickly and route appropriately
+3. Schedule appointments with accuracy and courtesy
+4. Provide information about services, hours, and locations
+5. Transfer calls to appropriate staff members
+6. Take detailed messages when staff unavailable
+7. Handle routine inquiries about business operations
+8. Collect and update customer contact information
 
-**APPOINTMENT BOOKING PROCESS:**
-- Ask for customer's preferred date and time
-- Check staff availability
-- Confirm appointment details
-- Collect necessary contact information
-- Send confirmation details`,
+**RETELL AI FUNCTION PARAMETERS FOR BOOKING OPERATIONS:**
 
-    outbound_call: `
-**PRIMARY ROLE:** Make professional outbound calls for reminders, follow-ups, and surveys.
+**Function: collect_customer_information**
+Parameters:
+- customer_first_name: string (required)
+- customer_last_name: string (required)
+- customer_phone: string (required, format: "xxx-xxx-xxxx")
+- customer_email: string (optional, validate email format)
+- insurance_provider: string (optional, from accepted list)
+- preferred_language: string (optional, default: "english")
+- reason_for_call: enum ["add_booking", "update_booking", "cancel_booking", "inquiry"]
+
+**Function: identify_service_and_staff**
+Parameters:
+- requested_staff_name: string (optional, staff member name)
+- requested_job_type: string (optional, from available job types)
+- service_category: string (optional, from business categories)
+- appointment_duration: integer (optional, in minutes)
+- preferred_date: string (optional, format: "YYYY-MM-DD")
+- preferred_time: string (optional, format: "HH:MM AM/PM")
+
+**Function: manage_booking_action**
+Parameters:
+- booking_action: enum ["create", "update", "cancel"] (required)
+- existing_appointment_id: string (required for update/cancel)
+- new_appointment_date: string (optional, format: "YYYY-MM-DD")
+- new_appointment_time: string (optional, format: "HH:MM AM/PM")
+- assigned_staff_id: string (required for create/update)
+- service_type_id: string (required for create/update)
+- appointment_notes: string (optional)
+- cancellation_reason: string (required for cancel)
+
+**Function: calendar_integration_booking**
+Parameters:
+- staff_calendar_type: enum ["internal", "gmail", "outlook", "apple", "other"]
+- staff_calendar_id: string (required)
+- calendar_event_action: enum ["create", "update", "delete"]
+- event_title: string (required)
+- event_description: string (optional)
+- event_start_time: string (required, ISO format)
+- event_end_time: string (required, ISO format)
+- event_location: string (optional)
+- attendee_emails: array[string] (optional)
+- reminder_settings: object (optional)
+
+**STRUCTURED APPOINTMENT BOOKING PROCESS:**
+1. **Initial Greeting & Call Purpose**
+   - "Hello! Thank you for calling ${businessName}. How may I assist you today?"
+   - Use collect_customer_information() to determine reason_for_call
+
+2. **Customer Information Collection**
+   - "I'll be happy to help you with that [booking action]. Let me get some information from you first."
+   - Collect: first_name, last_name, phone_number (required)
+   - Collect: email, insurance_provider, preferred_language (optional)
+
+3. **Service & Staff Identification**
+   - If customer knows staff name: "Which staff member would you like to see?"
+   - If customer doesn't know staff: "What type of service do you need?" → match to job_type
+   - Use identify_service_and_staff() to determine best fit
+
+4. **Booking Action Execution**
+   - For ADD: Check availability → Create appointment → Book to staff calendar
+   - For UPDATE: Verify existing appointment → Modify details → Update calendar
+   - For CANCEL: Confirm appointment details → Process cancellation → Remove from calendar
+
+5. **Calendar Integration Process**
+   - Determine staff_calendar_type (internal/external)
+   - Use calendar_integration_booking() to sync with staff's calendar
+   - Send confirmation to customer and staff
+   - Set up reminders and notifications
+
+**BOOKING CONFIRMATION SCRIPT:**
+"Perfect! I have scheduled your [service_type] appointment with [staff_name] for [date] at [time]. You'll receive a confirmation email at [email] and a reminder call 24 hours before. Is there anything else I can help you with today?"`,
+
+    inbound_customer_support: `
+**PRIMARY ROLE:** Dedicated support specialist for resolving customer issues and providing technical assistance.
 
 **KEY RESPONSIBILITIES:**
-1. Appointment reminders (call 24-48 hours before)
-2. Follow-up calls after service completion
-3. Rescheduling appointments when needed
-4. Customer satisfaction surveys
-5. Promotional calls (when appropriate)
+1. Listen actively to customer concerns with empathy
+2. Troubleshoot problems systematically
+3. Provide clear, step-by-step solutions
+4. Handle complaints with professionalism and care
+5. Escalate complex issues to appropriate departments
+6. Follow up to ensure customer satisfaction
+7. Document interactions for future reference
+8. Provide detailed service explanations
 
-**OUTBOUND CALL GUIDELINES:**
-- Always identify yourself and the business
-- Respect customer's time and availability
-- Be prepared with all relevant information
-- Offer to call back at a more convenient time if needed`,
+**SUPPORT APPROACH:**
+- Acknowledge customer frustration with empathy
+- Ask clarifying questions to understand the issue fully
+- Provide multiple solution options when possible
+- Explain each step clearly and confirm understanding
+- Set realistic expectations for resolution timeframes
+- Always follow up to ensure satisfaction`,
 
-    appointment_booking: `
-**PRIMARY ROLE:** Specialized appointment scheduling and management.
-
-**KEY RESPONSIBILITIES:**
-1. Schedule new appointments efficiently
-2. Handle rescheduling requests
-3. Manage cancellations professionally
-4. Coordinate with staff calendars
-5. Send appointment confirmations
-6. Handle appointment-related inquiries
-
-**BOOKING BEST PRACTICES:**
-- Always confirm date, time, and service type
-- Provide clear directions if needed
-- Explain preparation requirements
-- Offer alternative times if preferred slot is unavailable`,
-
-    customer_support: `
-**PRIMARY ROLE:** Provide comprehensive customer support and resolve issues.
+    outbound_follow_up: `
+**PRIMARY ROLE:** Follow-up specialist for appointment management and customer care.
 
 **KEY RESPONSIBILITIES:**
-1. Answer customer questions thoroughly
-2. Troubleshoot common issues
-3. Escalate complex problems appropriately
-4. Provide product/service information
-5. Handle complaints professionally
-6. Follow up on resolved issues
+1. Confirm upcoming appointments (24-48 hours prior)
+2. Send appointment reminders via preferred method
+3. Handle rescheduling requests courteously
+4. Follow up after completed services
+5. Collect customer feedback and satisfaction ratings
+6. Process cancellations professionally
+7. Coordinate with staff for scheduling changes
+8. Maintain positive ongoing customer relationships
 
-**SUPPORT GUIDELINES:**
-- Listen actively to customer concerns
-- Ask clarifying questions when needed
-- Provide step-by-step solutions
-- Confirm customer satisfaction before ending calls`,
+**FOLLOW-UP BEST PRACTICES:**
+- Always identify yourself and the business clearly
+- Respect the customer's time and availability
+- Have all appointment details readily available
+- Offer flexible rescheduling options
+- Express genuine interest in their experience
+- Thank them for choosing your business`,
+
+    outbound_marketing: `
+**PRIMARY ROLE:** Marketing representative focused on lead generation and relationship building.
+
+**KEY RESPONSIBILITIES:**
+1. Introduce business services to potential customers
+2. Qualify leads and assess genuine interest
+3. Present promotional offers clearly and compellingly
+4. Schedule consultation appointments
+5. Handle objections professionally and respectfully
+6. Conduct market research and surveys
+7. Follow up on previous inquiries
+8. Build positive relationships with prospects
+
+**MARKETING GUIDELINES:**
+- Always comply with marketing and privacy regulations
+- Respect do-not-call lists and customer preferences
+- Focus on value proposition and customer benefits
+- Listen more than you speak to understand needs
+- Be honest about services and pricing
+- Offer to call back at more convenient times
+- Maintain professional enthusiasm throughout
+- Never be pushy or aggressive in approach`,
   };
 
   const customInstructions = `
@@ -272,7 +367,7 @@ ${context.business_profile?.business_address ? `\nWe are located at: ${context.b
 ${context.business_profile?.business_phone ? `\nOur phone number is: ${context.business_profile.business_phone}` : ''}
 ${context.business_profile?.website_url ? `\nOur website: ${context.business_profile.website_url}` : ''}
 
-${agentTypeInstructions[agentType as keyof typeof agentTypeInstructions] || agentTypeInstructions.inbound_call}
+${agentTypeInstructions[agentType as keyof typeof agentTypeInstructions] || agentTypeInstructions.inbound_receptionist}
 
 **PERSONALITY & TONE:**
 ${personalityInstructions[personality as keyof typeof personalityInstructions] || personalityInstructions.professional}
@@ -305,11 +400,20 @@ ${
 
 **IMPORTANT GUIDELINES:**
 1. Always be helpful, accurate, and professional
-2. If you don't know something, admit it and offer to find out
-3. Protect customer privacy and confidential information
-4. Never make promises about services or pricing without confirmation
-5. Always confirm important details like appointments and contact information
-6. If a situation requires human assistance, transfer the call appropriately
+2. Protect customer privacy and confidential information
+3. Never make promises about services or pricing without confirmation
+4. Always confirm important details like appointments and contact information
+
+**WHEN YOU DON'T KNOW HOW TO ANSWER A QUESTION:**
+1. Say: "That's a great question. Let me make sure you get the right answer."
+2. Offer these specific options:
+   • "I can take a detailed message and have a staff member email or text you back within 2 hours"
+   • "I can transfer you directly to our live office staff at ${context.business_profile?.business_phone || '[OFFICE PHONE]'}"
+   • "Would you prefer to leave a voicemail for our ${businessType} team?"
+   • "I can schedule a callback at a time that works best for you"
+3. Always ask for their preferred contact method (phone/email/text)
+4. Get the best time to reach them and their specific question details
+5. Take comprehensive notes for proper follow-up
 
 **EMERGENCY PROTOCOLS:**
 - For medical emergencies: Direct caller to call 911 immediately
@@ -320,28 +424,35 @@ Remember: You represent ${businessName} and should always maintain our professio
 
   return {
     greeting_message:
-      greetings[agentType as keyof typeof greetings] || greetings.inbound_call,
+      greetings[agentType as keyof typeof greetings] || greetings.inbound_receptionist,
     custom_instructions: customInstructions,
   };
 }
 
 function transformToBusinessContext(data: any): BusinessContext {
-  const { businessProfile, businessLocations, staffMembers, jobTypes, jobCategories, officeHours } = data;
+  const {
+    businessProfile,
+    businessLocations,
+    staffMembers,
+    jobTypes,
+    jobCategories,
+    officeHours,
+  } = data;
 
   // Transform office hours
   const transformedOfficeHours = officeHours.map((hour: any) => ({
     day_name: hour.day_name,
     formatted_hours: `${hour.start_time} - ${hour.end_time}`,
-    is_active: hour.is_active
+    is_active: hour.is_active,
   }));
 
   // Transform staff with their job types
   const transformedStaff = staffMembers.map((staff: any) => {
     // Get job type names for this staff member
-    const staffJobTypes = staff.job_types ? 
-      jobTypes
-        .filter((jt: any) => staff.job_types.includes(jt.id))
-        .map((jt: any) => jt.job_name)
+    const staffJobTypes = staff.job_types
+      ? jobTypes
+          .filter((jt: any) => staff.job_types.includes(jt.id))
+          .map((jt: any) => jt.job_name)
       : [];
 
     return {
@@ -350,22 +461,24 @@ function transformToBusinessContext(data: any): BusinessContext {
       title: staff.title,
       specialties: staff.specialties || [],
       job_types: staffJobTypes,
-      has_calendar_config: true
+      has_calendar_config: true,
     };
   });
 
   // Transform services (from job types) with category information
   const transformedServices = jobTypes.map((jobType: any) => {
     // Find the category name
-    const category = jobCategories?.find((cat: any) => cat.id === jobType.category_id);
-    
+    const category = jobCategories?.find(
+      (cat: any) => cat.id === jobType.category_id
+    );
+
     return {
       name: jobType.job_name,
       description: jobType.job_description,
       duration: jobType.default_duration_minutes,
       price: jobType.default_price,
       category: category?.category_name || 'General',
-      category_id: jobType.category_id
+      category_id: jobType.category_id,
     };
   });
 
@@ -374,14 +487,15 @@ function transformToBusinessContext(data: any): BusinessContext {
       business_name: businessProfile.business_name,
       business_type: businessProfile.business_type,
       business_description: businessProfile.business_description,
-      business_address: businessLocations.find((loc: any) => loc.is_primary)?.street_address,
+      business_address: businessLocations.find((loc: any) => loc.is_primary)
+        ?.street_address,
       business_phone: businessProfile.business_phone,
       business_email: businessProfile.business_email,
       website_url: businessProfile.business_website,
       business_hours_description: businessProfile.business_hours_description,
       payment_methods: businessProfile.payment_methods || [],
       common_questions: businessProfile.common_questions || [],
-      support_content: businessProfile.support_content || []
+      support_content: businessProfile.support_content || [],
     },
     products: [], // Not implemented yet
     services: transformedServices,
@@ -389,7 +503,7 @@ function transformToBusinessContext(data: any): BusinessContext {
     office_hours: transformedOfficeHours,
     appointment_types: [], // Could be derived from job types
     upcoming_holidays: [], // Not implemented yet
-    business_locations: businessLocations || []
+    business_locations: businessLocations || [],
   };
 }
 
@@ -401,43 +515,55 @@ function generateEnhancedAgentPrompt(
 ) {
   // Get the base prompt
   const basePrompt = generateAgentPrompt(agentType, personality, context);
-  
+
   // Add insurance information for healthcare businesses
   let insuranceText = '';
   if (acceptedInsurance.length > 0) {
-    const insuranceByType = acceptedInsurance.reduce((acc, insurance) => {
-      const type = insurance.insurance_providers.provider_type;
-      if (!acc[type]) acc[type] = [];
-      acc[type].push(insurance);
-      return acc;
-    }, {} as Record<string, any[]>);
+    const insuranceByType = acceptedInsurance.reduce(
+      (acc, insurance) => {
+        const type = insurance.insurance_providers.provider_type;
+        if (!acc[type]) acc[type] = [];
+        acc[type].push(insurance);
+        return acc;
+      },
+      {} as Record<string, any[]>
+    );
 
-    insuranceText = '\n\n**ACCEPTED INSURANCE:**\n' + Object.entries(insuranceByType).map(([type, insurances]) => {
-      const insuranceList = insurances.map((ins: any) => {
-        const provider = ins.insurance_providers;
-        const details = [];
-        if (ins.copay_amount) details.push(`Copay: $${ins.copay_amount}`);
-        if (ins.requires_referral) details.push('Requires referral');
-        if (ins.network_status && ins.network_status !== 'in-network') details.push(`Network: ${ins.network_status}`);
-        
-        return `  - ${provider.provider_name}${details.length > 0 ? ` (${details.join(', ')})` : ''}`;
-      }).join('\n');
-      
-      return `${type.charAt(0).toUpperCase() + type.slice(1)} Insurance:\n${insuranceList}`;
-    }).join('\n\n');
+    insuranceText =
+      '\n\n**ACCEPTED INSURANCE:**\n' +
+      Object.entries(insuranceByType)
+        .map(([type, insurances]) => {
+          const insuranceList = insurances
+            .map((ins: any) => {
+              const provider = ins.insurance_providers;
+              const details = [];
+              if (ins.copay_amount) details.push(`Copay: $${ins.copay_amount}`);
+              if (ins.requires_referral) details.push('Requires referral');
+              if (ins.network_status && ins.network_status !== 'in-network')
+                details.push(`Network: ${ins.network_status}`);
+
+              return `  - ${provider.provider_name}${details.length > 0 ? ` (${details.join(', ')})` : ''}`;
+            })
+            .join('\n');
+
+          return `${type.charAt(0).toUpperCase() + type.slice(1)} Insurance:\n${insuranceList}`;
+        })
+        .join('\n\n');
 
     // Add insurance-specific guidelines
     insuranceText += '\n\n**INSURANCE GUIDELINES:**\n';
-    insuranceText += '- Always verify insurance benefits before confirming appointments\n';
+    insuranceText +=
+      '- Always verify insurance benefits before confirming appointments\n';
     insuranceText += '- Inform patients of their copay amount if applicable\n';
     insuranceText += '- Mention if referral is required for their insurance\n';
     insuranceText += '- If insurance is not accepted, offer self-pay options\n';
-    insuranceText += '- Direct complex insurance questions to billing department';
+    insuranceText +=
+      '- Direct complex insurance questions to billing department';
   }
 
   return {
     greeting_message: basePrompt.greeting_message,
-    custom_instructions: basePrompt.custom_instructions + insuranceText
+    custom_instructions: basePrompt.custom_instructions + insuranceText,
   };
 }
 
@@ -447,7 +573,7 @@ export async function GET(request: NextRequest) {
     const supabase = createServerSupabaseClient();
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('user_id');
-    const agentType = searchParams.get('agent_type') || 'inbound_call';
+    const agentType = searchParams.get('agent_type') || 'inbound_receptionist';
     const personality = searchParams.get('personality') || 'professional';
 
     if (!userId) {
@@ -482,7 +608,8 @@ export async function GET(request: NextRequest) {
     // Fetch staff members
     const { data: staffMembers } = await supabase
       .from('staff_members')
-      .select(`
+      .select(
+        `
         *,
         business_locations (
           location_name,
@@ -491,7 +618,8 @@ export async function GET(request: NextRequest) {
           state,
           postal_code
         )
-      `)
+      `
+      )
       .eq('user_id', userId)
       .eq('is_active', true);
 
@@ -522,7 +650,8 @@ export async function GET(request: NextRequest) {
     if (businessProfile.business_type === 'healthcare') {
       const { data: insurance } = await supabase
         .from('business_accepted_insurance')
-        .select(`
+        .select(
+          `
           *,
           insurance_providers (
             provider_name,
@@ -531,10 +660,11 @@ export async function GET(request: NextRequest) {
             website,
             phone
           )
-        `)
+        `
+        )
         .eq('user_id', userId)
         .eq('is_active', true);
-      
+
       acceptedInsurance = insurance || [];
     }
 
@@ -546,7 +676,7 @@ export async function GET(request: NextRequest) {
       jobCategories: jobCategories || [],
       jobTypes: jobTypes || [],
       officeHours: officeHours || [],
-      acceptedInsurance
+      acceptedInsurance,
     });
 
     // Generate the enhanced AI prompt
@@ -568,10 +698,9 @@ export async function GET(request: NextRequest) {
         jobCategories,
         jobTypes,
         officeHours,
-        acceptedInsurance
-      }
+        acceptedInsurance,
+      },
     });
-
   } catch (error) {
     console.error('Error generating agent prompt:', error);
     return NextResponse.json(
