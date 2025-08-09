@@ -1,11 +1,7 @@
 'use server';
 
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  authenticateRequest,
-  createAuthenticatedClient,
-  checkPermission,
-} from '@/lib/supabase';
+import { authenticateRequest, createAuthenticatedClient } from '@/lib/supabase';
 
 // GET /api/admin/calls - Fetch call logs with optional user filtering
 export async function GET(request: NextRequest) {

@@ -13,21 +13,21 @@ export interface AgentTemplate {
   id: string;
   name: string;
   description?: string;
-  call_scripts: Record<string, any>;
-  voice_settings: Record<string, any>;
-  call_routing: Record<string, any>;
+  call_scripts: Record<string, unknown>;
+  voice_settings: Record<string, unknown>;
+  call_routing: Record<string, unknown>;
   prompt_template?: string;
-  configuration_template: Record<string, any>;
+  configuration_template: Record<string, unknown>;
 }
 
 export interface AgentConfigurationScoped {
   id: string;
   client_id: string;
   agent_type_id: string;
-  call_scripts: Record<string, any>;
-  voice_settings: Record<string, any>;
-  call_routing: Record<string, any>;
-  custom_settings: Record<string, any>;
+  call_scripts: Record<string, unknown>;
+  voice_settings: Record<string, unknown>;
+  call_routing: Record<string, unknown>;
+  custom_settings: Record<string, unknown>;
   based_on_template_id?: string;
   created_at: string;
   updated_at: string;

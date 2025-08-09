@@ -20,35 +20,47 @@ function generateBasicInfoPrompt(
   personality: string,
   context: any
 ): string {
-  const businessName = context.business_profile?.business_name || '[Business Name]';
+  const businessName =
+    context.business_profile?.business_name || '[Business Name]';
   const businessType = context.business_profile?.business_type || 'business';
 
   const personalityInstructions = {
-    professional: 'Maintain a professional, courteous, and efficient tone throughout all interactions.',
-    friendly: 'Use a warm, welcoming, and conversational tone that makes customers feel comfortable and valued.',
-    technical: 'Provide detailed, accurate information with thorough explanations and technical expertise.',
+    professional:
+      'Maintain a professional, courteous, and efficient tone throughout all interactions.',
+    friendly:
+      'Use a warm, welcoming, and conversational tone that makes customers feel comfortable and valued.',
+    technical:
+      'Provide detailed, accurate information with thorough explanations and technical expertise.',
   };
 
   // Generate business hours section
-  const activeHours = context.office_hours?.filter((h: any) => h.is_active) || [];
-  const businessHoursText = activeHours.length > 0
-    ? `Our business hours are: ${activeHours.map((h: any) => `${h.day_name} ${h.formatted_hours}`).join(', ')}.`
-    : 'Please check our website or call during business hours for our current schedule.';
+  const activeHours =
+    context.office_hours?.filter((h: any) => h.is_active) || [];
+  const businessHoursText =
+    activeHours.length > 0
+      ? `Our business hours are: ${activeHours.map((h: any) => `${h.day_name} ${h.formatted_hours}`).join(', ')}.`
+      : 'Please check our website or call during business hours for our current schedule.';
 
   // Generate services section
   let servicesText = '';
   if (context.services && context.services.length > 0) {
-    const servicesByCategory = context.services.reduce((acc: any, service: any) => {
-      const categoryName = service.category || 'General Services';
-      if (!acc[categoryName]) acc[categoryName] = [];
-      acc[categoryName].push(service);
-      return acc;
-    }, {});
+    const servicesByCategory = context.services.reduce(
+      (acc: any, service: any) => {
+        const categoryName = service.category || 'General Services';
+        if (!acc[categoryName]) acc[categoryName] = [];
+        acc[categoryName].push(service);
+        return acc;
+      },
+      {}
+    );
 
     servicesText = `\n\nSERVICES WE OFFER:\n${Object.entries(servicesByCategory)
       .map(([category, services]: [string, any[]]) => {
         const serviceList = services
-          .map(s => `  • ${s.name}${s.duration ? ` (${s.duration} minutes)` : ''}${s.price ? ` - $${s.price}` : ''}${s.description ? `: ${s.description}` : ''}`)
+          .map(
+            s =>
+              `  • ${s.name}${s.duration ? ` (${s.duration} minutes)` : ''}${s.price ? ` - $${s.price}` : ''}${s.description ? `: ${s.description}` : ''}`
+          )
           .join('\n');
         return `\n${category}:\n${serviceList}`;
       })
@@ -99,8 +111,9 @@ ${agentSpecificContent}
 }
 
 function generateAgentSpecificContent(agentType: string, context: any): string {
-  const businessName = context.business_profile?.business_name || '[Business Name]';
-  
+  const businessName =
+    context.business_profile?.business_name || '[Business Name]';
+
   switch (agentType) {
     case 'inbound_receptionist':
       return generateReceptionistContent(context);
@@ -116,9 +129,10 @@ function generateAgentSpecificContent(agentType: string, context: any): string {
 }
 
 function generateReceptionistContent(context: any): string {
-  const businessName = context.business_profile?.business_name || '[Business Name]';
+  const businessName =
+    context.business_profile?.business_name || '[Business Name]';
   const businessType = context.business_profile?.business_type || 'business';
-  
+
   // Focus on essential information for receptionist
   let content = `**RECEPTIONIST FOCUS AREAS:**
 
@@ -129,65 +143,84 @@ function generateReceptionistContent(context: any): string {
 - New or existing customer status
 - Reason for visit/service needed
 `;
-  
+
   // Add staff information for routing
   if (context.staff && context.staff.length > 0) {
     content += `\n**STAFF DIRECTORY FOR ROUTING:**\n${context.staff
-      .map((s: any) => `- ${s.first_name} ${s.last_name} (${s.title})${s.specialties?.length ? ` - Specializes in: ${s.specialties.join(', ')}` : ''}`)
+      .map(
+        (s: any) =>
+          `- ${s.first_name} ${s.last_name} (${s.title})${s.specialties?.length ? ` - Specializes in: ${s.specialties.join(', ')}` : ''}`
+      )
       .join('\n')}`;
   }
-  
+
   // Add basic services for appointment booking
   if (context.services && context.services.length > 0) {
-    const bookableServices = context.services.filter((s: any) => s.duration && s.duration > 0);
+    const bookableServices = context.services.filter(
+      (s: any) => s.duration && s.duration > 0
+    );
     if (bookableServices.length > 0) {
       content += `\n\n**AVAILABLE APPOINTMENTS:**\n${bookableServices
-        .map((s: any) => `- ${s.name}${s.duration ? ` (${s.duration} min)` : ''}${s.price ? ` - $${s.price}` : ''}`)
+        .map(
+          (s: any) =>
+            `- ${s.name}${s.duration ? ` (${s.duration} min)` : ''}${s.price ? ` - $${s.price}` : ''}`
+        )
         .join('\n')}`;
     }
   }
-  
+
   content += `\n\n**BOOKING ACTIONS:**\n- New appointment booking\n- Reschedule existing appointment\n- Cancel appointment\n- Confirm appointment details\n- Check appointment availability`;
-  
+
   return content;
 }
 
 function generateCustomerSupportContent(context: any): string {
-  const businessName = context.business_profile?.business_name || '[Business Name]';
-  
+  const businessName =
+    context.business_profile?.business_name || '[Business Name]';
+
   let content = `**CUSTOMER SUPPORT COMPREHENSIVE KNOWLEDGE:**\n\n`;
-  
+
   // Include ALL business information for support
   if (context.services && context.services.length > 0) {
-    const servicesByCategory = context.services.reduce((acc: any, service: any) => {
-      const categoryName = service.category || 'General Services';
-      if (!acc[categoryName]) acc[categoryName] = [];
-      acc[categoryName].push(service);
-      return acc;
-    }, {});
+    const servicesByCategory = context.services.reduce(
+      (acc: any, service: any) => {
+        const categoryName = service.category || 'General Services';
+        if (!acc[categoryName]) acc[categoryName] = [];
+        acc[categoryName].push(service);
+        return acc;
+      },
+      {}
+    );
 
-    content += `**COMPLETE SERVICE CATALOG:**\n${Object.entries(servicesByCategory)
+    content += `**COMPLETE SERVICE CATALOG:**\n${Object.entries(
+      servicesByCategory
+    )
       .map(([category, services]: [string, any[]]) => {
         const serviceList = services
-          .map(s => `  • ${s.name}${s.duration ? ` (${s.duration} min)` : ''}${s.price ? ` - $${s.price}` : ''}${s.description ? `: ${s.description}` : ''}`)
+          .map(
+            s =>
+              `  • ${s.name}${s.duration ? ` (${s.duration} min)` : ''}${s.price ? ` - $${s.price}` : ''}${s.description ? `: ${s.description}` : ''}`
+          )
           .join('\n');
         return `\n${category}:\n${serviceList}`;
       })
       .join('')}`;
   }
-  
+
   // Include all staff information
   if (context.staff && context.staff.length > 0) {
     content += `\n\n**COMPLETE STAFF DIRECTORY:**\n${context.staff
       .map((s: any) => {
         let staffInfo = `- ${s.first_name} ${s.last_name}, ${s.title}`;
-        if (s.specialties?.length) staffInfo += ` - Specializes in: ${s.specialties.join(', ')}`;
-        if (s.job_types?.length) staffInfo += ` - Services: ${s.job_types.join(', ')}`;
+        if (s.specialties?.length)
+          staffInfo += ` - Specializes in: ${s.specialties.join(', ')}`;
+        if (s.job_types?.length)
+          staffInfo += ` - Services: ${s.job_types.join(', ')}`;
         return staffInfo;
       })
       .join('\n')}`;
   }
-  
+
   // Include document sections if available
   if (context.document_sections && context.document_sections.length > 0) {
     content += `\n\n**BUSINESS DOCUMENTATION:**`;
@@ -197,41 +230,47 @@ function generateCustomerSupportContent(context: any): string {
       }
     });
   }
-  
+
   // Include support content
   if (context.business_profile?.support_content) {
     content += `\n\n**ADDITIONAL BUSINESS INFORMATION:**\n${context.business_profile.support_content}`;
   }
-  
+
   content += `\n\n**SUPPORT RESPONSIBILITIES:**\n- Resolve customer complaints and issues\n- Provide detailed service explanations\n- Handle billing and payment questions\n- Assist with appointment scheduling conflicts\n- Escalate complex technical issues\n- Follow up on resolved matters`;
-  
+
   return content;
 }
 
 function generateFollowUpContent(context: any): string {
   let content = `**FOLLOW-UP AGENT COMPREHENSIVE RESPONSIBILITIES:**\n\n**APPOINTMENT REMINDER CALLS (24-48 HOURS PRIOR):**\n- Confirm upcoming appointments with specific date, time, and staff member\n- Verify contact information is current\n- Provide preparation instructions if needed\n- Offer rescheduling if customer has conflicts\n- Confirm location and parking information\n- Send follow-up text/email confirmation\n`;
-  
+
   // Include detailed staff information for coordination
   if (context.staff && context.staff.length > 0) {
     content += `\n**STAFF SCHEDULE COORDINATION:**\n${context.staff
       .map((s: any) => {
         let info = `- ${s.first_name} ${s.last_name} (${s.title})`;
-        if (s.specialties?.length) info += ` - Specializes in: ${s.specialties.join(', ')}`;
+        if (s.specialties?.length)
+          info += ` - Specializes in: ${s.specialties.join(', ')}`;
         if (s.schedule) info += ` - Available: ${s.schedule}`;
         return info;
       })
       .join('\n')}`;
   }
-  
+
   // Include all appointment types and follow-up schedules
   if (context.services && context.services.length > 0) {
-    const appointmentServices = context.services.filter((s: any) => s.duration && s.duration > 0);
+    const appointmentServices = context.services.filter(
+      (s: any) => s.duration && s.duration > 0
+    );
     if (appointmentServices.length > 0) {
       content += `\n\n**APPOINTMENT TYPES & FOLLOW-UP SCHEDULES:**\n${appointmentServices
         .map((s: any) => {
           let serviceInfo = `- ${s.name} (${s.duration} min)${s.price ? ` - $${s.price}` : ''}`;
           // Add typical follow-up schedules based on service type
-          if (s.name.toLowerCase().includes('cleaning') || s.name.toLowerCase().includes('checkup')) {
+          if (
+            s.name.toLowerCase().includes('cleaning') ||
+            s.name.toLowerCase().includes('checkup')
+          ) {
             serviceInfo += ' - Follow-up reminder in 6 months';
           } else if (s.name.toLowerCase().includes('consultation')) {
             serviceInfo += ' - Follow-up call within 1 week';
@@ -241,89 +280,112 @@ function generateFollowUpContent(context: any): string {
         .join('\n')}`;
     }
   }
-  
+
   content += `\n\n**POST-APPOINTMENT FOLLOW-UP (WITHIN 24-48 HOURS):**\n- Thank customer for their visit\n- Check satisfaction with service received\n- Address any immediate concerns or questions\n- Schedule next routine appointment if applicable\n- Collect feedback for service improvement\n- Handle billing questions or payment issues\n- Document any special needs or preferences\n\n**ROUTINE CHECK-UP SCHEDULING:**\n- Identify customers due for routine check-ups or maintenance\n- Call to schedule based on service intervals (6 months, 1 year, etc.)\n- Explain importance of regular maintenance/check-ups\n- Offer convenient scheduling options\n- Send calendar invites and confirmations\n\n**EXISTING APPOINTMENT DATABASE ACCESS:**\n- Review customer appointment history\n- Check upcoming scheduled appointments\n- Verify preferred appointment times and days\n- Note any special accommodations needed\n- Track no-shows and reschedules\n- Update customer preferences in system`;
-  
+
   return content;
 }
 
 function generateMarketingContent(context: any): string {
   let content = `**MARKETING AGENT COMPREHENSIVE KNOWLEDGE:**\n\n**LEAD QUALIFICATION PROCESS:**\n- Assess customer needs and pain points\n- Identify decision makers and influencers\n- Determine budget range and timeline\n- Understand current solutions in use\n- Evaluate urgency and priority level\n`;
-  
+
   // Include ALL services with detailed pricing for marketing
   if (context.services && context.services.length > 0) {
-    const servicesByCategory = context.services.reduce((acc: any, service: any) => {
-      const categoryName = service.category || 'General Services';
-      if (!acc[categoryName]) acc[categoryName] = [];
-      acc[categoryName].push(service);
-      return acc;
-    }, {});
+    const servicesByCategory = context.services.reduce(
+      (acc: any, service: any) => {
+        const categoryName = service.category || 'General Services';
+        if (!acc[categoryName]) acc[categoryName] = [];
+        acc[categoryName].push(service);
+        return acc;
+      },
+      {}
+    );
 
-    content += `\n**COMPLETE SERVICE OFFERINGS WITH PRICING:**\n${Object.entries(servicesByCategory)
+    content += `\n**COMPLETE SERVICE OFFERINGS WITH PRICING:**\n${Object.entries(
+      servicesByCategory
+    )
       .map(([category, services]: [string, any[]]) => {
         const serviceList = services
-          .map(s => `  • ${s.name}${s.duration ? ` (${s.duration} min)` : ''}${s.price ? ` - Starting at $${s.price}` : ''}${s.description ? `: ${s.description}` : ''}`)
+          .map(
+            s =>
+              `  • ${s.name}${s.duration ? ` (${s.duration} min)` : ''}${s.price ? ` - Starting at $${s.price}` : ''}${s.description ? `: ${s.description}` : ''}`
+          )
           .join('\n');
         return `\n${category}:\n${serviceList}`;
       })
       .join('')}`;
   }
-  
+
   // Include FAQ content for objection handling
   if (context.document_sections && context.document_sections.length > 0) {
-    const faqSection = context.document_sections.find((s: any) => s.category === 'faq');
+    const faqSection = context.document_sections.find(
+      (s: any) => s.category === 'faq'
+    );
     if (faqSection && faqSection.content) {
       content += `\n\n**FREQUENTLY ASKED QUESTIONS (FOR OBJECTION HANDLING):**\n${faqSection.content}`;
     }
-    
+
     // Include pricing policies
-    const pricingSection = context.document_sections.find((s: any) => s.category === 'products_pricing' || s.category === 'services_pricing');
+    const pricingSection = context.document_sections.find(
+      (s: any) =>
+        s.category === 'products_pricing' || s.category === 'services_pricing'
+    );
     if (pricingSection && pricingSection.content) {
       content += `\n\n**DETAILED PRICING INFORMATION:**\n${pricingSection.content}`;
     }
   }
-  
+
   // Include business strengths and credentials
   const yearsInBusiness = context.business_profile?.years_in_business;
   const numEmployees = context.business_profile?.number_of_employees;
-  
+
   content += `\n\n**COMPETITIVE ADVANTAGES:**`;
-  if (yearsInBusiness) content += `\n- ${yearsInBusiness} years of proven experience in the industry`;
-  if (numEmployees) content += `\n- Professional team of ${numEmployees} dedicated employees`;
-  if (context.staff?.length) content += `\n- Expert specialists: ${context.staff.map((s: any) => `${s.first_name} ${s.last_name} (${s.title})`).join(', ')}`;
-  if (context.business_locations?.length) content += `\n- ${context.business_locations.length} convenient location${context.business_locations.length > 1 ? 's' : ''}`;
-  
+  if (yearsInBusiness)
+    content += `\n- ${yearsInBusiness} years of proven experience in the industry`;
+  if (numEmployees)
+    content += `\n- Professional team of ${numEmployees} dedicated employees`;
+  if (context.staff?.length)
+    content += `\n- Expert specialists: ${context.staff.map((s: any) => `${s.first_name} ${s.last_name} (${s.title})`).join(', ')}`;
+  if (context.business_locations?.length)
+    content += `\n- ${context.business_locations.length} convenient location${context.business_locations.length > 1 ? 's' : ''}`;
+
   // Include accepted insurances for healthcare
   if (context.business_profile?.accepted_insurances?.length) {
     content += `\n- Accept ${context.business_profile.accepted_insurances.length} major insurance providers including: ${context.business_profile.accepted_insurances.slice(0, 5).join(', ')}${context.business_profile.accepted_insurances.length > 5 ? ' and more' : ''}`;
   }
-  
+
   content += `\n\n**MARKETING CALL OBJECTIVES:**\n- Generate qualified leads through needs assessment\n- Schedule consultations and appointments\n- Present compelling value propositions\n- Handle objections with factual responses\n- Build rapport and long-term relationships\n- Ensure compliance with telemarketing regulations\n- Follow up appropriately based on interest level`;
-  
+
   return content;
 }
 
 function generateGeneralContent(context: any): string {
   let content = '';
-  
+
   if (context.services && context.services.length > 0) {
-    const servicesByCategory = context.services.reduce((acc: any, service: any) => {
-      const categoryName = service.category || 'General Services';
-      if (!acc[categoryName]) acc[categoryName] = [];
-      acc[categoryName].push(service);
-      return acc;
-    }, {});
+    const servicesByCategory = context.services.reduce(
+      (acc: any, service: any) => {
+        const categoryName = service.category || 'General Services';
+        if (!acc[categoryName]) acc[categoryName] = [];
+        acc[categoryName].push(service);
+        return acc;
+      },
+      {}
+    );
 
     content += `**SERVICES WE OFFER:**\n${Object.entries(servicesByCategory)
       .map(([category, services]: [string, any[]]) => {
         const serviceList = services
-          .map(s => `  • ${s.name}${s.duration ? ` (${s.duration} minutes)` : ''}${s.price ? ` - $${s.price}` : ''}${s.description ? `: ${s.description}` : ''}`)
+          .map(
+            s =>
+              `  • ${s.name}${s.duration ? ` (${s.duration} minutes)` : ''}${s.price ? ` - $${s.price}` : ''}${s.description ? `: ${s.description}` : ''}`
+          )
           .join('\n');
         return `\n${category}:\n${serviceList}`;
       })
       .join('')}`;
   }
-  
+
   if (context.staff && context.staff.length > 0) {
     content += `\n\n**OUR TEAM:**\n${context.staff
       .map((s: any) => {
@@ -335,7 +397,7 @@ function generateGeneralContent(context: any): string {
       })
       .join('\n')}`;
   }
-  
+
   return content;
 }
 
@@ -344,7 +406,8 @@ function generateCallScriptsPrompt(
   personality: string,
   context: any
 ): string {
-  const businessName = context.business_profile?.business_name || '[Business Name]';
+  const businessName =
+    context.business_profile?.business_name || '[Business Name]';
 
   const roleSpecificInstructions = {
     inbound_receptionist: `**CALL HANDLING PROCEDURES:**
@@ -470,7 +533,11 @@ function generateCombinedPrompt(
   context: any
 ): string {
   const basicInfo = generateBasicInfoPrompt(agentType, personality, context);
-  const callScripts = generateCallScriptsPrompt(agentType, personality, context);
+  const callScripts = generateCallScriptsPrompt(
+    agentType,
+    personality,
+    context
+  );
 
   return `${basicInfo}
 
@@ -483,7 +550,8 @@ Use the business information above to personalize all conversations. Adapt the s
 }
 
 function generateGreetingMessage(agentType: string, context: any): string {
-  const businessName = context.business_profile?.business_name || '[Business Name]';
+  const businessName =
+    context.business_profile?.business_name || '[Business Name]';
 
   const greetings = {
     inbound_receptionist: `Hello! Thank you for calling ${businessName}. I'm your AI receptionist, and I'm here to help you today. How may I assist you?`,
@@ -492,17 +560,29 @@ function generateGreetingMessage(agentType: string, context: any): string {
     outbound_marketing: `Hello! This is your marketing assistant from ${businessName}. I hope you're having a great day! I'm reaching out because we have some services that might be valuable for you.`,
   };
 
-  return greetings[agentType as keyof typeof greetings] || greetings.inbound_receptionist;
+  return (
+    greetings[agentType as keyof typeof greetings] ||
+    greetings.inbound_receptionist
+  );
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body: EnhancedPromptRequest = await request.json();
-    const { agent_type, agent_personality, business_context, prompt_type } = body;
+    const { agent_type, agent_personality, business_context, prompt_type } =
+      body;
 
-    if (!agent_type || !agent_personality || !business_context || !prompt_type) {
+    if (
+      !agent_type ||
+      !agent_personality ||
+      !business_context ||
+      !prompt_type
+    ) {
       return NextResponse.json(
-        { error: 'Agent type, personality, business context, and prompt type are required' },
+        {
+          error:
+            'Agent type, personality, business context, and prompt type are required',
+        },
         { status: 400 }
       );
     }
@@ -548,7 +628,10 @@ export async function POST(request: NextRequest) {
 
       default:
         return NextResponse.json(
-          { error: 'Invalid prompt type. Must be "basic_info", "call_scripts", or "combined"' },
+          {
+            error:
+              'Invalid prompt type. Must be "basic_info", "call_scripts", or "combined"',
+          },
           { status: 400 }
         );
     }

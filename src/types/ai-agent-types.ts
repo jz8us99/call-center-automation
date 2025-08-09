@@ -82,7 +82,7 @@ export interface VoiceSettings {
 export interface LanguageVoiceSettings {
   accent?: string;
   gender?: 'male' | 'female' | 'neutral';
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // ===== Main Agent Interface =====
@@ -109,7 +109,7 @@ export interface AIAgent {
   voice_settings: VoiceSettings;
 
   // Business Context
-  business_context: Record<string, any>;
+  business_context: Record<string, unknown>;
   greeting_message?: string;
 
   // Advanced Configuration
@@ -127,7 +127,7 @@ export interface AgentVariable {
   name: string;
   type: 'text' | 'phone' | 'email' | 'date' | 'boolean' | 'number';
   required: boolean;
-  default_value?: any;
+  default_value?: unknown;
   validation_rules?: string[];
   description?: string;
 }
@@ -135,10 +135,10 @@ export interface AgentVariable {
 export interface IntegrationConfig {
   type: string;
   enabled: boolean;
-  settings: Record<string, any>;
+  settings: Record<string, unknown>;
   webhook_url?: string;
   api_key?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // ===== Agent Configuration =====
@@ -262,7 +262,7 @@ export interface CalendarIntegration {
   provider: 'cal.com' | 'calendly' | 'google' | 'outlook';
   api_key?: string;
   webhook_url?: string;
-  settings: Record<string, any>;
+  settings: Record<string, unknown>;
 }
 
 export interface CRMIntegration {
@@ -310,7 +310,7 @@ export interface ConditionalLogic {
 
 export interface ConditionalAction {
   type: 'response' | 'transfer' | 'variable_set' | 'api_call';
-  parameters: Record<string, any>;
+  parameters: Record<string, unknown>;
 }
 
 export interface CustomAction {
@@ -318,7 +318,7 @@ export interface CustomAction {
   name: string;
   trigger: string;
   action_type: 'webhook' | 'api_call' | 'database_update';
-  configuration: Record<string, any>;
+  configuration: Record<string, unknown>;
   enabled: boolean;
 }
 
@@ -369,8 +369,8 @@ export interface AICallLog {
   action_items: ActionItem[];
   follow_up_required: boolean;
 
-  retell_data?: Record<string, any>;
-  custom_data: Record<string, any>;
+  retell_data?: Record<string, unknown>;
+  custom_data: Record<string, unknown>;
 
   created_at: string;
   updated_at: string;
@@ -487,7 +487,7 @@ export interface CreateAgentRequest {
   name: string;
   description?: string;
   personality?: AgentPersonality;
-  business_context: Record<string, any>;
+  business_context: Record<string, unknown>;
   configuration?: Partial<AgentConfiguration>;
   template_id?: string;
 }
@@ -498,7 +498,7 @@ export interface UpdateAgentRequest {
   status?: AgentStatus;
   personality?: AgentPersonality;
   voice_settings?: Partial<VoiceSettings>;
-  business_context?: Record<string, any>;
+  business_context?: Record<string, unknown>;
   greeting_message?: string;
   prompt_template?: string;
   variables?: Record<string, AgentVariable>;
@@ -589,7 +589,7 @@ export interface RetellAgentResponse {
 export interface ValidationRule {
   field: string;
   rule: 'required' | 'minLength' | 'maxLength' | 'pattern' | 'custom';
-  value?: any;
+  value?: unknown;
   message: string;
 }
 

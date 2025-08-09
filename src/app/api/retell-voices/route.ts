@@ -22,7 +22,7 @@ const RETELL_VOICES: RetellVoice[] = [
     gender: 'Female',
     age: 'Adult',
     provider: 'ElevenLabs',
-    preview_audio_url: '/api/voice-preview/sarah-professional'
+    preview_audio_url: '/api/voice-preview/sarah-professional',
   },
   {
     id: 'emily-friendly',
@@ -32,7 +32,7 @@ const RETELL_VOICES: RetellVoice[] = [
     gender: 'Female',
     age: 'Young Adult',
     provider: 'ElevenLabs',
-    preview_audio_url: '/api/voice-preview/emily-friendly'
+    preview_audio_url: '/api/voice-preview/emily-friendly',
   },
   {
     id: 'sophia-warm',
@@ -42,7 +42,7 @@ const RETELL_VOICES: RetellVoice[] = [
     gender: 'Female',
     age: 'Adult',
     provider: 'ElevenLabs',
-    preview_audio_url: '/api/voice-preview/sophia-warm'
+    preview_audio_url: '/api/voice-preview/sophia-warm',
   },
   {
     id: 'isabella-elegant',
@@ -52,7 +52,7 @@ const RETELL_VOICES: RetellVoice[] = [
     gender: 'Female',
     age: 'Adult',
     provider: 'OpenAI',
-    preview_audio_url: '/api/voice-preview/isabella-elegant'
+    preview_audio_url: '/api/voice-preview/isabella-elegant',
   },
 
   // Male Voices
@@ -64,7 +64,7 @@ const RETELL_VOICES: RetellVoice[] = [
     gender: 'Male',
     age: 'Adult',
     provider: 'ElevenLabs',
-    preview_audio_url: '/api/voice-preview/david-professional'
+    preview_audio_url: '/api/voice-preview/david-professional',
   },
   {
     id: 'james-confident',
@@ -74,7 +74,7 @@ const RETELL_VOICES: RetellVoice[] = [
     gender: 'Male',
     age: 'Adult',
     provider: 'ElevenLabs',
-    preview_audio_url: '/api/voice-preview/james-confident'
+    preview_audio_url: '/api/voice-preview/james-confident',
   },
   {
     id: 'michael-friendly',
@@ -84,7 +84,7 @@ const RETELL_VOICES: RetellVoice[] = [
     gender: 'Male',
     age: 'Young Adult',
     provider: 'OpenAI',
-    preview_audio_url: '/api/voice-preview/michael-friendly'
+    preview_audio_url: '/api/voice-preview/michael-friendly',
   },
   {
     id: 'alexander-authoritative',
@@ -94,7 +94,7 @@ const RETELL_VOICES: RetellVoice[] = [
     gender: 'Male',
     age: 'Adult',
     provider: 'ElevenLabs',
-    preview_audio_url: '/api/voice-preview/alexander-authoritative'
+    preview_audio_url: '/api/voice-preview/alexander-authoritative',
   },
 
   // Specialized Healthcare Voices
@@ -106,7 +106,7 @@ const RETELL_VOICES: RetellVoice[] = [
     gender: 'Female',
     age: 'Adult',
     provider: 'ElevenLabs',
-    preview_audio_url: '/api/voice-preview/dr-patricia-caring'
+    preview_audio_url: '/api/voice-preview/dr-patricia-caring',
   },
   {
     id: 'nurse-maria-compassionate',
@@ -116,7 +116,7 @@ const RETELL_VOICES: RetellVoice[] = [
     gender: 'Female',
     age: 'Adult',
     provider: 'ElevenLabs',
-    preview_audio_url: '/api/voice-preview/nurse-maria-compassionate'
+    preview_audio_url: '/api/voice-preview/nurse-maria-compassionate',
   },
 
   // Customer Service Voices
@@ -128,7 +128,7 @@ const RETELL_VOICES: RetellVoice[] = [
     gender: 'Female',
     age: 'Young Adult',
     provider: 'OpenAI',
-    preview_audio_url: '/api/voice-preview/jessica-helpful'
+    preview_audio_url: '/api/voice-preview/jessica-helpful',
   },
   {
     id: 'robert-supportive',
@@ -138,8 +138,8 @@ const RETELL_VOICES: RetellVoice[] = [
     gender: 'Male',
     age: 'Adult',
     provider: 'ElevenLabs',
-    preview_audio_url: '/api/voice-preview/robert-supportive'
-  }
+    preview_audio_url: '/api/voice-preview/robert-supportive',
+  },
 ];
 
 export async function GET(request: NextRequest) {
@@ -159,8 +159,8 @@ export async function GET(request: NextRequest) {
     }
 
     if (filterStyle) {
-      filteredVoices = filteredVoices.filter(
-        voice => voice.style.toLowerCase().includes(filterStyle.toLowerCase())
+      filteredVoices = filteredVoices.filter(voice =>
+        voice.style.toLowerCase().includes(filterStyle.toLowerCase())
       );
     }
 
@@ -173,9 +173,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       voices: filteredVoices,
-      total: filteredVoices.length
+      total: filteredVoices.length,
     });
-
   } catch (error) {
     console.error('Error fetching Retell voices:', error);
     return NextResponse.json(
@@ -203,9 +202,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Voice settings updated successfully'
+      message: 'Voice settings updated successfully',
     });
-
   } catch (error) {
     console.error('Error updating voice settings:', error);
     return NextResponse.json(

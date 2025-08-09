@@ -11,28 +11,32 @@ export async function POST(request: NextRequest) {
       {
         type_code: 'inbound_receptionist',
         name: 'Inbound Receptionist',
-        description: 'Professional phone receptionist handling incoming calls, routing, and scheduling',
+        description:
+          'Professional phone receptionist handling incoming calls, routing, and scheduling',
         icon: '📞',
         is_active: true,
       },
       {
         type_code: 'inbound_customer_support',
         name: 'Inbound Customer Support',
-        description: 'Dedicated support agent for handling customer issues, complaints, and technical assistance',
+        description:
+          'Dedicated support agent for handling customer issues, complaints, and technical assistance',
         icon: '🛠️',
         is_active: true,
       },
       {
         type_code: 'outbound_follow_up',
         name: 'Outbound Follow-up',
-        description: 'Follow-up agent for appointment confirmations, reminders, and post-service check-ins',
+        description:
+          'Follow-up agent for appointment confirmations, reminders, and post-service check-ins',
         icon: '📅',
         is_active: true,
       },
       {
         type_code: 'outbound_marketing',
         name: 'Outbound Marketing',
-        description: 'Marketing agent for lead generation, sales calls, and promotional campaigns',
+        description:
+          'Marketing agent for lead generation, sales calls, and promotional campaigns',
         icon: '📈',
         is_active: true,
       },
@@ -40,14 +44,15 @@ export async function POST(request: NextRequest) {
 
     // Insert or update agent types
     for (const agentType of agentTypes) {
-      const { error } = await supabase
-        .from('agent_types')
-        .upsert(agentType, {
-          onConflict: 'type_code',
-        });
+      const { error } = await supabase.from('agent_types').upsert(agentType, {
+        onConflict: 'type_code',
+      });
 
       if (error) {
-        console.error(`Error inserting agent type ${agentType.type_code}:`, error);
+        console.error(
+          `Error inserting agent type ${agentType.type_code}:`,
+          error
+        );
       } else {
         console.log(`Successfully upserted agent type: ${agentType.name}`);
       }

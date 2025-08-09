@@ -162,7 +162,7 @@ export class AgentFactory {
       },
     };
 
-    const typeSpecificVariables: Record<AgentType, Record<string, any>> = {
+    const typeSpecificVariables: Record<AgentType, Record<string, unknown>> = {
       [AgentType.INBOUND_CALL]: {
         ...commonVariables,
         department: {
@@ -258,7 +258,7 @@ export class AgentFactory {
       },
     };
 
-    const typeSpecificIntegrations: Record<AgentType, Record<string, any>> = {
+    const typeSpecificIntegrations: Record<AgentType, Record<string, unknown>> = {
       [AgentType.INBOUND_CALL]: {
         ...baseIntegrations,
         calendar: {
@@ -323,7 +323,7 @@ export class AgentFactory {
    */
   private generatePromptTemplate(
     agentType: AgentType,
-    businessContext: Record<string, any>
+    businessContext: Record<string, unknown>
   ): string {
     const baseTemplate = AGENT_TYPE_CONFIGS[agentType]?.template_prompt || '';
 

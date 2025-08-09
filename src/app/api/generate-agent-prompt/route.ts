@@ -424,7 +424,8 @@ Remember: You represent ${businessName} and should always maintain our professio
 
   return {
     greeting_message:
-      greetings[agentType as keyof typeof greetings] || greetings.inbound_receptionist,
+      greetings[agentType as keyof typeof greetings] ||
+      greetings.inbound_receptionist,
     custom_instructions: customInstructions,
   };
 }

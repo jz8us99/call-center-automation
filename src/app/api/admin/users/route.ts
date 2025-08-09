@@ -1,11 +1,7 @@
 'use server';
 
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  authenticateRequest,
-  createAuthenticatedClient,
-  checkPermission,
-} from '@/lib/supabase';
+import { authenticateRequest, createAuthenticatedClient } from '@/lib/supabase';
 
 // GET /api/admin/users - Fetch all users
 export async function GET(request: NextRequest) {

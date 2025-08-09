@@ -38,7 +38,6 @@ export async function GET(request: NextRequest) {
       tableStructure: columns || [],
       columnsError: columnsError?.message || null,
     });
-
   } catch (error) {
     console.error('Debug error:', error);
     return NextResponse.json({

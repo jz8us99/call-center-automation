@@ -13,7 +13,7 @@ interface EmailOptions {
   to: string;
   subject: string;
   html: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export class EmailService {

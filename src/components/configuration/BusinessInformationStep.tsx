@@ -714,7 +714,10 @@ export function BusinessInformationStep({
     ) {
       setFormData(prev => ({
         ...prev,
-        accepted_insurances: [...(prev.accepted_insurances || []), insuranceName],
+        accepted_insurances: [
+          ...(prev.accepted_insurances || []),
+          insuranceName,
+        ],
       }));
       setNewInsuranceInput('');
     }
@@ -1131,10 +1134,9 @@ export function BusinessInformationStep({
                           variant="ghost"
                           size="sm"
                           onClick={() => {
-                            const newInsurances =
-                              (formData.accepted_insurances || []).filter(
-                                (_, i) => i !== index
-                              );
+                            const newInsurances = (
+                              formData.accepted_insurances || []
+                            ).filter((_, i) => i !== index);
                             setFormData(prev => ({
                               ...prev,
                               accepted_insurances: newInsurances,
@@ -1182,7 +1184,9 @@ export function BusinessInformationStep({
                   <div className="flex flex-wrap gap-2">
                     {COMMON_INSURANCES.filter(
                       insurance =>
-                        !(formData.accepted_insurances || []).includes(insurance)
+                        !(formData.accepted_insurances || []).includes(
+                          insurance
+                        )
                     ).map(insurance => (
                       <Button
                         key={insurance}

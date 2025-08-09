@@ -155,7 +155,7 @@ export function AgentTypeCallRouting({
         condition: 'keyword',
         condition_value: 'not interested,remove,unsubscribe,do not call',
         action: 'callback',
-        message: 'I understand. I\'ll make sure to update your preferences.',
+        message: "I understand. I'll make sure to update your preferences.",
         priority: 1,
         is_active: true,
       });

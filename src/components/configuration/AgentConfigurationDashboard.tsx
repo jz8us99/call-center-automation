@@ -107,10 +107,12 @@ export function AgentConfigurationDashboard({
   const loadAgentConfigurations = async () => {
     try {
       setLoading(true);
-      
+
       if (!user) return;
 
-      const response = await fetch(`/api/agent-configurations?user_id=${user.id}`);
+      const response = await fetch(
+        `/api/agent-configurations?user_id=${user.id}`
+      );
       if (response.ok) {
         const result = await response.json();
         setAgents(result.configurations || []);
@@ -190,7 +192,12 @@ export function AgentConfigurationDashboard({
   };
 
   const saveConfiguration = async (
-    configType: 'call_scripts' | 'voice_settings' | 'call_routing' | 'basic_info_prompt' | 'call_scripts_prompt',
+    configType:
+      | 'call_scripts'
+      | 'voice_settings'
+      | 'call_routing'
+      | 'basic_info_prompt'
+      | 'call_scripts_prompt',
     configData: any
   ) => {
     try {
@@ -239,8 +246,10 @@ export function AgentConfigurationDashboard({
 
           if (promptResponse.ok) {
             const promptData = await promptResponse.json();
-            enhancedData.basic_info_prompt = promptData.prompts.basic_info_prompt;
-            enhancedData.call_scripts_prompt = promptData.prompts.call_scripts_prompt;
+            enhancedData.basic_info_prompt =
+              promptData.prompts.basic_info_prompt;
+            enhancedData.call_scripts_prompt =
+              promptData.prompts.call_scripts_prompt;
             enhancedData.greeting_message = promptData.prompts.greeting_message;
           }
         } catch (promptError) {

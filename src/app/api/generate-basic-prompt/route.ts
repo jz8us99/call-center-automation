@@ -24,7 +24,10 @@ export async function GET(request: NextRequest) {
 
     if (profileError || !businessProfile) {
       return NextResponse.json(
-        { error: 'Business profile not found. Please complete previous steps first.' },
+        {
+          error:
+            'Business profile not found. Please complete previous steps first.',
+        },
         { status: 404 }
       );
     }
@@ -33,16 +36,21 @@ export async function GET(request: NextRequest) {
     let supportContent: any = {};
     try {
       if (businessProfile.support_content) {
-        supportContent = typeof businessProfile.support_content === 'string' 
-          ? JSON.parse(businessProfile.support_content)
-          : businessProfile.support_content;
+        supportContent =
+          typeof businessProfile.support_content === 'string'
+            ? JSON.parse(businessProfile.support_content)
+            : businessProfile.support_content;
       }
     } catch (e) {
       console.warn('Could not parse support_content:', e);
     }
 
     // Generate agent-specific basic information prompt
-    const basicInfoPrompt = generateAgentSpecificPrompt(agentType, businessProfile, supportContent);
+    const basicInfoPrompt = generateAgentSpecificPrompt(
+      agentType,
+      businessProfile,
+      supportContent
+    );
 
     return NextResponse.json({
       success: true,
@@ -53,12 +61,11 @@ export async function GET(request: NextRequest) {
         business_phone: businessProfile.business_phone,
         business_address: businessProfile.business_address,
         has_support_content: !!supportContent,
-        has_staff_info: !!(supportContent.staff_information?.length),
-        has_products_services: !!(supportContent.products_services),
-        has_business_hours: !!(supportContent.business_hours)
-      }
+        has_staff_info: !!supportContent.staff_information?.length,
+        has_products_services: !!supportContent.products_services,
+        has_business_hours: !!supportContent.business_hours,
+      },
     });
-
   } catch (error) {
     console.error('Error generating basic prompt:', error);
     return NextResponse.json(
@@ -68,7 +75,11 @@ export async function GET(request: NextRequest) {
   }
 }
 
-function generateAgentSpecificPrompt(agentType: string, businessProfile: any, supportContent: any): string {
+function generateAgentSpecificPrompt(
+  agentType: string,
+  businessProfile: any,
+  supportContent: any
+): string {
   const businessName = businessProfile.business_name || 'our business';
   const businessType = businessProfile.business_type || 'business';
   const phone = businessProfile.business_phone;
@@ -79,16 +90,20 @@ function generateAgentSpecificPrompt(agentType: string, businessProfile: any, su
   const staffInfo = supportContent.staff_information || [];
   const productsServices = supportContent.products_services || {};
   const businessHours = supportContent.business_hours || {};
-  const insuranceAccepted = supportContent.insurance_accepted || businessProfile.accepted_insurances || [];
-  const paymentMethods = supportContent.payment_methods || businessProfile.payment_methods || [];
-  
+  const insuranceAccepted =
+    supportContent.insurance_accepted ||
+    businessProfile.accepted_insurances ||
+    [];
+  const paymentMethods =
+    supportContent.payment_methods || businessProfile.payment_methods || [];
+
   // Get document sections for additional context
   const documentSections = supportContent.document_sections || [];
-  const generalBusinessSection = documentSections.find((section: any) => 
-    section.category === 'general_business' && section.content
+  const generalBusinessSection = documentSections.find(
+    (section: any) => section.category === 'general_business' && section.content
   );
-  const faqSection = documentSections.find((section: any) => 
-    section.category === 'faq' && section.content
+  const faqSection = documentSections.find(
+    (section: any) => section.category === 'faq' && section.content
   );
 
   let basePrompt = '';
@@ -148,9 +163,11 @@ function generateAgentSpecificPrompt(agentType: string, businessProfile: any, su
 
       if (productsServices && Object.keys(productsServices).length > 0) {
         basePrompt += `\n\n**PRODUCTS & SERVICES:**`;
-        Object.entries(productsServices).slice(0, 5).forEach(([product, details]: [string, any]) => {
-          basePrompt += `\n- ${product}${details?.description ? `: ${details.description}` : ''}`;
-        });
+        Object.entries(productsServices)
+          .slice(0, 5)
+          .forEach(([product, details]: [string, any]) => {
+            basePrompt += `\n- ${product}${details?.description ? `: ${details.description}` : ''}`;
+          });
       }
 
       if (insuranceAccepted.length > 0) {
@@ -224,9 +241,11 @@ function generateAgentSpecificPrompt(agentType: string, businessProfile: any, su
 
       if (productsServices && Object.keys(productsServices).length > 0) {
         basePrompt += `\n\n**OUR SERVICES & PRODUCTS:**`;
-        Object.entries(productsServices).slice(0, 8).forEach(([product, details]: [string, any]) => {
-          basePrompt += `\n- ${product}${details?.price ? ` (${details.price})` : ''}${details?.description ? `: ${details.description}` : ''}`;
-        });
+        Object.entries(productsServices)
+          .slice(0, 8)
+          .forEach(([product, details]: [string, any]) => {
+            basePrompt += `\n- ${product}${details?.price ? ` (${details.price})` : ''}${details?.description ? `: ${details.description}` : ''}`;
+          });
       }
 
       if (staffInfo.length > 0) {

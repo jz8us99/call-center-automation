@@ -23,12 +23,25 @@ import { AgentType, AGENT_TYPE_CONFIGS } from '@/types/ai-agent-types';
 import { CheckIcon, EditIcon, PlusIcon } from '@/components/icons';
 import { Wand2, RefreshCw } from 'lucide-react';
 
+interface BusinessInfo {
+  business_name?: string;
+  business_type?: string;
+  services?: Array<{ name: string }>;
+  staff?: Array<{ first_name: string; last_name: string }>;
+  office_hours?: Array<{ day_name: string; formatted_hours?: string }>;
+  business_phone?: string;
+  business_website?: string;
+}
+
 // Helper function to generate enhanced call scripts with customer data collection
-function generateEnhancedCallScript(agentType: string, businessInfo: any) {
+function generateEnhancedCallScript(agentType: string, businessInfo: BusinessInfo | null) {
   const businessName = businessInfo?.business_name || '[Business Name]';
   const businessType = businessInfo?.business_type || 'business';
-  const isHealthcare = businessType.toLowerCase().includes('health') || businessType.toLowerCase().includes('medical') || businessType.toLowerCase().includes('dental');
-  
+  const isHealthcare =
+    businessType.toLowerCase().includes('health') ||
+    businessType.toLowerCase().includes('medical') ||
+    businessType.toLowerCase().includes('dental');
+
   const services = businessInfo?.services || [];
   const staff = businessInfo?.staff || [];
   const officeHours = businessInfo?.office_hours || [];
@@ -36,24 +49,36 @@ function generateEnhancedCallScript(agentType: string, businessInfo: any) {
   const website = businessInfo?.business_website || '';
 
   // Generate services list for script
-  const servicesText = services.length > 0 
-    ? services.slice(0, 5).map((s: any) => s.name).join(', ')
-    : 'our services';
+  const servicesText =
+    services.length > 0
+      ? services
+          .slice(0, 5)
+          .map((s) => s.name)
+          .join(', ')
+      : 'our services';
 
   // Generate staff list for script
-  const staffText = staff.length > 0
-    ? staff.slice(0, 5).map((s: any) => `${s.first_name} ${s.last_name}`).join(', ')
-    : 'our team members';
+  const staffText =
+    staff.length > 0
+      ? staff
+          .slice(0, 5)
+          .map((s) => `${s.first_name} ${s.last_name}`)
+          .join(', ')
+      : 'our team members';
 
   // Generate office hours text
-  const hoursText = officeHours.length > 0
-    ? officeHours.slice(0, 3).map((h: any) => `${h.day_name} ${h.formatted_hours || 'varies'}`).join(', ')
-    : 'standard business hours';
+  const hoursText =
+    officeHours.length > 0
+      ? officeHours
+          .slice(0, 3)
+          .map((h) => `${h.day_name} ${h.formatted_hours || 'varies'}`)
+          .join(', ')
+      : 'standard business hours';
 
   const scripts = {
     inbound_receptionist: {
       greeting: `Hello! Thank you for calling ${businessName}. I'm your AI receptionist, and I'm here to help you today. How may I assist you?`,
-      
+
       main: `**CUSTOMER INFORMATION COLLECTION FLOW:**
 
 **1. INITIAL RESPONSE & PURPOSE:**
@@ -75,10 +100,14 @@ function generateEnhancedCallScript(agentType: string, businessInfo: any) {
 - If they say yes: "Let me look that up for you. What date was your appointment scheduled for?"
 - If they say no: "I'll be happy to help you schedule an appointment."
 
-${isHealthcare ? `**5. INSURANCE INFORMATION (New Clients Only):**
+${
+  isHealthcare
+    ? `**5. INSURANCE INFORMATION (New Clients Only):**
 - "Are you a new client with us?"
 - If yes: "Do you have insurance coverage you'd like us to verify? What's your insurance provider?"
-- "We'll verify your benefits before your appointment."` : ''}
+- "We'll verify your benefits before your appointment."`
+    : ''
+}
 
 **6. APPOINTMENT SCHEDULING (if needed):**
 - "Let me check our availability with [staff member]."
@@ -100,12 +129,12 @@ ${isHealthcare ? '- collect_insurance_info(insurance_provider, is_new_client)' :
 
       closing: `"Great! You're all set with your appointment on [date] at [time] with [staff member]. You'll receive a confirmation email at [email] and a reminder call 24 hours before. Our office is located at [address], and our office hours are ${hoursText}. Is there anything else I can help you with today? Thank you for choosing ${businessName}, and have a wonderful day!"`,
 
-      escalation: `"I understand you'd like to speak with someone directly. Let me transfer you to [staff member/department] right away. Please hold for just a moment, and they'll be right with you."`
+      escalation: `"I understand you'd like to speak with someone directly. Let me transfer you to [staff member/department] right away. Please hold for just a moment, and they'll be right with you."`,
     },
 
     inbound_customer_support: {
       greeting: `Hi! Thank you for contacting ${businessName}. I'm your customer support assistant, and I'm here to help resolve any questions or concerns. How can I assist you today?`,
-      
+
       main: `**SUPPORT ISSUE RESOLUTION FLOW:**
 
 **1. ISSUE IDENTIFICATION:**
@@ -139,12 +168,12 @@ ${isHealthcare ? '- collect_insurance_info(insurance_provider, is_new_client)' :
 
       closing: `"I'm glad I could help resolve your concern today. Is there anything else you need assistance with? Thank you for choosing ${businessName}, and please don't hesitate to call us if you have any other questions!"`,
 
-      escalation: `"I want to make sure you get the most comprehensive help possible. Let me transfer you to [specialized department/manager] who can provide more detailed assistance with your specific concern."`
+      escalation: `"I want to make sure you get the most comprehensive help possible. Let me transfer you to [specialized department/manager] who can provide more detailed assistance with your specific concern."`,
     },
 
     outbound_follow_up: {
       greeting: `Hello! This is your AI assistant calling from ${businessName}. Am I speaking with [First Name]? I hope I'm reaching you at a good time. I'm calling to follow up regarding your recent experience with us.`,
-      
+
       main: `**FOLLOW-UP CALL FLOW:**
 
 **1. APPOINTMENT CONFIRMATION (if applicable):**
@@ -177,12 +206,12 @@ ${isHealthcare ? '- collect_insurance_info(insurance_provider, is_new_client)' :
 
       closing: `"Thank you for your time and for choosing ${businessName}. We appreciate your business and look forward to seeing you ${isHealthcare ? 'at your appointment' : 'again soon'}. Have a wonderful day!"`,
 
-      escalation: `"I'd be happy to connect you directly with [staff member] or our manager to address any specific concerns or special requests you may have."`
+      escalation: `"I'd be happy to connect you directly with [staff member] or our manager to address any specific concerns or special requests you may have."`,
     },
 
     outbound_marketing: {
       greeting: `Hello! This is your marketing assistant from ${businessName}. Am I speaking with [First Name]? I hope you're having a great day! I'm reaching out because we have some services that might be valuable for you.`,
-      
+
       main: `**MARKETING CALL FLOW:**
 
 **1. INTRODUCTION & PERMISSION:**
@@ -207,9 +236,13 @@ ${isHealthcare ? '- collect_insurance_info(insurance_provider, is_new_client)' :
 - "I can set you up with [staff member] who has availability on [dates]."
 - "What day and time works best for you?"
 
-${isHealthcare ? `**6. INSURANCE VERIFICATION:**
+${
+  isHealthcare
+    ? `**6. INSURANCE VERIFICATION:**
 - "Do you have insurance coverage for this type of service?"
-- "We accept most major insurance providers."` : ''}
+- "We accept most major insurance providers."`
+    : ''
+}
 
 **RETELL AI FUNCTION CALLS:**
 - collect_prospect_information(first_name, last_name, phone, email, interest_level)
@@ -218,11 +251,13 @@ ${isHealthcare ? `**6. INSURANCE VERIFICATION:**
 
       closing: `"Thank you for your time today! I'll send you detailed information about our services to [email], and feel free to call us at ${phone} if you have any questions. We look forward to helping you with [service need]!"`,
 
-      escalation: `"I'd love to connect you with one of our specialists who can provide more detailed information and answer any specific questions you might have about our services."`
-    }
+      escalation: `"I'd love to connect you with one of our specialists who can provide more detailed information and answer any specific questions you might have about our services."`,
+    },
   };
 
-  return scripts[agentType as keyof typeof scripts] || scripts.inbound_receptionist;
+  return (
+    scripts[agentType as keyof typeof scripts] || scripts.inbound_receptionist
+  );
 }
 
 interface CallScript {
@@ -244,7 +279,7 @@ interface AgentTypeCallScriptsProps {
   agentType: AgentType;
   onSave: (scripts: CallScript[]) => Promise<void>;
   businessInfo?: any;
-  initialScripts?: Record<string, any>;
+  initialScripts?: Record<string, unknown>;
   initialPrompt?: string;
 }
 
@@ -270,7 +305,7 @@ export function AgentTypeCallScripts({
   const loadCallScripts = async () => {
     try {
       setLoading(true);
-      
+
       // If initial scripts are provided, use them
       if (initialScripts && Object.keys(initialScripts).length > 0) {
         const existingScript: CallScript = {
@@ -377,13 +412,15 @@ export function AgentTypeCallScripts({
 
   const generateAgentSpecificScripts = async () => {
     if (!agentType || !businessInfo) {
-      alert('Agent type and business information are required to generate scripts');
+      alert(
+        'Agent type and business information are required to generate scripts'
+      );
       return;
     }
 
     try {
       setGenerating(true);
-      
+
       // Gather comprehensive business context
       const businessContext = {
         business_profile: businessInfo,
@@ -395,8 +432,11 @@ export function AgentTypeCallScripts({
       };
 
       // Generate enhanced call scripts with customer data collection
-      const enhancedScript = generateEnhancedCallScript(agentType, businessInfo);
-      
+      const enhancedScript = generateEnhancedCallScript(
+        agentType,
+        businessInfo
+      );
+
       // Update the current script with generated content
       if (selectedScript) {
         const updatedScript: CallScript = {
@@ -407,23 +447,27 @@ export function AgentTypeCallScripts({
           escalation_script: enhancedScript.escalation,
           updated_at: new Date().toISOString(),
         };
-        
+
         setSelectedScript(updatedScript);
-        
+
         // Also update in the scripts array
         const updatedScripts = scripts.map(s =>
           s.id === updatedScript.id ? updatedScript : s
         );
         setScripts(updatedScripts);
-        
+
         // Auto-save the generated scripts
         await onSave(updatedScripts);
-        
-        alert('✅ Agent-specific call scripts have been generated and saved successfully!');
+
+        alert(
+          '✅ Agent-specific call scripts have been generated and saved successfully!'
+        );
       }
     } catch (error) {
       console.error('Error generating agent-specific scripts:', error);
-      alert('Failed to generate scripts. Please ensure your business information is complete and try again.');
+      alert(
+        'Failed to generate scripts. Please ensure your business information is complete and try again.'
+      );
     } finally {
       setGenerating(false);
     }
@@ -475,7 +519,10 @@ export function AgentTypeCallScripts({
                   </>
                 )}
               </Button>
-              <Button variant="outline" onClick={() => setIsEditing(!isEditing)}>
+              <Button
+                variant="outline"
+                onClick={() => setIsEditing(!isEditing)}
+              >
                 <EditIcon className="h-4 w-4 mr-2" />
                 {isEditing ? 'View Mode' : 'Edit Scripts'}
               </Button>
