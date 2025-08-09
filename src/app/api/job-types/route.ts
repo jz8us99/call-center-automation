@@ -122,7 +122,7 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('Error creating job type:', error);
       return NextResponse.json(
-        { error: 'Failed to create job type', details: error.message },
+        { error: 'Failed to create job type', details: (error as Error).message },
         { status: 500 }
       );
     }
@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error in job-types POST:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error', details: (error as Error).message },
       { status: 500 }
     );
   }
@@ -192,7 +192,7 @@ export async function PUT(request: NextRequest) {
     if (error) {
       console.error('Error updating job type:', error);
       return NextResponse.json(
-        { error: 'Failed to update job type', details: error.message },
+        { error: 'Failed to update job type', details: (error as Error).message },
         { status: 500 }
       );
     }
@@ -211,7 +211,7 @@ export async function PUT(request: NextRequest) {
   } catch (error) {
     console.error('Error in job-types PUT:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error', details: (error as Error).message },
       { status: 500 }
     );
   }
@@ -244,7 +244,7 @@ export async function DELETE(request: NextRequest) {
     if (error) {
       console.error('Error deleting job type:', error);
       return NextResponse.json(
-        { error: 'Failed to delete job type', details: error.message },
+        { error: 'Failed to delete job type', details: (error as Error).message },
         { status: 500 }
       );
     }
@@ -262,7 +262,7 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     console.error('Error in job-types DELETE:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error', details: (error as Error).message },
       { status: 500 }
     );
   }

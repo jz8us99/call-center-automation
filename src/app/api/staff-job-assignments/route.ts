@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: 'Failed to create staff job assignment',
-          details: error.message,
+          details: (error as Error).message,
         },
         { status: 500 }
       );
@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error in staff-job-assignments POST:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error', details: (error as Error).message },
       { status: 500 }
     );
   }
@@ -213,7 +213,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json(
         {
           error: 'Failed to update staff job assignment',
-          details: error.message,
+          details: (error as Error).message,
         },
         { status: 500 }
       );
@@ -233,7 +233,7 @@ export async function PUT(request: NextRequest) {
   } catch (error) {
     console.error('Error in staff-job-assignments PUT:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error', details: (error as Error).message },
       { status: 500 }
     );
   }
@@ -270,7 +270,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json(
         {
           error: 'Failed to delete staff job assignment',
-          details: error.message,
+          details: (error as Error).message,
         },
         { status: 500 }
       );
@@ -289,7 +289,7 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     console.error('Error in staff-job-assignments DELETE:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error', details: (error as Error).message },
       { status: 500 }
     );
   }

@@ -55,8 +55,8 @@ export class AgentFactory {
         request.language
       ),
       business_context: request.business_context,
-      variables: this.createDefaultVariables(request.agent_type),
-      integrations: this.createDefaultIntegrations(request.agent_type),
+      variables: this.createDefaultVariables(request.agent_type) as any,
+      integrations: this.createDefaultIntegrations(request.agent_type) as any,
       prompt_template: this.generatePromptTemplate(
         request.agent_type,
         request.business_context
@@ -162,8 +162,8 @@ export class AgentFactory {
       },
     };
 
-    const typeSpecificVariables: Record<AgentType, Record<string, unknown>> = {
-      [AgentType.INBOUND_CALL]: {
+    const typeSpecificVariables: any = {
+      [AgentType.INBOUND_RECEPTIONIST]: {
         ...commonVariables,
         department: {
           name: 'department',
@@ -178,7 +178,7 @@ export class AgentFactory {
           description: 'Call urgency level',
         },
       },
-      [AgentType.OUTBOUND_APPOINTMENT]: {
+      [AgentType.OUTBOUND_FOLLOW_UP]: {
         ...commonVariables,
         appointment_date: {
           name: 'appointment_date',
@@ -220,7 +220,7 @@ export class AgentFactory {
           description: 'Customer budget range',
         },
       },
-      [AgentType.CUSTOMER_SUPPORT]: {
+      [AgentType.INBOUND_CUSTOMER_SUPPORT]: {
         ...commonVariables,
         issue_type: {
           name: 'issue_type',
@@ -258,8 +258,8 @@ export class AgentFactory {
       },
     };
 
-    const typeSpecificIntegrations: Record<AgentType, Record<string, unknown>> = {
-      [AgentType.INBOUND_CALL]: {
+    const typeSpecificIntegrations: any = {
+      [AgentType.INBOUND_RECEPTIONIST]: {
         ...baseIntegrations,
         calendar: {
           type: 'calendar',
@@ -273,12 +273,12 @@ export class AgentFactory {
           type: 'crm',
           enabled: false,
           settings: {
-            provider: 'supabase',
+            provider: 'custom',
             auto_create_contact: true,
           },
         },
       },
-      [AgentType.OUTBOUND_APPOINTMENT]: {
+      [AgentType.OUTBOUND_FOLLOW_UP]: {
         ...baseIntegrations,
         calendar: {
           type: 'calendar',
@@ -296,13 +296,13 @@ export class AgentFactory {
           type: 'crm',
           enabled: true,
           settings: {
-            provider: 'supabase',
+            provider: 'custom',
             lead_scoring: true,
             auto_follow_up: true,
           },
         },
       },
-      [AgentType.CUSTOMER_SUPPORT]: {
+      [AgentType.INBOUND_CUSTOMER_SUPPORT]: {
         ...baseIntegrations,
         helpdesk: {
           type: 'helpdesk',
@@ -327,8 +327,8 @@ export class AgentFactory {
   ): string {
     const baseTemplate = AGENT_TYPE_CONFIGS[agentType]?.template_prompt || '';
 
-    const typeSpecificPrompts: Record<AgentType, string> = {
-      [AgentType.INBOUND_CALL]: `You are a professional receptionist for {business_name}. Your role is to:
+    const typeSpecificPrompts: any = {
+      [AgentType.INBOUND_RECEPTIONIST]: `You are a professional receptionist for {business_name}. Your role is to:
 
 🎯 **Primary Objectives:**
 - Greet callers warmly and professionally
@@ -368,7 +368,7 @@ export class AgentFactory {
 
 Remember: You represent {business_name} and should always maintain a professional, helpful demeanor.`,
 
-      [AgentType.OUTBOUND_APPOINTMENT]: `You are calling on behalf of {business_name} for appointment-related matters. Your role is to:
+      [AgentType.OUTBOUND_FOLLOW_UP]: `You are calling on behalf of {business_name} for appointment-related matters. Your role is to:
 
 🎯 **Primary Objectives:**  
 - Confirm upcoming appointments professionally
@@ -470,7 +470,7 @@ Remember: You represent {business_name} and should always maintain a professiona
 - Nurture leads through multiple touchpoints
 - Track engagement and interest levels`,
 
-      [AgentType.CUSTOMER_SUPPORT]: `You are a customer support specialist for {business_name}. Your role involves:
+      [AgentType.INBOUND_CUSTOMER_SUPPORT]: `You are a customer support specialist for {business_name}. Your role involves:
 
 🎯 **Primary Objectives:**
 - Listen carefully to customer issues and concerns
@@ -548,8 +548,8 @@ Remember: You represent {business_name} and should always maintain a professiona
       },
     ];
 
-    const typeSpecificRules: Record<AgentType, CallRoutingRule[]> = {
-      [AgentType.INBOUND_CALL]: [
+    const typeSpecificRules: any = {
+      [AgentType.INBOUND_RECEPTIONIST]: [
         ...commonRules,
         {
           id: 'appointment_request',
@@ -568,7 +568,7 @@ Remember: You represent {business_name} and should always maintain a professiona
           enabled: true,
         },
       ],
-      [AgentType.OUTBOUND_APPOINTMENT]: [
+      [AgentType.OUTBOUND_FOLLOW_UP]: [
         {
           id: 'reschedule_request',
           condition: 'keywords: reschedule, change, different time',
@@ -604,7 +604,7 @@ Remember: You represent {business_name} and should always maintain a professiona
           enabled: true,
         },
       ],
-      [AgentType.CUSTOMER_SUPPORT]: [
+      [AgentType.INBOUND_CUSTOMER_SUPPORT]: [
         ...commonRules,
         {
           id: 'technical_issue',
@@ -651,8 +651,8 @@ Remember: You represent {business_name} and should always maintain a professiona
       },
     ];
 
-    const typeSpecificTriggers: Record<AgentType, EscalationTrigger[]> = {
-      [AgentType.INBOUND_CALL]: [
+    const typeSpecificTriggers: any = {
+      [AgentType.INBOUND_RECEPTIONIST]: [
         ...commonTriggers,
         {
           id: 'complex_request',
@@ -663,7 +663,7 @@ Remember: You represent {business_name} and should always maintain a professiona
           enabled: true,
         },
       ],
-      [AgentType.OUTBOUND_APPOINTMENT]: [
+      [AgentType.OUTBOUND_FOLLOW_UP]: [
         {
           id: 'multiple_reschedules',
           trigger_type: 'manual',
@@ -683,7 +683,7 @@ Remember: You represent {business_name} and should always maintain a professiona
           enabled: true,
         },
       ],
-      [AgentType.CUSTOMER_SUPPORT]: [
+      [AgentType.INBOUND_CUSTOMER_SUPPORT]: [
         ...commonTriggers,
         {
           id: 'unresolved_technical',
@@ -712,8 +712,8 @@ Remember: You represent {business_name} and should always maintain a professiona
       custom_detectors: [],
     };
 
-    const typeSpecificConfigs: Record<AgentType, ActionDetectionConfig> = {
-      [AgentType.INBOUND_CALL]: {
+    const typeSpecificConfigs: any = {
+      [AgentType.INBOUND_RECEPTIONIST]: {
         ...baseConfig,
         keywords: [
           'appointment',
@@ -736,7 +736,7 @@ Remember: You represent {business_name} and should always maintain a professiona
           },
         ],
       },
-      [AgentType.OUTBOUND_APPOINTMENT]: {
+      [AgentType.OUTBOUND_FOLLOW_UP]: {
         ...baseConfig,
         keywords: [
           'confirm',
@@ -780,7 +780,7 @@ Remember: You represent {business_name} and should always maintain a professiona
           },
         ],
       },
-      [AgentType.CUSTOMER_SUPPORT]: {
+      [AgentType.INBOUND_CUSTOMER_SUPPORT]: {
         ...baseConfig,
         keywords: [
           'problem',
@@ -851,12 +851,9 @@ Remember: You represent {business_name} and should always maintain a professiona
     agentType: AgentType,
     language: SupportedLanguage
   ): string {
-    const templates: Record<
-      string,
-      Record<AgentType, Record<SupportedLanguage, string>>
-    > = {
+    const templates: any = {
       greeting: {
-        [AgentType.INBOUND_CALL]: {
+        [AgentType.INBOUND_RECEPTIONIST]: {
           [SupportedLanguage.ENGLISH]:
             'Hello! Thank you for calling {business_name}. This is your AI assistant. How may I help you today?',
           [SupportedLanguage.SPANISH]:
@@ -866,7 +863,7 @@ Remember: You represent {business_name} and should always maintain a professiona
           [SupportedLanguage.ITALIAN]:
             'Ciao! Grazie per aver chiamato {business_name}. Sono il tuo assistente AI. Come posso aiutarti oggi?',
         },
-        [AgentType.OUTBOUND_APPOINTMENT]: {
+        [AgentType.OUTBOUND_FOLLOW_UP]: {
           [SupportedLanguage.ENGLISH]:
             'Hello! This is your AI assistant calling from {business_name} regarding your upcoming appointment.',
           [SupportedLanguage.SPANISH]:
@@ -886,7 +883,7 @@ Remember: You represent {business_name} and should always maintain a professiona
           [SupportedLanguage.ITALIAN]:
             'Ciao! Sto chiamando da {business_name} con notizie entusiasmanti sui nostri servizi.',
         },
-        [AgentType.CUSTOMER_SUPPORT]: {
+        [AgentType.INBOUND_CUSTOMER_SUPPORT]: {
           [SupportedLanguage.ENGLISH]:
             "Hello! This is {business_name} customer support. I'm here to help you with any questions or issues.",
           [SupportedLanguage.SPANISH]:
@@ -971,15 +968,15 @@ Remember: You represent {business_name} and should always maintain a professiona
    */
   private createCalendarIntegration(agentType: AgentType): CalendarIntegration {
     const needsCalendar = [
-      AgentType.INBOUND_CALL,
-      AgentType.OUTBOUND_APPOINTMENT,
+      AgentType.INBOUND_RECEPTIONIST,
+      AgentType.OUTBOUND_FOLLOW_UP,
     ].includes(agentType);
 
     return {
       enabled: needsCalendar,
       provider: 'cal.com',
       settings: {
-        auto_schedule: agentType === AgentType.OUTBOUND_APPOINTMENT,
+        auto_schedule: agentType === AgentType.OUTBOUND_FOLLOW_UP,
         buffer_time: 15, // minutes
         max_advance_booking: 90, // days
         confirmation_required: true,
@@ -992,14 +989,14 @@ Remember: You represent {business_name} and should always maintain a professiona
    */
   private createCRMIntegration(agentType: AgentType): CRMIntegration {
     const needsCRM = [
-      AgentType.INBOUND_CALL,
+      AgentType.INBOUND_RECEPTIONIST,
       AgentType.OUTBOUND_MARKETING,
-      AgentType.CUSTOMER_SUPPORT,
+      AgentType.INBOUND_CUSTOMER_SUPPORT,
     ].includes(agentType);
 
     return {
       enabled: needsCRM,
-      provider: 'supabase',
+      provider: 'custom',
       field_mapping: {
         customer_name: 'name',
         phone_number: 'phone',

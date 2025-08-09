@@ -79,8 +79,8 @@ export async function GET(request: NextRequest) {
       {};
 
     agents?.forEach(agent => {
-      const typeCode = agent.agent_types?.type_code;
-      const languageCode = agent.supported_languages?.code;
+      const typeCode = (agent.agent_types as any)?.type_code;
+      const languageCode = (agent.supported_languages as any)?.code;
 
       if (typeCode) {
         if (!agentsByType[typeCode]) {
@@ -207,10 +207,10 @@ export async function GET(request: NextRequest) {
     // TODO: Add proper GROUP BY syntax when Supabase supports it better
 
     // Prepare dashboard data
-    const dashboardData: AgentDashboardData = {
+    const dashboardData = {
       client_id: targetClientId,
       agent_summary: agentSummary,
-      agents_by_type: agentsByType,
+      agents_by_type: agentsByType as any,
       recent_activity:
         recentCalls?.map(call => ({
           call_id: call.call_id,
@@ -220,12 +220,12 @@ export async function GET(request: NextRequest) {
           started_at: call.started_at,
           ended_at: call.ended_at,
           duration: call.duration,
-          agent_name: call.ai_agents?.name,
+          agent_name: (call.ai_agents as any)?.name,
         })) || [],
-      performance_metrics: performanceData || [],
+      performance_metrics: (performanceData || []) as any,
       aggregated_metrics: totalMetrics,
       generated_at: new Date().toISOString(),
-    };
+    } as AgentDashboardData;
 
     return NextResponse.json({
       success: true,

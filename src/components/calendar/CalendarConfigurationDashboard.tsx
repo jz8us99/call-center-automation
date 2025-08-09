@@ -125,6 +125,7 @@ export function CalendarConfigurationDashboard({
     notes: '',
   });
   const [creatingAppointment, setCreatingAppointment] = useState(false);
+  const [syncingStaffAvailability, setSyncingStaffAvailability] = useState(false);
 
   useEffect(() => {
     loadStaffAndStats();
@@ -365,6 +366,42 @@ export function CalendarConfigurationDashboard({
     });
   };
 
+  const handleSyncStaffAvailability = async () => {
+    if (!confirm('This will update all staff availability to match current office hours. Staff members with manual overrides will keep their custom schedules. Continue?')) {
+      return;
+    }
+
+    setSyncingStaffAvailability(true);
+    try {
+      const response = await fetch('/api/sync-staff-availability', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          business_id: businessId,
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        alert(`Successfully synchronized ${result.total_records_updated} availability records for ${result.total_staff} staff members.`);
+        
+        // Reload staff stats to reflect changes
+        await loadStaffAndStats();
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || 'Failed to sync staff availability');
+      }
+    } catch (error) {
+      console.error('Failed to sync staff availability:', error);
+      alert('Failed to sync staff availability. Please try again.');
+    } finally {
+      setSyncingStaffAvailability(false);
+    }
+  };
+
   const getConfigurationStatus = (staffId: string) => {
     const stats = availabilityStats[staffId];
     if (!stats || stats.total_days_configured === 0) {
@@ -462,6 +499,24 @@ export function CalendarConfigurationDashboard({
               >
                 <PlusIcon className="h-4 w-4 mr-2" />
                 Book Appointment
+              </Button>
+              <Button 
+                onClick={handleSyncStaffAvailability}
+                disabled={syncingStaffAvailability}
+                variant="outline"
+                className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+              >
+                {syncingStaffAvailability ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin mr-2"></div>
+                    Syncing...
+                  </>
+                ) : (
+                  <>
+                    <ClockIcon className="h-4 w-4 mr-2" />
+                    Sync Staff Hours
+                  </>
+                )}
               </Button>
               <Button onClick={handleOfficeSetup} variant="outline">
                 <SettingsIcon className="h-4 w-4 mr-2" />

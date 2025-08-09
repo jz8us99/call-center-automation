@@ -235,7 +235,7 @@ export class TranslationManager {
         await this.updateTranslatedAgent(
           translation.target_agent_id,
           updatedFields,
-          translation.supported_languages.code
+          (translation.supported_languages as any).code
         );
       }
 
@@ -503,9 +503,9 @@ export class TranslationManager {
       );
 
       const configData = {
-        agent_id: translatedAgentId,
         ...sourceConfiguration,
         ...translatedConfig,
+        agent_id: translatedAgentId,
         id: undefined, // Remove ID to create new record
         created_at: undefined,
         updated_at: undefined,

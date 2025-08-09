@@ -571,7 +571,7 @@ export default function AdminUserAgentConfig() {
               user={user}
               // Pass additional props to indicate this is admin mode
               isAdminMode={true}
-              targetUser={targetUser}
+              targetUser={targetUser || undefined}
             />
           )}
         </div>

@@ -20,7 +20,7 @@ const translationManager = TranslationManager.getInstance(
 // POST /api/ai-agents/[agentId]/duplicate - Duplicate agent for different language
 export async function POST(
   request: NextRequest,
-  { params }: { params: { agentId: string } }
+  { params }: { params: Promise<{ agentId: string }> }
 ) {
   try {
     const user = await authenticateRequest(request);
@@ -28,7 +28,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const sourceAgentId = params.agentId;
+    const { agentId: sourceAgentId } = await params;
     const duplicateRequest: DuplicateAgentRequest = await request.json();
 
     // Validate required fields
@@ -83,7 +83,7 @@ export async function POST(
 
     // Check if source is already in target language
     if (
-      sourceAgent.supported_languages?.code === duplicateRequest.target_language
+      (sourceAgent.supported_languages as any)?.code === duplicateRequest.target_language
     ) {
       return NextResponse.json(
         { error: 'Source agent is already in the target language' },
@@ -143,13 +143,13 @@ export async function POST(
 
     // Provide more specific error messages
     if (error instanceof Error) {
-      if (error.message.includes('already exists')) {
+      if ((error as Error).message.includes('already exists')) {
         return NextResponse.json(
           { error: 'Translation already exists for this language' },
           { status: 409 }
         );
       }
-      if (error.message.includes('Unsupported target language')) {
+      if ((error as Error).message.includes('Unsupported target language')) {
         return NextResponse.json(
           { error: 'Unsupported target language' },
           { status: 400 }

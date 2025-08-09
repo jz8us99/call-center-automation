@@ -130,7 +130,10 @@ export async function GET(request: NextRequest) {
         ...staff,
         specialties:
           staff.staff_job_assignments?.map(
-            (assignment: any) =>
+            (assignment: {
+              job_titles?: { name: string };
+              job_categories?: { name: string };
+            }) =>
               `${assignment.job_titles?.name} (${assignment.job_categories?.name})`
           ) || [],
         has_calendar_config:

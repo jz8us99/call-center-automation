@@ -6,10 +6,10 @@ import { supabase } from '@/lib/supabase';
 // GET /api/admin/users/[userId] - Fetch specific user
 export async function GET(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const { userId } = params;
+    const { userId } = await params;
 
     // Get the authenticated user
     const {
@@ -80,10 +80,10 @@ export async function GET(
 // PUT /api/admin/users/[userId] - Update specific user
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const { userId } = params;
+    const { userId } = await params;
     const body = await request.json();
     const {
       email,
@@ -165,10 +165,10 @@ export async function PUT(
 // DELETE /api/admin/users/[userId] - Delete specific user
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const { userId } = params;
+    const { userId } = await params;
 
     // Get the authenticated user
     const {

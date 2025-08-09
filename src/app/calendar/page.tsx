@@ -247,7 +247,7 @@ export default function CalendarDashboardPage() {
                     Set up your business-wide calendar preferences:
                   </p>
                   <ul className="text-sm text-blue-700 space-y-1">
-                    <li>• Click "Office Setup" to configure office hours</li>
+                    <li>• Click &quot;Office Setup&quot; to configure office hours</li>
                     <li>• Add business holidays and closure dates</li>
                     <li>• Set default working hours for staff</li>
                   </ul>
@@ -261,7 +261,7 @@ export default function CalendarDashboardPage() {
                     Configure individual staff availability:
                   </p>
                   <ul className="text-sm text-blue-700 space-y-1">
-                    <li>• Click "Configure Calendar" for each staff member</li>
+                    <li>• Click &quot;Configure Calendar&quot; for each staff member</li>
                     <li>• Set individual working hours and availability</li>
                     <li>• Add personal time-off and vacation days</li>
                   </ul>

@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Error fetching holidays:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
 
     return NextResponse.json({ holidays: data || [] });
@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Error creating holiday:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
 
     return NextResponse.json({ holiday: data });
@@ -139,7 +139,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
     };
 
@@ -171,7 +171,7 @@ export async function PUT(request: NextRequest) {
 
     if (error) {
       console.error('Error updating holiday:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
 
     return NextResponse.json({ holiday: data });
@@ -210,7 +210,7 @@ export async function DELETE(request: NextRequest) {
 
     if (error) {
       console.error('Error deleting holiday:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });

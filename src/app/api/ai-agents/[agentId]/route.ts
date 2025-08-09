@@ -21,7 +21,7 @@ const translationManager = TranslationManager.getInstance(
 // GET /api/ai-agents/[agentId] - Get specific agent
 export async function GET(
   request: NextRequest,
-  { params }: { params: { agentId: string } }
+  { params }: { params: Promise<{ agentId: string }> }
 ) {
   try {
     const user = await authenticateRequest(request);
@@ -29,7 +29,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const agentId = params.agentId;
+    const { agentId } = await params;
 
     // Get agent with full configuration
     const { data: agent, error } = await supabase
@@ -122,7 +122,7 @@ export async function GET(
 // PUT /api/ai-agents/[agentId] - Update agent
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { agentId: string } }
+  { params }: { params: Promise<{ agentId: string }> }
 ) {
   try {
     const user = await authenticateRequest(request);
@@ -130,7 +130,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const agentId = params.agentId;
+    const { agentId } = await params;
     const updateRequest: UpdateAgentRequest = await request.json();
 
     // Get existing agent
@@ -269,7 +269,7 @@ export async function PUT(
 // DELETE /api/ai-agents/[agentId] - Delete agent
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { agentId: string } }
+  { params }: { params: Promise<{ agentId: string }> }
 ) {
   try {
     const user = await authenticateRequest(request);
@@ -277,7 +277,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const agentId = params.agentId;
+    const { agentId } = await params;
 
     // Get existing agent
     const { data: existingAgent, error: fetchError } = await supabase

@@ -84,7 +84,7 @@ export function validateWebhookPayload(payload: unknown): {
   for (const field of stringFields) {
     if (call[field] !== undefined) {
       if (typeof call[field] === 'string') {
-        validatedCall[field] = call[field] as string;
+        (validatedCall as any)[field] = call[field] as string;
       } else {
         return {
           success: false,

@@ -20,7 +20,6 @@ import {
 } from '@/components/ui/select';
 import {
   Search,
-  Filter,
   Plus,
   Phone,
   Calendar,
@@ -36,8 +35,6 @@ import {
   Eye,
   Activity,
   Users,
-  Clock,
-  Target,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -91,10 +88,10 @@ export function AgentDashboard({
 
   const getAgentTypeIcon = (agentType: AgentType) => {
     const icons = {
-      [AgentType.INBOUND_CALL]: Phone,
-      [AgentType.OUTBOUND_APPOINTMENT]: Calendar,
+      [AgentType.INBOUND_RECEPTIONIST]: Phone,
+      [AgentType.INBOUND_CUSTOMER_SUPPORT]: Headphones,
+      [AgentType.OUTBOUND_FOLLOW_UP]: Calendar,
       [AgentType.OUTBOUND_MARKETING]: TrendingUp,
-      [AgentType.CUSTOMER_SUPPORT]: Headphones,
     };
     return icons[agentType] || Phone;
   };

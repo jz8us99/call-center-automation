@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('Error creating staff member:', error);
       return NextResponse.json(
-        { error: 'Failed to create staff member', details: error.message },
+        { error: 'Failed to create staff member', details: (error as Error).message },
         { status: 500 }
       );
     }
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error in staff POST:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error', details: (error as Error).message },
       { status: 500 }
     );
   }
@@ -169,7 +169,7 @@ export async function PUT(request: NextRequest) {
     if (error) {
       console.error('Error updating staff member:', error);
       return NextResponse.json(
-        { error: 'Failed to update staff member', details: error.message },
+        { error: 'Failed to update staff member', details: (error as Error).message },
         { status: 500 }
       );
     }
@@ -188,7 +188,7 @@ export async function PUT(request: NextRequest) {
   } catch (error) {
     console.error('Error in staff PUT:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error', details: (error as Error).message },
       { status: 500 }
     );
   }
@@ -223,7 +223,7 @@ export async function DELETE(request: NextRequest) {
     if (error) {
       console.error('Error deleting staff member:', error);
       return NextResponse.json(
-        { error: 'Failed to delete staff member', details: error.message },
+        { error: 'Failed to delete staff member', details: (error as Error).message },
         { status: 500 }
       );
     }
@@ -241,7 +241,7 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     console.error('Error in staff DELETE:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error', details: (error as Error).message },
       { status: 500 }
     );
   }

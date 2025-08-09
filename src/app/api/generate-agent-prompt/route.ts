@@ -98,8 +98,8 @@ function generateAgentPrompt(
 
     // Format services by category
     servicesText = `\n\nServices we offer:\n${Object.entries(servicesByCategory)
-      .map(([category, services]: [string, any[]]) => {
-        const serviceList = services
+      .map(([category, services]) => {
+        const serviceList = (services as any[])
           .map(
             s =>
               `  • ${s.name}${s.duration ? ` (${s.duration} minutes)` : ''}${s.price ? ` - $${s.price}` : ''}${s.description ? `: ${s.description}` : ''}`
@@ -128,8 +128,8 @@ function generateAgentPrompt(
         let staffInfo = `- ${s.first_name} ${s.last_name}, ${s.title}`;
 
         // Add job types if available
-        if (s.job_types && s.job_types.length > 0) {
-          staffInfo += ` (can handle: ${s.job_types.join(', ')})`;
+        if ((s as any).job_types && (s as any).job_types.length > 0) {
+          staffInfo += ` (can handle: ${(s as any).job_types.join(', ')})`;
         }
 
         // Add specialties if different from job types
@@ -171,9 +171,9 @@ function generateAgentPrompt(
 
   // Generate business locations section
   let locationsText = '';
-  if (context.business_locations && context.business_locations.length > 0) {
-    locationsText = `\n\nOur business locations:\n${context.business_locations
-      .map(location => {
+  if ((context as any).business_locations && (context as any).business_locations.length > 0) {
+    locationsText = `\n\nOur business locations:\n${(context as any).business_locations
+      .map((location: any) => {
         const address = [
           location.street_address,
           location.city,
@@ -505,7 +505,7 @@ function transformToBusinessContext(data: any): BusinessContext {
     appointment_types: [], // Could be derived from job types
     upcoming_holidays: [], // Not implemented yet
     business_locations: businessLocations || [],
-  };
+  } as any;
 }
 
 function generateEnhancedAgentPrompt(
@@ -534,7 +534,7 @@ function generateEnhancedAgentPrompt(
       '\n\n**ACCEPTED INSURANCE:**\n' +
       Object.entries(insuranceByType)
         .map(([type, insurances]) => {
-          const insuranceList = insurances
+          const insuranceList = (insurances as any[])
             .map((ins: any) => {
               const provider = ins.insurance_providers;
               const details = [];

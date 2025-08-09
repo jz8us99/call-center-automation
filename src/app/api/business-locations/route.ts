@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('Error creating business location:', error);
       return NextResponse.json(
-        { error: 'Failed to create business location', details: error.message },
+        { error: 'Failed to create business location', details: (error as Error).message },
         { status: 500 }
       );
     }
@@ -211,7 +211,7 @@ export async function PUT(request: NextRequest) {
     if (error) {
       console.error('Error updating business location:', error);
       return NextResponse.json(
-        { error: 'Failed to update business location', details: error.message },
+        { error: 'Failed to update business location', details: (error as Error).message },
         { status: 500 }
       );
     }

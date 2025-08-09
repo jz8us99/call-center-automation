@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('Error creating product category:', error);
       return NextResponse.json(
-        { error: 'Failed to create product category', details: error.message },
+        { error: 'Failed to create product category', details: (error as Error).message },
         { status: 500 }
       );
     }
@@ -129,7 +129,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error in product-categories POST:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error', details: (error as Error).message },
       { status: 500 }
     );
   }
@@ -169,7 +169,7 @@ export async function PUT(request: NextRequest) {
     if (error) {
       console.error('Error updating product category:', error);
       return NextResponse.json(
-        { error: 'Failed to update product category', details: error.message },
+        { error: 'Failed to update product category', details: (error as Error).message },
         { status: 500 }
       );
     }
@@ -181,7 +181,7 @@ export async function PUT(request: NextRequest) {
   } catch (error) {
     console.error('Error in product-categories PUT:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error', details: (error as Error).message },
       { status: 500 }
     );
   }
@@ -222,7 +222,7 @@ export async function DELETE(request: NextRequest) {
     if (error) {
       console.error('Error deleting product category:', error);
       return NextResponse.json(
-        { error: 'Failed to delete product category', details: error.message },
+        { error: 'Failed to delete product category', details: (error as Error).message },
         { status: 500 }
       );
     }
@@ -233,7 +233,7 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     console.error('Error in product-categories DELETE:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error', details: (error as Error).message },
       { status: 500 }
     );
   }

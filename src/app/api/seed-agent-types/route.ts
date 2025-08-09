@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase-utils';
 
 // This endpoint seeds the agent_types table with the new agent types
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     const supabase = createServerSupabaseClient();
 

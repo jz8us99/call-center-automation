@@ -6,10 +6,10 @@ import { supabase } from '@/lib/supabase';
 // POST /api/admin/users/[userId]/upgrade - Upgrade user's pricing tier
 export async function POST(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const { userId } = params;
+    const { userId } = await params;
     const body = await request.json();
     const { newTier } = body;
 

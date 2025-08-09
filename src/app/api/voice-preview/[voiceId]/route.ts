@@ -3,10 +3,10 @@ import { NextRequest, NextResponse } from 'next/server';
 // Mock voice preview functionality - in production this would integrate with Retell AI's TTS
 export async function GET(
   request: NextRequest,
-  { params }: { params: { voiceId: string } }
+  { params }: { params: Promise<{ voiceId: string }> }
 ) {
   try {
-    const { voiceId } = params;
+    const { voiceId } = await params;
     const { searchParams } = new URL(request.url);
     const text =
       searchParams.get('text') ||
@@ -83,10 +83,10 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { voiceId: string } }
+  { params }: { params: Promise<{ voiceId: string }> }
 ) {
   try {
-    const { voiceId } = params;
+    const { voiceId } = await params;
     const body = await request.json();
     const { text, speed, pitch, settings } = body;
 

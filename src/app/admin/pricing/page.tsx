@@ -460,7 +460,7 @@ export default function AdminPricingConfig() {
                   >
                     Cancel
                   </Button>
-                  <Button onClick={handleSaveTier}>
+                  <Button type="submit">
                     {selectedTier ? 'Update Tier' : 'Create Tier'}
                   </Button>
                 </div>

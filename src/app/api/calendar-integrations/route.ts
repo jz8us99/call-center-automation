@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Error fetching calendar integrations:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
 
     return NextResponse.json({ integrations: data || [] });
@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Error creating calendar integration:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
 
     return NextResponse.json({ integration: data });
@@ -149,7 +149,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
     };
 
@@ -174,7 +174,7 @@ export async function PUT(request: NextRequest) {
 
     if (error) {
       console.error('Error updating calendar integration:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
 
     return NextResponse.json({ integration: data });
@@ -213,7 +213,7 @@ export async function DELETE(request: NextRequest) {
 
     if (error) {
       console.error('Error deleting calendar integration:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });

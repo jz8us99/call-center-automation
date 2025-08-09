@@ -478,7 +478,7 @@ export default function HomePage() {
                   ))}
                 </div>
                 <p className="text-black dark:text-gray-300 italic">
-                  "{testimonial.text}"
+                  &quot;{testimonial.text}&quot;
                 </p>
               </div>
             ))}

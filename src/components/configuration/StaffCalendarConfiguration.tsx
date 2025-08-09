@@ -508,7 +508,7 @@ export function StaffCalendarConfiguration({
           customer_first_name: firstName || '',
           customer_last_name: lastName || '',
           customer_phone: appointment.customer_phone || '',
-          customer_email: appointment.customer_email || '',
+          customer_email: (appointment as any).customer_email || '',
           start_time: appointment.start_time,
           end_time: appointment.end_time,
           notes: appointment.notes || '',
@@ -665,7 +665,7 @@ export function StaffCalendarConfiguration({
           selectedJobType?.default_duration_minutes ||
           selectedJobType?.duration ||
           60,
-        title: `${selectedJobType?.job_name || selectedJobType?.name || 'Appointment'} - ${appointmentForm.customer_first_name} ${appointmentForm.customer_last_name}`,
+        title: `${selectedJobType?.job_name || (selectedJobType as any)?.name || 'Appointment'} - ${appointmentForm.customer_first_name} ${appointmentForm.customer_last_name}`,
         notes: appointmentForm.notes || '',
         booking_source: 'manual',
         // Customer info
@@ -688,7 +688,7 @@ export function StaffCalendarConfiguration({
       const url = '/api/appointments';
 
       if (isEditing) {
-        appointmentData.id = selectedAppointment.id;
+        (appointmentData as any).id = selectedAppointment.id;
       }
 
       const response = await fetch(url, {
@@ -1214,10 +1214,10 @@ export function StaffCalendarConfiguration({
                     );
                     return (
                       jobType?.job_name ||
-                      jobType?.job_type ||
-                      jobType?.service_name ||
-                      jobType?.name ||
-                      jobType?.title ||
+                      (jobType as any)?.job_type ||
+                      (jobType as any)?.service_name ||
+                      (jobType as any)?.name ||
+                      (jobType as any)?.title ||
                       'Unknown Job'
                     );
                   })()}
@@ -1492,10 +1492,10 @@ export function StaffCalendarConfiguration({
                     );
                     const jobName =
                       jobType?.job_name ||
-                      jobType?.job_type ||
-                      jobType?.service_name ||
-                      jobType?.name ||
-                      jobType?.title ||
+                      (jobType as any)?.job_type ||
+                      (jobType as any)?.service_name ||
+                      (jobType as any)?.name ||
+                      (jobType as any)?.title ||
                       'Appointment';
 
                     return (
@@ -1974,7 +1974,7 @@ export function StaffCalendarConfiguration({
                     {jobTypes
                       .map(
                         j =>
-                          j.job_name || j.job_type || j.service_name || j.name
+                          j.job_name || (j as any).job_type || (j as any).service_name || (j as any).name
                       )
                       .join(', ')}
                   </div>
@@ -2009,10 +2009,10 @@ export function StaffCalendarConfiguration({
                     jobTypes.map(jobType => {
                       const jobTypeName =
                         jobType.job_name ||
-                        jobType.job_type ||
-                        jobType.service_name ||
-                        jobType.name ||
-                        jobType.title ||
+                        (jobType as any).job_type ||
+                        (jobType as any).service_name ||
+                        (jobType as any).name ||
+                        (jobType as any).title ||
                         'Unnamed Job';
                       const duration =
                         jobType.default_duration_minutes ||
@@ -2318,7 +2318,7 @@ export function StaffCalendarConfiguration({
                 id="available"
                 checked={dayAvailability.is_available}
                 onCheckedChange={checked =>
-                  setDayAvailability(prev => ({
+                  setDayAvailability((prev: any) => ({
                     ...prev,
                     is_available: checked,
                   }))
@@ -2337,7 +2337,7 @@ export function StaffCalendarConfiguration({
                       type="time"
                       value={dayAvailability.start_time || ''}
                       onChange={e =>
-                        setDayAvailability(prev => ({
+                        setDayAvailability((prev: any) => ({
                           ...prev,
                           start_time: e.target.value,
                         }))
@@ -2351,7 +2351,7 @@ export function StaffCalendarConfiguration({
                       type="time"
                       value={dayAvailability.end_time || ''}
                       onChange={e =>
-                        setDayAvailability(prev => ({
+                        setDayAvailability((prev: any) => ({
                           ...prev,
                           end_time: e.target.value,
                         }))
@@ -2366,7 +2366,7 @@ export function StaffCalendarConfiguration({
                     variant="outline"
                     size="sm"
                     onClick={() =>
-                      setDayAvailability(prev => ({
+                      setDayAvailability((prev: any) => ({
                         ...prev,
                         start_time: '09:00',
                         end_time: '17:00',
@@ -2379,7 +2379,7 @@ export function StaffCalendarConfiguration({
                     variant="outline"
                     size="sm"
                     onClick={() =>
-                      setDayAvailability(prev => ({
+                      setDayAvailability((prev: any) => ({
                         ...prev,
                         start_time: '08:00',
                         end_time: '18:00',
@@ -2392,7 +2392,7 @@ export function StaffCalendarConfiguration({
                     variant="outline"
                     size="sm"
                     onClick={() =>
-                      setDayAvailability(prev => ({
+                      setDayAvailability((prev: any) => ({
                         ...prev,
                         start_time: '10:00',
                         end_time: '14:00',
@@ -2412,7 +2412,7 @@ export function StaffCalendarConfiguration({
                 <Select
                   value={dayAvailability.reason || ''}
                   onValueChange={value =>
-                    setDayAvailability(prev => ({ ...prev, reason: value }))
+                    setDayAvailability((prev: any) => ({ ...prev, reason: value }))
                   }
                 >
                   <SelectTrigger>
@@ -2438,7 +2438,7 @@ export function StaffCalendarConfiguration({
                 placeholder="Add any additional notes..."
                 value={dayAvailability.notes || ''}
                 onChange={e =>
-                  setDayAvailability(prev => ({
+                  setDayAvailability((prev: any) => ({
                     ...prev,
                     notes: e.target.value,
                   }))

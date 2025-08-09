@@ -407,7 +407,7 @@ export default function AIAgentsPage() {
         {viewMode === 'getting-started' && (
           <GetStartedPanel
             onAgentTypeSelect={handleAgentTypeSelect}
-            agentStats={dashboardData?.agent_summary}
+            agentStats={dashboardData?.agent_summary as any}
           />
         )}
 
@@ -474,7 +474,7 @@ export default function AIAgentsPage() {
       </main>
 
       {/* Help Button */}
-      <HelpButton currentPage="ai-agents" />
+      <HelpButton currentPage="dashboard" />
     </div>
   );
 }

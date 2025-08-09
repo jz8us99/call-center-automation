@@ -206,7 +206,7 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('Error saving business profile:', error);
       return NextResponse.json(
-        { error: 'Failed to save business profile', details: error.message },
+        { error: 'Failed to save business profile', details: (error as Error).message },
         { status: 500 }
       );
     }
@@ -293,7 +293,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error in business-profile POST:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error', details: (error as Error).message },
       { status: 500 }
     );
   }
@@ -403,24 +403,17 @@ export async function PUT(request: NextRequest) {
       updated_at: new Date().toISOString(),
     };
 
-    const query = supabase
+    const { data: client, error } = await supabase
       .from('business_profiles')
       .update(updateData)
+      .eq(id ? 'id' : 'user_id', id || user_id)
       .select()
       .single();
-
-    if (id) {
-      query.eq('id', id);
-    } else {
-      query.eq('user_id', user_id);
-    }
-
-    const { data: client, error } = await query;
 
     if (error) {
       console.error('Error updating business profile:', error);
       return NextResponse.json(
-        { error: 'Failed to update business profile', details: error.message },
+        { error: 'Failed to update business profile', details: (error as Error).message },
         { status: 500 }
       );
     }
@@ -446,7 +439,7 @@ export async function PUT(request: NextRequest) {
   } catch (error) {
     console.error('Error in business-profile PUT:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error', details: (error as Error).message },
       { status: 500 }
     );
   }

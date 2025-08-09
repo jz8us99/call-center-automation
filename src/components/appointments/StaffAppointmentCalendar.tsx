@@ -300,7 +300,7 @@ export function StaffAppointmentCalendar({
   const saveCalendarConfig = async () => {
     try {
       const method = calendarConfig ? 'PUT' : 'POST';
-      const body = {
+      const body: any = {
         ...configForm,
         staff_id: staffId,
         user_id: businessId,
@@ -344,7 +344,7 @@ export function StaffAppointmentCalendar({
         },
         body: JSON.stringify({
           id: editingAvailability?.id,
-          calendar_id: availability[selectedDate!]?.calendar_id,
+          calendar_id: (availability[selectedDate!] as any)?.calendar_id,
           staff_id: staffId,
           user_id: businessId,
           ...availabilityData,

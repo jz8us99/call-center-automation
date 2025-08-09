@@ -232,6 +232,23 @@ export function AIAgentsStep({
       agent_personality: 'professional',
       greeting_message: '',
       custom_instructions: '',
+      basic_info_prompt: '',
+      call_scripts_prompt: '',
+      voice_settings: {
+        speed: 1.0,
+        pitch: 1.0,
+        tone: 'professional',
+        voice_id: 'sarah-professional',
+        accent: 'american',
+        gender: 'female',
+      },
+      call_routing: {
+        default_action: 'transfer',
+        escalation_number: '',
+        business_hours_action: 'transfer',
+        after_hours_action: 'voicemail',
+        rules: [] as any[],
+      },
     });
     setActiveSection('basic');
     setShowCreateForm(true);
@@ -247,7 +264,7 @@ export function AIAgentsStep({
       custom_instructions: agent.custom_instructions || '',
       basic_info_prompt: agent.basic_info_prompt || '',
       call_scripts_prompt: agent.call_scripts_prompt || '',
-      voice_settings: agent.voice_settings || {
+      voice_settings: (agent.voice_settings as any) || {
         speed: 1.0,
         pitch: 1.0,
         tone: 'professional',
@@ -255,7 +272,7 @@ export function AIAgentsStep({
         accent: 'american',
         gender: 'female',
       },
-      call_routing: agent.call_routing || {
+      call_routing: (agent.call_routing as any) || {
         default_action: 'transfer',
         escalation_number: '',
         business_hours_action: 'transfer',
@@ -454,7 +471,7 @@ export function AIAgentsStep({
         saveData = {
           ...saveData,
           call_scripts_prompt: formData.call_scripts_prompt,
-          call_scripts: formData.call_scripts || {},
+          call_scripts: (formData as any).call_scripts || {},
         };
       }
 
@@ -511,7 +528,7 @@ export function AIAgentsStep({
     } catch (error) {
       console.error(`Error saving ${section} configuration:`, error);
       setSaveStatus(prev => ({ ...prev, [section]: 'error' }));
-      alert(`Error saving ${section} configuration: ${error.message}`);
+      alert(`Error saving ${section} configuration: ${(error as Error).message}`);
     } finally {
       setSavingTab(null);
     }
@@ -803,9 +820,9 @@ export function AIAgentsStep({
                       <SelectTrigger>
                         <SelectValue placeholder="Select agent type">
                           {formData.agent_type &&
-                            AGENT_TYPES[formData.agent_type] &&
+                            (AGENT_TYPES as any)[formData.agent_type] &&
                             (() => {
-                              const config = AGENT_TYPES[formData.agent_type];
+                              const config = (AGENT_TYPES as any)[formData.agent_type];
                               return (
                                 <div className="flex items-center gap-2">
                                   <config.icon className="h-4 w-4" />
@@ -1036,7 +1053,7 @@ export function AIAgentsStep({
               <div className="space-y-4">
                 <AgentTypeCallScripts
                   agentType={formData.agent_type as any}
-                  initialScripts={formData.call_scripts}
+                  initialScripts={(formData as any).call_scripts}
                   initialPrompt={formData.call_scripts_prompt}
                   onSave={async (scripts: any) => {
                     // Handle different script formats
@@ -1121,7 +1138,7 @@ export function AIAgentsStep({
               <div className="space-y-4">
                 <AgentTypeVoiceSettings
                   agentType={formData.agent_type as any}
-                  initialVoiceSettings={formData.voice_settings}
+                  initialVoiceSettings={formData.voice_settings as any}
                   businessInfo={{ ...businessInfo, user_id: user.id }}
                   onSave={async (voiceProfile: any) => {
                     setFormData(prev => ({
@@ -1185,8 +1202,8 @@ export function AIAgentsStep({
               <div className="space-y-4">
                 <AgentTypeCallRouting
                   agentType={formData.agent_type as any}
-                  clientId={user.id}
-                  onRoutingUpdate={(routing: any) => {
+                  businessInfo={{ ...businessInfo, user_id: user.id }}
+                  onSave={async (routing: any) => {
                     setFormData(prev => ({
                       ...prev,
                       call_routing: routing,

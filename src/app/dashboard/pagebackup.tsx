@@ -36,7 +36,7 @@ export default function UserDashboard() {
     totalPages: 0,
   });
   const [users, setUsers] = useState<UserProfile[]>([]);
-  const [usersLoading, setUsersLoading] = useState(false);
+  const [, setUsersLoading] = useState(false);
 
   const router = useRouter();
   const { profile, loading: profileLoading } = useUserProfile(user);

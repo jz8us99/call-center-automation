@@ -138,7 +138,7 @@ export function HelpDialog({ currentPage = 'home' }: HelpDialogProps) {
     },
   };
 
-  const currentGuide = navigationGuides[currentPage] || navigationGuides.home;
+  const currentGuide = (navigationGuides as any)[currentPage] || navigationGuides.home;
 
   const allPages = [
     {
@@ -218,13 +218,13 @@ export function HelpDialog({ currentPage = 'home' }: HelpDialogProps) {
                 <CardDescription>{currentGuide.description}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {currentGuide.sections.map((section, index) => (
+                {currentGuide.sections.map((section: any, index: number) => (
                   <div key={index}>
                     <h4 className="font-semibold text-gray-900 mb-2">
                       {section.title}
                     </h4>
                     <ul className="space-y-1">
-                      {section.content.map((item, itemIndex) => (
+                      {section.content.map((item: any, itemIndex: number) => (
                         <li key={itemIndex} className="text-sm text-gray-600">
                           {item}
                         </li>

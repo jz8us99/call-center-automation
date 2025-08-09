@@ -258,7 +258,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: 'Failed to save configuration',
-          details: error.message || 'Unknown database error',
+          details: (error as Error).message || 'Unknown database error',
         },
         { status: 500 }
       );

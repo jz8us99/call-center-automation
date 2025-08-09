@@ -181,7 +181,7 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('Error creating product:', error);
       return NextResponse.json(
-        { error: 'Failed to create product', details: error.message },
+        { error: 'Failed to create product', details: (error as Error).message },
         { status: 500 }
       );
     }
@@ -193,7 +193,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error in business-products POST:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error', details: (error as Error).message },
       { status: 500 }
     );
   }
@@ -272,7 +272,7 @@ export async function PUT(request: NextRequest) {
     if (error) {
       console.error('Error updating product:', error);
       return NextResponse.json(
-        { error: 'Failed to update product', details: error.message },
+        { error: 'Failed to update product', details: (error as Error).message },
         { status: 500 }
       );
     }
@@ -284,7 +284,7 @@ export async function PUT(request: NextRequest) {
   } catch (error) {
     console.error('Error in business-products PUT:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error', details: (error as Error).message },
       { status: 500 }
     );
   }
@@ -308,7 +308,7 @@ export async function DELETE(request: NextRequest) {
     if (error) {
       console.error('Error deleting product:', error);
       return NextResponse.json(
-        { error: 'Failed to delete product', details: error.message },
+        { error: 'Failed to delete product', details: (error as Error).message },
         { status: 500 }
       );
     }
@@ -319,7 +319,7 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     console.error('Error in business-products DELETE:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error', details: (error as Error).message },
       { status: 500 }
     );
   }

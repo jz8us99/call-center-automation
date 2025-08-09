@@ -55,8 +55,8 @@ function generateBasicInfoPrompt(
     );
 
     servicesText = `\n\nSERVICES WE OFFER:\n${Object.entries(servicesByCategory)
-      .map(([category, services]: [string, any[]]) => {
-        const serviceList = services
+      .map(([category, services]) => {
+        const serviceList = (services as any[])
           .map(
             s =>
               `  • ${s.name}${s.duration ? ` (${s.duration} minutes)` : ''}${s.price ? ` - $${s.price}` : ''}${s.description ? `: ${s.description}` : ''}`
@@ -195,8 +195,8 @@ function generateCustomerSupportContent(context: any): string {
     content += `**COMPLETE SERVICE CATALOG:**\n${Object.entries(
       servicesByCategory
     )
-      .map(([category, services]: [string, any[]]) => {
-        const serviceList = services
+      .map(([category, services]) => {
+        const serviceList = (services as any[])
           .map(
             s =>
               `  • ${s.name}${s.duration ? ` (${s.duration} min)` : ''}${s.price ? ` - $${s.price}` : ''}${s.description ? `: ${s.description}` : ''}`
@@ -304,8 +304,8 @@ function generateMarketingContent(context: any): string {
     content += `\n**COMPLETE SERVICE OFFERINGS WITH PRICING:**\n${Object.entries(
       servicesByCategory
     )
-      .map(([category, services]: [string, any[]]) => {
-        const serviceList = services
+      .map(([category, services]) => {
+        const serviceList = (services as any[])
           .map(
             s =>
               `  • ${s.name}${s.duration ? ` (${s.duration} min)` : ''}${s.price ? ` - Starting at $${s.price}` : ''}${s.description ? `: ${s.description}` : ''}`
@@ -374,8 +374,8 @@ function generateGeneralContent(context: any): string {
     );
 
     content += `**SERVICES WE OFFER:**\n${Object.entries(servicesByCategory)
-      .map(([category, services]: [string, any[]]) => {
-        const serviceList = services
+      .map(([category, services]) => {
+        const serviceList = (services as any[])
           .map(
             s =>
               `  • ${s.name}${s.duration ? ` (${s.duration} minutes)` : ''}${s.price ? ` - $${s.price}` : ''}${s.description ? `: ${s.description}` : ''}`

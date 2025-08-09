@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { CheckIcon } from '@/components/icons';
 import { SimpleThemeSwitch } from '@/components/SimpleThemeSwitch';
 import { HomeButton } from '@/components/HomeButton';

@@ -386,7 +386,7 @@ export function BusinessInformationStep({
         console.log(`File "${file.name}" uploaded successfully!`);
       } catch (error) {
         console.error('File upload failed:', error);
-        alert(`Failed to upload file: ${error.message || 'Please try again.'}`);
+        alert(`Failed to upload file: ${(error as Error).message || 'Please try again.'}`);
       } finally {
         setUploadingFiles(prev => {
           const newSet = new Set(prev);
@@ -508,7 +508,7 @@ export function BusinessInformationStep({
         console.log(`File "${file.name}" uploaded successfully to section!`);
       } catch (error) {
         console.error('File upload failed:', error);
-        alert(`Failed to upload file: ${error.message || 'Please try again.'}`);
+        alert(`Failed to upload file: ${(error as Error).message || 'Please try again.'}`);
       } finally {
         setUploadingFiles(prev => {
           const newSet = new Set(prev);

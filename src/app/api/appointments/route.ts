@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Error fetching appointments:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
 
     return NextResponse.json({ appointments: data || [] });
@@ -186,7 +186,7 @@ export async function POST(request: NextRequest) {
 
     // Add service_id if provided (maps to appointment_type_id from frontend)
     if (appointment_type_id) {
-      appointmentInsertData.service_id = appointment_type_id;
+      (appointmentInsertData as any).service_id = appointment_type_id;
     }
 
     console.log(
@@ -202,7 +202,7 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Error creating appointment:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
 
     // Optional: Create appointment history record (skip if function doesn't exist)
@@ -210,7 +210,7 @@ export async function POST(request: NextRequest) {
       await supabase.rpc('create_appointment_history', {
         p_appointment_id: data.id,
         p_action: 'created',
-        p_changed_by: booked_by || user_id,
+        p_changed_by: user_id,
         p_change_reason: `Appointment created via ${booking_source}`,
       });
     } catch (historyError) {
@@ -220,7 +220,7 @@ export async function POST(request: NextRequest) {
     // Optional: Update customer appointment statistics (skip if function doesn't exist)
     try {
       await supabase.rpc('update_customer_appointment_stats', {
-        p_customer_id: customer_id,
+        p_customer_id: data.customer_id || null,
       });
     } catch (statsError) {
       console.log('Stats function not available:', statsError);
@@ -368,7 +368,7 @@ export async function PUT(request: NextRequest) {
 
     if (error) {
       console.error('Error updating appointment:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
 
     // Optional: Create appointment history record (skip if function doesn't exist)
@@ -435,7 +435,7 @@ export async function DELETE(request: NextRequest) {
 
       if (error) {
         console.error('Error deleting appointment:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: (error as Error).message }, { status: 500 });
       }
 
       return NextResponse.json({
@@ -460,7 +460,7 @@ export async function DELETE(request: NextRequest) {
 
       if (error) {
         console.error('Error cancelling appointment:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: (error as Error).message }, { status: 500 });
       }
 
       // Optional: Create appointment history record (skip if function doesn't exist)

@@ -196,10 +196,10 @@ export default function AppointmentsPage() {
               >
                 <div className="flex items-center gap-2">
                   <UserIcon className="h-5 w-5 text-orange-600" />
-                  <span className="font-semibold">Today's Appointments</span>
+                  <span className="font-semibold">Today&apos;s Appointments</span>
                 </div>
                 <p className="text-sm text-gray-600 text-left">
-                  View and manage today's appointments
+                  View and manage today&apos;s appointments
                 </p>
               </Button>
 

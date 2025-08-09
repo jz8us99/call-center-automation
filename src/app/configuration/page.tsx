@@ -13,17 +13,10 @@ import { BusinessServices } from '@/components/configuration/BusinessServices';
 import { StaffManagement } from '@/components/configuration/StaffManagement';
 import { AppointmentSystem } from '@/components/configuration/AppointmentSystem';
 import { AIAgentsStep } from '@/components/configuration/AIAgentsStep';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { HelpButton } from '@/components/HelpDialog';
 import {
-  PlusIcon,
   SettingsIcon,
   UsersIcon,
   CalendarIcon,
@@ -32,7 +25,6 @@ import {
   BuildingIcon,
   ClockIcon,
 } from '@/components/icons';
-import { SimpleThemeSwitch } from '@/components/SimpleThemeSwitch';
 
 interface StepStatus {
   completed: boolean;
@@ -67,7 +59,7 @@ export default function ConfigurationPage() {
   });
 
   const router = useRouter();
-  const { profile, loading: profileLoading } = useUserProfile(user);
+  const { loading: profileLoading } = useUserProfile(user);
 
   useEffect(() => {
     setMounted(true);
@@ -90,7 +82,7 @@ export default function ConfigurationPage() {
           'agent',
         ].includes(savedActiveStep)
       ) {
-        const stepKey = savedActiveStep as keyof WorkflowState;
+        const stepKey = savedActiveStep as 'business' | 'products' | 'services' | 'staff' | 'appointments' | 'agent';
         const stepMapping = {
           business: 'businessInfo',
           products: 'products',
@@ -439,7 +431,7 @@ export default function ConfigurationPage() {
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="container mx-auto px-4">
           <nav className="flex space-x-0">
-            {steps.map((step, index) => (
+            {steps.map((step) => (
               <button
                 key={step.id}
                 onClick={() => step.status.canAccess && setActiveStep(step.id)}

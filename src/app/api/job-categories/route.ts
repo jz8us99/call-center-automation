@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
       }
       console.error('Error creating job category:', error);
       return NextResponse.json(
-        { error: 'Failed to create job category', details: error.message },
+        { error: 'Failed to create job category', details: (error as Error).message },
         { status: 500 }
       );
     }
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error in job-categories POST:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error', details: (error as Error).message },
       { status: 500 }
     );
   }
@@ -130,7 +130,7 @@ export async function PUT(request: NextRequest) {
     if (error) {
       console.error('Error updating job category:', error);
       return NextResponse.json(
-        { error: 'Failed to update job category', details: error.message },
+        { error: 'Failed to update job category', details: (error as Error).message },
         { status: 500 }
       );
     }
@@ -149,7 +149,7 @@ export async function PUT(request: NextRequest) {
   } catch (error) {
     console.error('Error in job-categories PUT:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error', details: (error as Error).message },
       { status: 500 }
     );
   }
@@ -204,7 +204,7 @@ export async function DELETE(request: NextRequest) {
     if (error) {
       console.error('Error deleting job category:', error);
       return NextResponse.json(
-        { error: 'Failed to delete job category', details: error.message },
+        { error: 'Failed to delete job category', details: (error as Error).message },
         { status: 500 }
       );
     }
@@ -222,7 +222,7 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     console.error('Error in job-categories DELETE:', error);
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error', details: (error as Error).message },
       { status: 500 }
     );
   }

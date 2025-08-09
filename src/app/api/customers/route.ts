@@ -43,14 +43,14 @@ export async function GET(request: NextRequest) {
       query = query.eq('is_active', is_active === 'true');
     }
 
-    const { data, error, count } = await query
+    const { data, error, count } = await (query as any)
+      .select('*', { count: 'exact' })
       .order('created_at', { ascending: false })
-      .range(parseInt(offset), parseInt(offset) + parseInt(limit) - 1)
-      .select('*', { count: 'exact' });
+      .range(parseInt(offset), parseInt(offset) + parseInt(limit) - 1);
 
     if (error) {
       console.error('Error fetching customers:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
 
     return NextResponse.json({
@@ -181,7 +181,7 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Error creating customer:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
 
     return NextResponse.json({ customer: data });
@@ -296,7 +296,7 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       updated_at: new Date().toISOString(),
     };
 
@@ -343,7 +343,7 @@ export async function PUT(request: NextRequest) {
 
     if (error) {
       console.error('Error updating customer:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
 
     return NextResponse.json({ customer: data });
@@ -403,7 +403,7 @@ export async function DELETE(request: NextRequest) {
 
       if (error) {
         console.error('Error deleting customer:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: (error as Error).message }, { status: 500 });
       }
 
       return NextResponse.json({
@@ -425,7 +425,7 @@ export async function DELETE(request: NextRequest) {
 
       if (error) {
         console.error('Error deactivating customer:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: (error as Error).message }, { status: 500 });
       }
 
       return NextResponse.json({

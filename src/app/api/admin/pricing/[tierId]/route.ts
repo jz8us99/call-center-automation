@@ -6,10 +6,10 @@ import { supabase } from '@/lib/supabase';
 // PUT /api/admin/pricing/[tierId] - Update specific pricing tier
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { tierId: string } }
+  { params }: { params: Promise<{ tierId: string }> }
 ) {
   try {
-    const { tierId } = params;
+    const { tierId } = await params;
     const body = await request.json();
 
     // Get the authenticated user
@@ -61,10 +61,10 @@ export async function PUT(
 // DELETE /api/admin/pricing/[tierId] - Delete specific pricing tier
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { tierId: string } }
+  { params }: { params: Promise<{ tierId: string }> }
 ) {
   try {
-    const { tierId } = params;
+    const { tierId } = await params;
 
     // Get the authenticated user
     const {

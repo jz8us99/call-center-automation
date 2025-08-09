@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Error fetching appointment bookings:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
 
     return NextResponse.json({ appointments: data || [] });
@@ -186,7 +186,7 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Error creating appointment booking:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
 
     return NextResponse.json({ appointment: data });
@@ -289,7 +289,7 @@ export async function PUT(request: NextRequest) {
 
     if (error) {
       console.error('Error updating appointment booking:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
 
     return NextResponse.json({ appointment: data });
@@ -328,7 +328,7 @@ export async function DELETE(request: NextRequest) {
 
     if (error) {
       console.error('Error deleting appointment booking:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
 
     return NextResponse.json({ success: true });

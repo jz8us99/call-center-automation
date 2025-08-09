@@ -224,15 +224,14 @@ export function BusinessInformationHeader({
   if (isEditing) {
     return (
       <BusinessInformationForm
-        user={user}
-        onBusinessProfileUpdate={profile => {
+        agent={businessProfile as any}
+        onSave={async (profile: any) => {
           setBusinessProfile(profile);
           setIsEditing(false);
           if (onBusinessProfileUpdate) {
             onBusinessProfileUpdate(profile);
           }
         }}
-        initialData={businessProfile}
       />
     );
   }
@@ -364,7 +363,7 @@ export function BusinessInformationHeader({
                       Support Content
                     </p>
                     <p className="text-sm font-medium text-green-600">
-                      {businessProfile.support_content
+                      {(businessProfile as any).support_content
                         ? '✓ Added'
                         : '○ Pending'}
                     </p>
@@ -374,8 +373,8 @@ export function BusinessInformationHeader({
                       Payment Methods
                     </p>
                     <p className="text-sm font-medium text-green-600">
-                      {(businessProfile.payment_methods?.length || 0) > 0
-                        ? `✓ ${businessProfile.payment_methods?.length} methods`
+                      {((businessProfile as any).payment_methods?.length || 0) > 0
+                        ? `✓ ${(businessProfile as any).payment_methods?.length} methods`
                         : '○ Pending'}
                     </p>
                   </div>
@@ -384,8 +383,8 @@ export function BusinessInformationHeader({
                       FAQs
                     </p>
                     <p className="text-sm font-medium text-green-600">
-                      {(businessProfile.common_questions?.length || 0) > 0
-                        ? `✓ ${businessProfile.common_questions?.length} items`
+                      {((businessProfile as any).common_questions?.length || 0) > 0
+                        ? `✓ ${(businessProfile as any).common_questions?.length} items`
                         : '○ Pending'}
                     </p>
                   </div>
@@ -394,8 +393,8 @@ export function BusinessInformationHeader({
                       Documents
                     </p>
                     <p className="text-sm font-medium text-green-600">
-                      {(businessProfile.business_documents?.length || 0) > 0
-                        ? `✓ ${businessProfile.business_documents?.length} files`
+                      {((businessProfile as any).business_documents?.length || 0) > 0
+                        ? `✓ ${(businessProfile as any).business_documents?.length} files`
                         : '○ Pending'}
                     </p>
                   </div>

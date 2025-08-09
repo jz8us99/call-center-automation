@@ -180,12 +180,12 @@ export function AgentTypeVoiceSettings({
       agent_type: agentType,
       profile_name: `${agentConfig?.name || 'Agent'} Voice Profile`,
       voice_settings: {
-        speed: defaultSettings.speed || 1.0,
-        pitch: defaultSettings.pitch || 1.0,
-        tone: defaultSettings.tone || 'professional',
-        voice_id: defaultSettings.voice_id || 'sarah-professional',
-        accent: defaultSettings.accent || 'american',
-        gender: defaultSettings.gender || 'female',
+        speed: (defaultSettings as any).speed || 1.0,
+        pitch: (defaultSettings as any).pitch || 1.0,
+        tone: (defaultSettings as any).tone || 'professional',
+        voice_id: (defaultSettings as any).voice_id || 'sarah-professional',
+        accent: (defaultSettings as any).accent || 'american',
+        gender: (defaultSettings as any).gender || 'female',
       },
       is_default: true,
       created_at: new Date().toISOString(),
@@ -408,7 +408,7 @@ export function AgentTypeVoiceSettings({
       console.error('Error in voice preview:', error);
       setIsPlaying(false);
       alert(
-        `⚠️ Voice Preview Error\n\nVoice: ${voiceId}\nError: ${error.message || 'Unknown error'}\n\nTry refreshing the page or using a different browser.`
+        `⚠️ Voice Preview Error\n\nVoice: ${voiceId}\nError: ${(error as Error).message || 'Unknown error'}\n\nTry refreshing the page or using a different browser.`
       );
     }
   };
@@ -817,9 +817,8 @@ export function AgentTypeVoiceSettings({
                 </label>
                 <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-700">
                   Hello! Thank you for calling{' '}
-                  {businessInfo?.business_name || '[Your Business]'}. I&apos;m your
-                  AI assistant, and I&apos;m here to help you today. How can I assist
-                  you?
+                  {businessInfo?.business_name || '[Your Business]'}. I&apos;m your AI
+                  assistant, and I&apos;m here to help you today. How can I assist you?
                 </div>
               </div>
 

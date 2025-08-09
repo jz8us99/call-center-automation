@@ -12,13 +12,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { AgentType, AGENT_TYPE_CONFIGS } from '@/types/ai-agent-types';
 import { CheckIcon, EditIcon, PlusIcon } from '@/components/icons';
 import { Wand2, RefreshCw } from 'lucide-react';
@@ -34,7 +27,10 @@ interface BusinessInfo {
 }
 
 // Helper function to generate enhanced call scripts with customer data collection
-function generateEnhancedCallScript(agentType: string, businessInfo: BusinessInfo | null) {
+function generateEnhancedCallScript(
+  agentType: string,
+  businessInfo: BusinessInfo | null
+) {
   const businessName = businessInfo?.business_name || '[Business Name]';
   const businessType = businessInfo?.business_type || 'business';
   const isHealthcare =
@@ -46,14 +42,14 @@ function generateEnhancedCallScript(agentType: string, businessInfo: BusinessInf
   const staff = businessInfo?.staff || [];
   const officeHours = businessInfo?.office_hours || [];
   const phone = businessInfo?.business_phone || '';
-  const website = businessInfo?.business_website || '';
+  // const website = businessInfo?.business_website || '';
 
   // Generate services list for script
   const servicesText =
     services.length > 0
       ? services
           .slice(0, 5)
-          .map((s) => s.name)
+          .map(s => s.name)
           .join(', ')
       : 'our services';
 
@@ -62,7 +58,7 @@ function generateEnhancedCallScript(agentType: string, businessInfo: BusinessInf
     staff.length > 0
       ? staff
           .slice(0, 5)
-          .map((s) => `${s.first_name} ${s.last_name}`)
+          .map(s => `${s.first_name} ${s.last_name}`)
           .join(', ')
       : 'our team members';
 
@@ -71,7 +67,7 @@ function generateEnhancedCallScript(agentType: string, businessInfo: BusinessInf
     officeHours.length > 0
       ? officeHours
           .slice(0, 3)
-          .map((h) => `${h.day_name} ${h.formatted_hours || 'varies'}`)
+          .map(h => `${h.day_name} ${h.formatted_hours || 'varies'}`)
           .join(', ')
       : 'standard business hours';
 
@@ -312,11 +308,11 @@ export function AgentTypeCallScripts({
           id: 'existing-script',
           agent_type: agentType,
           script_name: `${agentType} Script`,
-          greeting_script: initialScripts.greeting_script || '',
-          main_script: initialScripts.main_script || initialPrompt || '',
-          closing_script: initialScripts.closing_script || '',
-          escalation_script: initialScripts.escalation_script || '',
-          fallback_responses: initialScripts.fallback_responses || [],
+          greeting_script: (typeof initialScripts.greeting_script === 'string' ? initialScripts.greeting_script : '') || '',
+          main_script: (typeof initialScripts.main_script === 'string' ? initialScripts.main_script : initialPrompt) || '',
+          closing_script: (typeof initialScripts.closing_script === 'string' ? initialScripts.closing_script : '') || '',
+          escalation_script: (typeof initialScripts.escalation_script === 'string' ? initialScripts.escalation_script : '') || '',
+          fallback_responses: (Array.isArray(initialScripts.fallback_responses) ? initialScripts.fallback_responses : []),
           is_default: true,
           language: 'en',
           created_at: new Date().toISOString(),

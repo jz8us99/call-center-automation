@@ -143,21 +143,28 @@ export async function GET(request: NextRequest) {
 
           // Filter available slots and format response
           const availableSlots = timeSlots
-            .filter((slot: any) => slot.is_available)
-            .map((slot: any) => ({
-              date: checkDate,
-              start_time: slot.slot_time,
-              end_time: slot.slot_end_time,
-              duration_minutes: serviceDuration,
-              staff_id: staffMemberId,
-              staff_name: staffDetails
-                ? `${staffDetails.first_name} ${staffDetails.last_name}`
-                : 'Unknown',
-              staff_title: staffDetails?.title || '',
-              appointment_type_id: appointment_type_id || null,
-              price: appointmentType?.price || null,
-              booking_available: true,
-            }));
+            .filter((slot: { is_available: boolean }) => slot.is_available)
+            .map((slot: { slot_time: string }) => {
+              // Calculate end time from start time and duration
+              const startTime = new Date(`2000-01-01 ${slot.slot_time}`);
+              const endTime = new Date(startTime.getTime() + serviceDuration * 60000);
+              const endTimeString = endTime.toTimeString().slice(0, 8);
+              
+              return {
+                date: checkDate,
+                start_time: slot.slot_time,
+                end_time: endTimeString,
+                duration_minutes: serviceDuration,
+                staff_id: staffMemberId,
+                staff_name: staffDetails
+                  ? `${staffDetails.first_name} ${staffDetails.last_name}`
+                  : 'Unknown',
+                staff_title: staffDetails?.title || '',
+                appointment_type_id: appointment_type_id || null,
+                price: appointmentType?.price || null,
+                booking_available: true,
+              };
+            });
 
           allAvailableSlots.push(...availableSlots);
         }
@@ -209,13 +216,16 @@ export async function GET(request: NextRequest) {
     });
 
     // Group by date for easier frontend consumption
-    const slotsByDate = filteredSlots.reduce((acc: any, slot) => {
-      if (!acc[slot.date]) {
-        acc[slot.date] = [];
-      }
-      acc[slot.date].push(slot);
-      return acc;
-    }, {});
+    const slotsByDate = filteredSlots.reduce(
+      (acc: Record<string, unknown[]>, slot) => {
+        if (!acc[slot.date]) {
+          acc[slot.date] = [];
+        }
+        acc[slot.date].push(slot);
+        return acc;
+      },
+      {}
+    );
 
     return NextResponse.json({
       available_slots: filteredSlots,
@@ -275,7 +285,7 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Error checking slot availability:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
     }
 
     let unavailabilityReason = null;

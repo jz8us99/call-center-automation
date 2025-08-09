@@ -42,7 +42,7 @@ export function GetStartedPanel({
 
   const agentTypes = [
     {
-      type: AgentType.INBOUND_CALL,
+      type: AgentType.INBOUND_RECEPTIONIST,
       icon: Phone,
       color: 'bg-blue-500',
       lightColor: 'bg-blue-50',
@@ -57,7 +57,7 @@ export function GetStartedPanel({
       ],
     },
     {
-      type: AgentType.OUTBOUND_APPOINTMENT,
+      type: AgentType.OUTBOUND_FOLLOW_UP,
       icon: Calendar,
       color: 'bg-green-500',
       lightColor: 'bg-green-50',
@@ -87,7 +87,7 @@ export function GetStartedPanel({
       ],
     },
     {
-      type: AgentType.CUSTOMER_SUPPORT,
+      type: AgentType.INBOUND_CUSTOMER_SUPPORT,
       icon: Headphones,
       color: 'bg-orange-500',
       lightColor: 'bg-orange-50',

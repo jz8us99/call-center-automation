@@ -125,7 +125,7 @@ export function HolidaysManagement({
       }
 
       const method = editingHoliday ? 'PUT' : 'POST';
-      const body = {
+      const body: any = {
         user_id: user.id,
         business_id: businessId,
         ...formData,
@@ -189,8 +189,8 @@ export function HolidaysManagement({
     }
   };
 
-  // Comprehensive list of US bank holidays and observances
-  const getBankHolidays = (year: number) => [
+  // Comprehensive list of US national holidays and observances
+  const getNationalHolidays = (year: number) => [
     {
       date: `${year}-01-01`,
       name: "New Year's Day",
@@ -277,38 +277,38 @@ export function HolidaysManagement({
     },
   ];
 
-  const [showBankHolidaysDialog, setShowBankHolidaysDialog] = useState(false);
-  const [selectedBankHolidays, setSelectedBankHolidays] = useState<string[]>(
+  const [showNationalHolidaysDialog, setShowNationalHolidaysDialog] = useState(false);
+  const [selectedNationalHolidays, setSelectedNationalHolidays] = useState<string[]>(
     []
   );
-  const [savingBankHolidays, setSavingBankHolidays] = useState(false);
+  const [savingNationalHolidays, setSavingNationalHolidays] = useState(false);
 
-  const openBankHolidaysDialog = () => {
-    setSelectedBankHolidays([]);
-    setShowBankHolidaysDialog(true);
+  const openNationalHolidaysDialog = () => {
+    setSelectedNationalHolidays([]);
+    setShowNationalHolidaysDialog(true);
   };
 
-  const toggleBankHoliday = (holidayDate: string) => {
-    setSelectedBankHolidays(prev =>
+  const toggleNationalHoliday = (holidayDate: string) => {
+    setSelectedNationalHolidays(prev =>
       prev.includes(holidayDate)
         ? prev.filter(date => date !== holidayDate)
         : [...prev, holidayDate]
     );
   };
 
-  const saveBankHolidays = async () => {
-    if (selectedBankHolidays.length === 0) {
+  const saveNationalHolidays = async () => {
+    if (selectedNationalHolidays.length === 0) {
       alert('Please select at least one holiday to add.');
       return;
     }
 
-    setSavingBankHolidays(true);
+    setSavingNationalHolidays(true);
     try {
-      const bankHolidays = getBankHolidays(selectedYear);
+      const nationalHolidays = getNationalHolidays(selectedYear);
       let addedCount = 0;
 
-      for (const holidayDate of selectedBankHolidays) {
-        const holiday = bankHolidays.find(h => h.date === holidayDate);
+      for (const holidayDate of selectedNationalHolidays) {
+        const holiday = nationalHolidays.find(h => h.date === holidayDate);
         if (!holiday) continue;
 
         // Check if holiday already exists
@@ -336,15 +336,15 @@ export function HolidaysManagement({
       }
 
       await loadHolidays();
-      setShowBankHolidaysDialog(false);
+      setShowNationalHolidaysDialog(false);
       alert(
         `Successfully added ${addedCount} holiday${addedCount !== 1 ? 's' : ''}!`
       );
     } catch (error) {
-      console.error('Failed to add bank holidays:', error);
-      alert('Failed to add bank holidays. Please try again.');
+      console.error('Failed to add national holidays:', error);
+      alert('Failed to add national holidays. Please try again.');
     } finally {
-      setSavingBankHolidays(false);
+      setSavingNationalHolidays(false);
     }
   };
 
@@ -458,8 +458,8 @@ export function HolidaysManagement({
                 min="2020"
                 max="2030"
               />
-              <Button variant="outline" onClick={openBankHolidaysDialog}>
-                Select Bank Holidays
+              <Button variant="outline" onClick={openNationalHolidaysDialog}>
+                Select National Holidays
               </Button>
               <Button variant="outline" onClick={addQuickHolidays}>
                 Add Common Holidays
@@ -482,8 +482,8 @@ export function HolidaysManagement({
                 Add holidays to let staff and customers know when you're closed
               </p>
               <div className="flex justify-center gap-2">
-                <Button onClick={openBankHolidaysDialog}>
-                  Select Bank Holidays
+                <Button onClick={openNationalHolidaysDialog}>
+                  Select National Holidays
                 </Button>
                 <Button variant="outline" onClick={addQuickHolidays}>
                   Add Common Holidays
@@ -635,14 +635,14 @@ export function HolidaysManagement({
         </DialogContent>
       </Dialog>
 
-      {/* Bank Holidays Selection Dialog */}
+      {/* National Holidays Selection Dialog */}
       <Dialog
-        open={showBankHolidaysDialog}
-        onOpenChange={setShowBankHolidaysDialog}
+        open={showNationalHolidaysDialog}
+        onOpenChange={setShowNationalHolidaysDialog}
       >
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Select Bank Holidays for {selectedYear}</DialogTitle>
+            <DialogTitle>Select National Holidays for {selectedYear}</DialogTitle>
             <DialogDescription>
               Choose from federal holidays and common business closures to add
               to your calendar
@@ -655,8 +655,8 @@ export function HolidaysManagement({
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="font-medium text-blue-900">
-                    {selectedBankHolidays.length} holiday
-                    {selectedBankHolidays.length !== 1 ? 's' : ''} selected
+                    {selectedNationalHolidays.length} holiday
+                    {selectedNationalHolidays.length !== 1 ? 's' : ''} selected
                   </h4>
                   <p className="text-sm text-blue-700">
                     Select multiple holidays and save them all at once
@@ -667,8 +667,8 @@ export function HolidaysManagement({
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      const allHolidays = getBankHolidays(selectedYear);
-                      setSelectedBankHolidays(allHolidays.map(h => h.date));
+                      const allHolidays = getNationalHolidays(selectedYear);
+                      setSelectedNationalHolidays(allHolidays.map(h => h.date));
                     }}
                   >
                     Select All
@@ -676,7 +676,7 @@ export function HolidaysManagement({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setSelectedBankHolidays([])}
+                    onClick={() => setSelectedNationalHolidays([])}
                   >
                     Clear All
                   </Button>
@@ -691,13 +691,13 @@ export function HolidaysManagement({
                 <Badge variant="secondary">Official US holidays</Badge>
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {getBankHolidays(selectedYear)
+                {getNationalHolidays(selectedYear)
                   .filter(holiday => holiday.category === 'federal')
                   .map(holiday => {
                     const isExisting = holidays.some(
                       h => h.holiday_date === holiday.date
                     );
-                    const isSelected = selectedBankHolidays.includes(
+                    const isSelected = selectedNationalHolidays.includes(
                       holiday.date
                     );
 
@@ -717,7 +717,7 @@ export function HolidaysManagement({
                           checked={isSelected}
                           disabled={isExisting}
                           onCheckedChange={() =>
-                            !isExisting && toggleBankHoliday(holiday.date)
+                            !isExisting && toggleNationalHoliday(holiday.date)
                           }
                         />
                         <div className="flex-1">
@@ -755,13 +755,13 @@ export function HolidaysManagement({
                 <Badge variant="outline">Optional closures</Badge>
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {getBankHolidays(selectedYear)
+                {getNationalHolidays(selectedYear)
                   .filter(holiday => holiday.category === 'common')
                   .map(holiday => {
                     const isExisting = holidays.some(
                       h => h.holiday_date === holiday.date
                     );
-                    const isSelected = selectedBankHolidays.includes(
+                    const isSelected = selectedNationalHolidays.includes(
                       holiday.date
                     );
 
@@ -781,7 +781,7 @@ export function HolidaysManagement({
                           checked={isSelected}
                           disabled={isExisting}
                           onCheckedChange={() =>
-                            !isExisting && toggleBankHoliday(holiday.date)
+                            !isExisting && toggleNationalHoliday(holiday.date)
                           }
                         />
                         <div className="flex-1">
@@ -815,13 +815,13 @@ export function HolidaysManagement({
             {/* Action Buttons */}
             <div className="flex gap-2 pt-4 border-t">
               <Button
-                onClick={saveBankHolidays}
+                onClick={saveNationalHolidays}
                 disabled={
-                  selectedBankHolidays.length === 0 || savingBankHolidays
+                  selectedNationalHolidays.length === 0 || savingNationalHolidays
                 }
                 className="flex-1"
               >
-                {savingBankHolidays ? (
+                {savingNationalHolidays ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
                     Saving...
@@ -829,14 +829,14 @@ export function HolidaysManagement({
                 ) : (
                   <>
                     <CheckIcon className="h-4 w-4 mr-2" />
-                    Add Selected Holidays ({selectedBankHolidays.length})
+                    Add Selected Holidays ({selectedNationalHolidays.length})
                   </>
                 )}
               </Button>
               <Button
                 variant="outline"
-                onClick={() => setShowBankHolidaysDialog(false)}
-                disabled={savingBankHolidays}
+                onClick={() => setShowNationalHolidaysDialog(false)}
+                disabled={savingNationalHolidays}
               >
                 Cancel
               </Button>

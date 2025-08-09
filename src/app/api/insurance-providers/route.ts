@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: 'Failed to create insurance provider',
-          details: error.message,
+          details: (error as Error).message,
         },
         { status: 500 }
       );

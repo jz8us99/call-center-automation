@@ -3,10 +3,10 @@ import { supabase } from '@/lib/supabase-admin';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { agentId: string } }
+  { params }: { params: Promise<{ agentId: string }> }
 ) {
   try {
-    const agentId = params.agentId;
+    const { agentId } = await params;
     const payload = await request.json();
 
     // Validate webhook signature if needed
