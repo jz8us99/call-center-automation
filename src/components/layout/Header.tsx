@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { User } from '@supabase/supabase-js';
 import { SimpleThemeSwitch } from '@/components/common/SimpleThemeSwitch';
+import { ChevronDown, Monitor, Settings, LogOut, Phone } from 'lucide-react';
 
 export default function Header() {
   const [user, setUser] = useState<User | null>(null);
@@ -112,19 +113,9 @@ export default function Header() {
                     <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center text-xs font-semibold text-white">
                       {getUserDisplayName().charAt(0).toUpperCase()}
                     </div>
-                    <svg
+                    <ChevronDown
                       className={`h-4 w-4 transition-transform ${showUserMenu ? 'rotate-180' : ''}`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
+                    />
                   </button>
                 </div>
 
@@ -153,46 +144,16 @@ export default function Header() {
                           className="flex items-center gap-3 px-4 py-2 text-black dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                           onClick={() => setShowUserMenu(false)}
                         >
-                          <svg
-                            className="h-4 w-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                            />
-                          </svg>
+                          <Monitor className="h-4 w-4" />
                           {isAdmin ? 'Admin Panel' : 'Dashboard'}
                         </Link>
 
                         <Link
-                          href="/configuration"
+                          href="/settings"
                           className="flex items-center gap-3 px-4 py-2 text-black dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                           onClick={() => setShowUserMenu(false)}
                         >
-                          <svg
-                            className="h-4 w-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 011.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 01-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 01-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.505-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.107-1.204l-.527-.738a1.125 1.125 0 01.12-1.45l.773-.773a1.125 1.125 0 011.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894z"
-                            />
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                            />
-                          </svg>
+                          <Settings className="h-4 w-4" />
                           Settings
                         </Link>
 
@@ -202,19 +163,7 @@ export default function Header() {
                           onClick={handleSignOut}
                           className="flex items-center gap-3 px-4 py-2 text-black dark:text-gray-300 hover:text-orange-500 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-300 transition-colors w-full text-left"
                         >
-                          <svg
-                            className="h-4 w-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                            />
-                          </svg>
+                          <LogOut className="h-4 w-4" />
                           Sign Out
                         </button>
                       </div>
@@ -235,19 +184,7 @@ export default function Header() {
                   href="tel:+15551234567"
                   className="inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-orange-500 hover:text-white text-black dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-orange-500 rounded-lg transition-all duration-200 border border-gray-300 dark:border-gray-600 hover:border-orange-500 shadow-sm"
                 >
-                  <svg
-                    className="h-4 w-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-                    />
-                  </svg>
+                  <Phone className="h-4 w-4" />
                   (555) 123-4567
                 </a>
               </>

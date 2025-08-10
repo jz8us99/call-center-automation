@@ -329,7 +329,6 @@ export default function AdminDashboard() {
         user={user}
         userDisplayName={profile?.full_name || user?.email || 'Admin'}
         pageType="admin"
-        showConfigurationLink={false}
       />
 
       {/* Main Content */}
