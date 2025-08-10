@@ -16,6 +16,7 @@ dist-ssr
 
 # Editor directories and files
 .claude
+start-dev.sh
 coverage
 .vscode/*
 !.vscode/extensions.json
@@ -23,6 +24,7 @@ coverage
 .next
 .doc
 .old
+.example
 .DS_Store
 *.suo
 *.ntvs*
