@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { SimpleThemeSwitch } from '@/components/common/SimpleThemeSwitch';
 import { SettingsIcon } from '@/components/icons';
@@ -12,20 +13,31 @@ interface DashboardHeaderProps {
   user: User | null;
   userDisplayName: string;
   pageType: 'admin' | 'dashboard';
-  showConfigurationLink?: boolean;
 }
 
 export function DashboardHeader({
   user,
   userDisplayName,
   pageType,
-  showConfigurationLink = false,
 }: DashboardHeaderProps) {
   const router = useRouter();
   const brand = useBrand();
+  const [showUserMenu, setShowUserMenu] = useState(false);
+
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (showUserMenu) {
+        setShowUserMenu(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [showUserMenu]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
+    setShowUserMenu(false);
     router.push('/');
   };
 
@@ -64,40 +76,115 @@ export function DashboardHeader({
           </div>
 
           <div className="flex items-center space-x-4">
-            {showConfigurationLink && (
-              <Link
-                href="/configuration"
-                className="flex items-center gap-2 text-black dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-400 transition-colors"
-              >
-                <SettingsIcon className="h-4 w-4" />
-                <span className="hidden sm:inline">Configuration</span>
-              </Link>
+            {user && (
+              <div className="relative">
+                <div className="flex items-center space-x-3">
+                  <span className="text-sm text-black dark:text-gray-300">
+                    Welcome, {userDisplayName}
+                  </span>
+                  <button
+                    onClick={e => {
+                      e.stopPropagation();
+                      setShowUserMenu(!showUserMenu);
+                    }}
+                    className="flex items-center gap-2 bg-white hover:bg-gray-100 text-black dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white px-3 py-2 rounded-lg transition-colors border border-gray-300 dark:border-gray-600"
+                  >
+                    <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center text-xs font-semibold text-white">
+                      {userDisplayName.charAt(0).toUpperCase()}
+                    </div>
+                    <svg
+                      className={`h-4 w-4 transition-transform ${showUserMenu ? 'rotate-180' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </button>
+                </div>
+
+                {showUserMenu && (
+                  <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-50">
+                    <div className="py-2">
+                      <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-600">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center text-white font-semibold">
+                            {userDisplayName.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="text-black dark:text-white font-medium">
+                              {userDisplayName}
+                            </p>
+                            <p className="text-gray-600 dark:text-gray-400 text-sm">
+                              {user.email}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="py-1">
+                        <Link
+                          href={pageType === 'admin' ? '/admin' : '/dashboard'}
+                          className="flex items-center gap-3 px-4 py-2 text-black dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          <svg
+                            className="h-4 w-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                            />
+                          </svg>
+                          {pageType === 'admin' ? 'Admin Panel' : 'Dashboard'}
+                        </Link>
+
+                        <Link
+                          href="/configuration"
+                          className="flex items-center gap-3 px-4 py-2 text-black dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                          onClick={() => setShowUserMenu(false)}
+                        >
+                          <SettingsIcon className="h-4 w-4" />
+                          Settings
+                        </Link>
+
+                        <div className="border-t border-gray-200 dark:border-gray-600 my-1"></div>
+
+                        <button
+                          onClick={handleSignOut}
+                          className="flex items-center gap-3 px-4 py-2 text-black dark:text-gray-300 hover:text-orange-500 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-300 transition-colors w-full text-left"
+                        >
+                          <svg
+                            className="h-4 w-4"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                            />
+                          </svg>
+                          Sign Out
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
-
-            <span className="text-sm text-black dark:text-gray-300">
-              Welcome, {userDisplayName}
-            </span>
-
-            <button
-              onClick={handleSignOut}
-              className="flex items-center gap-2 text-black dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-400 transition-colors"
-            >
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                />
-              </svg>
-              Sign out
-            </button>
-
             <SimpleThemeSwitch />
           </div>
         </div>

@@ -69,7 +69,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
     <div className="flex flex-col items-start gap-1">
       <button
         onClick={() => onToggle(logId, audioUrl)}
-        className={`p-1.5 rounded-full transition-colors ${
+        className={`p-1.5 rounded-full transition-colors [&_svg]:!h-3 [&_svg]:!w-3 ${
           isPlaying
             ? 'bg-orange-500 hover:bg-orange-600 animate-pulse'
             : 'bg-blue-500 hover:bg-blue-600'

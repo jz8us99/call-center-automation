@@ -7,11 +7,11 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('user_id');
 
+    // For now, if no userId provided, return empty result (RLS implementation will come later)
     if (!userId) {
-      return NextResponse.json(
-        { error: 'user_id is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({
+        profile: null,
+      });
     }
 
     // Get business profile for the user

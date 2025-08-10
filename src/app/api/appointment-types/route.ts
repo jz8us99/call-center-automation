@@ -13,13 +13,9 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category');
     const online_booking_enabled = searchParams.get('online_booking_enabled');
 
+    // For now, if no user_id or business_id provided, return empty result (RLS implementation will come later)
     if (!user_id && !business_id) {
-      return NextResponse.json(
-        {
-          error: 'Either user_id or business_id is required',
-        },
-        { status: 400 }
-      );
+      return NextResponse.json({ appointment_types: [] });
     }
 
     let query = supabase.from('appointment_types').select('*');

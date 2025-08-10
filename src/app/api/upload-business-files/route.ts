@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import { join, resolve } from 'path';
-import { existsSync } from 'fs';
-import { authenticateRequest } from '@/lib/supabase';
+import { authenticateRequest, createAuthenticatedClient } from '@/lib/supabase';
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,10 +12,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get authorization token for Supabase client
+    const authorization = request.headers.get('authorization');
+    const token = authorization?.replace('Bearer ', '') || '';
+
+    // Create a client with user authentication
+    const supabaseWithAuth = await createAuthenticatedClient(token);
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const type = formData.get('type') as string;
-    const clientId = formData.get('clientId') as string;
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
@@ -68,50 +71,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate clientId to prevent path traversal
-    if (!clientId || !/^[a-zA-Z0-9_-]+$/.test(clientId)) {
-      return NextResponse.json(
-        { error: 'Invalid client ID format' },
-        { status: 400 }
-      );
-    }
-
-    // Create upload directory if it doesn't exist
-    const baseUploadDir = join(process.cwd(), 'uploads');
-    const clientDir = join(baseUploadDir, clientId);
-    const uploadDir = join(clientDir, type + 's');
-
-    // Ensure the upload directory is within expected bounds (prevent path traversal)
-    const resolvedUploadDir = resolve(uploadDir);
-    const resolvedBaseDir = resolve(baseUploadDir);
-    if (!resolvedUploadDir.startsWith(resolvedBaseDir)) {
-      return NextResponse.json(
-        { error: 'Invalid upload path' },
-        { status: 400 }
-      );
-    }
-
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true });
-    }
-
-    // Generate unique filename with additional security
+    // Generate unique filename
     const timestamp = Date.now();
     const randomSuffix = Math.random().toString(36).substring(2, 15);
     const originalName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
     const filename = `${timestamp}_${randomSuffix}_${originalName}`;
-    const filepath = join(uploadDir, filename);
 
-    // Final path traversal check
-    const resolvedFilepath = resolve(filepath);
-    if (!resolvedFilepath.startsWith(resolvedUploadDir)) {
-      return NextResponse.json({ error: 'Invalid file path' }, { status: 400 });
+    // Create storage path
+    const storagePath = `business-files/${user.id}/${type}s/${filename}`;
+
+    // Upload file to Supabase Storage
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = new Uint8Array(arrayBuffer);
+
+    const { data: uploadData, error: uploadError } =
+      await supabaseWithAuth.storage
+        .from('user-documents')
+        .upload(storagePath, buffer, {
+          contentType: file.type,
+          upsert: false,
+        });
+
+    if (uploadError) {
+      console.error('Error uploading to Supabase Storage:', uploadError);
+      return NextResponse.json(
+        { error: 'Failed to upload file' },
+        { status: 500 }
+      );
     }
-
-    // Save file
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    await writeFile(filepath, buffer);
 
     // Extract text content for documents (basic implementation)
     let extractedContent = '';
@@ -123,14 +110,20 @@ export async function POST(request: NextRequest) {
         (extractedContent.length > 500 ? '...' : '');
     }
 
+    // Get public URL for the uploaded file
+    const { data: publicUrlData } = supabaseWithAuth.storage
+      .from('user-documents')
+      .getPublicUrl(storagePath);
+
     const fileInfo = {
-      id: `${timestamp}_${Math.random().toString(36).substr(2, 9)}`,
+      id: `${timestamp}_${Math.random().toString(36).substring(2, 11)}`,
       name: file.name,
       originalName: file.name,
       filename: filename,
       type: file.type,
       size: file.size,
-      url: `/uploads/${clientId || 'default'}/${type}s/${filename}`,
+      url: publicUrlData.publicUrl,
+      storagePath: storagePath,
       uploadedAt: new Date().toISOString(),
       extractedContent: extractedContent || undefined,
     };
@@ -149,7 +142,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   return NextResponse.json({
     message: 'File upload endpoint. Use POST to upload files.',
     allowedTypes: {

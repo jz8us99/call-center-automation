@@ -271,7 +271,7 @@ export function BusinessInformationForm({
         <CardContent className="space-y-4">
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Agent Name *
               </label>
               <Input
@@ -282,7 +282,7 @@ export function BusinessInformationForm({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Business Type *
               </label>
               <Select
@@ -331,7 +331,7 @@ export function BusinessInformationForm({
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Business Name *
             </label>
             <Input
@@ -343,7 +343,7 @@ export function BusinessInformationForm({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Business Address
             </label>
             <Input
@@ -357,7 +357,7 @@ export function BusinessInformationForm({
 
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Business Phone *
               </label>
               <Input
@@ -371,7 +371,7 @@ export function BusinessInformationForm({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Business Email
               </label>
               <Input
@@ -387,7 +387,7 @@ export function BusinessInformationForm({
 
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Website
               </label>
               <Input
@@ -400,7 +400,7 @@ export function BusinessInformationForm({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Timezone
               </label>
               <Select
@@ -438,7 +438,7 @@ export function BusinessInformationForm({
         <CardContent className="space-y-4">
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Contact Name
               </label>
               <Input
@@ -450,7 +450,7 @@ export function BusinessInformationForm({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Role/Title
               </label>
               <Input
@@ -465,7 +465,7 @@ export function BusinessInformationForm({
 
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Contact Phone
               </label>
               <Input
@@ -478,7 +478,7 @@ export function BusinessInformationForm({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Contact Email
               </label>
               <Input
@@ -506,7 +506,7 @@ export function BusinessInformationForm({
         <CardContent className="space-y-6">
           {/* Website URL Option */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               <Globe className="h-4 w-4 inline mr-2" />
               Website URL (Alternative to document upload)
             </label>
@@ -534,14 +534,14 @@ export function BusinessInformationForm({
                 )}
               </Button>
             </div>
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               We'll extract pricing, policies, and hours information from your
               website
             </p>
           </div>
 
-          <div className="border-t pt-4">
-            <p className="text-sm text-gray-600 mb-4">
+          <div className="border-t dark:border-gray-600 pt-4">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
               Or upload specific documents:
             </p>
 
@@ -572,12 +572,16 @@ export function BusinessInformationForm({
               return (
                 <div
                   key={type}
-                  className="border border-gray-200 rounded-lg p-4"
+                  className="border border-gray-200 dark:border-gray-600 rounded-lg p-4"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div>
-                      <h4 className="font-medium text-gray-900">{label}</h4>
-                      <p className="text-sm text-gray-500">{description}</p>
+                      <h4 className="font-medium text-gray-900 dark:text-gray-100">
+                        {label}
+                      </h4>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {description}
+                      </p>
                     </div>
                     {document && (
                       <CheckCircle className="h-5 w-5 text-green-500" />
@@ -585,14 +589,14 @@ export function BusinessInformationForm({
                   </div>
 
                   {document ? (
-                    <div className="bg-gray-50 rounded-md p-3">
+                    <div className="bg-gray-50 dark:bg-gray-700 rounded-md p-3">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center space-x-2">
-                          <FileText className="h-4 w-4 text-gray-500" />
-                          <span className="text-sm font-medium">
+                          <FileText className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                             {document.file.name}
                           </span>
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
                             ({(document.file.size / 1024).toFixed(1)} KB)
                           </span>
                         </div>
@@ -601,13 +605,13 @@ export function BusinessInformationForm({
                           variant="ghost"
                           size="sm"
                           onClick={() => removeDocument(document.id)}
-                          className="text-red-600 hover:text-red-700"
+                          className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                         >
                           <X className="h-4 w-4" />
                         </Button>
                       </div>
                       {document.preview && (
-                        <p className="text-xs text-gray-600 bg-white p-2 rounded border">
+                        <p className="text-xs text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-800 p-2 rounded border dark:border-gray-600">
                           {document.preview}
                         </p>
                       )}
@@ -645,7 +649,7 @@ export function BusinessInformationForm({
                           </>
                         )}
                       </Button>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                         Supported: PDF, DOC, DOCX, TXT (max 10MB)
                       </p>
                     </div>
@@ -707,10 +711,10 @@ export function BusinessInformationForm({
             onChange={e =>
               handleInputChange('greeting_message', e.target.value)
             }
-            className="w-full h-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500"
+            className="w-full h-24 px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500"
             placeholder="Hello! Thank you for calling Sunshine Medical Clinic. I'm your AI assistant. How can I help you today?"
           />
-          <p className="text-xs text-gray-500 mt-2">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
             Keep it friendly and professional. Mention your business name and
             let callers know they're speaking with an AI assistant.
           </p>
@@ -718,7 +722,7 @@ export function BusinessInformationForm({
       </Card>
 
       {/* Submit Button */}
-      <div className="flex items-center justify-end space-x-4 pt-6 border-t">
+      <div className="flex items-center justify-end space-x-4 pt-6 border-t dark:border-gray-600">
         <Button type="submit" disabled={saving} className="min-w-32">
           {saving ? (
             <div className="flex items-center space-x-2">

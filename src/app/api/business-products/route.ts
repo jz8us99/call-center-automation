@@ -38,6 +38,46 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ product });
     }
 
+    // If only userId is provided, get products for that user
+    // For now, if no userId provided, return empty result (RLS implementation will come later)
+    if (!userId && !businessType) {
+      return NextResponse.json({ products: [] });
+    }
+
+    if (userId && !businessType) {
+      let query = supabase
+        .from('business_products')
+        .select(
+          `
+          *,
+          product_categories (
+            id,
+            category_name,
+            category_description
+          )
+        `
+        )
+        .eq('user_id', userId)
+        .order('product_name', { ascending: true });
+
+      if (categoryId) {
+        query = query.eq('category_id', categoryId);
+      }
+
+      const { data: products, error } = await query;
+
+      if (error) {
+        console.error('Error fetching user products:', error);
+        return NextResponse.json(
+          { error: 'Failed to fetch products' },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json({ products: products || [] });
+    }
+
+    // Original logic requiring both businessType and userId
     if (!businessType || !userId) {
       return NextResponse.json(
         { error: 'business_type and user_id are required' },

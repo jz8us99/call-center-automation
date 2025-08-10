@@ -58,14 +58,14 @@ export const QuestionMarkIcon: React.FC<IconProps> = ({
 // Play icon
 export const PlayIcon: React.FC<IconProps> = ({ className = 'h-3 w-3' }) => (
   <svg className={className} fill="currentColor" viewBox="0 0 24 24">
-    <path d="M8 5v14l11-7z" />
+    <path d="M10 8v8l6-4z" />
   </svg>
 );
 
 // Pause icon
 export const PauseIcon: React.FC<IconProps> = ({ className = 'h-3 w-3' }) => (
   <svg className={className} fill="currentColor" viewBox="0 0 24 24">
-    <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
+    <path d="M8 8h2v8H8V8zm6 0h2v8h-2V8z" />
   </svg>
 );
 
