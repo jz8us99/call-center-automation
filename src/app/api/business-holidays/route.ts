@@ -42,7 +42,10 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Error fetching business holidays:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ holidays: data || [] });
@@ -95,7 +98,10 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Error creating business holiday:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ holiday: data });
@@ -148,7 +154,10 @@ export async function PUT(request: NextRequest) {
 
     if (error) {
       console.error('Error updating business holiday:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ holiday: data });
@@ -187,7 +196,10 @@ export async function DELETE(request: NextRequest) {
 
     if (error) {
       console.error('Error deleting business holiday:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ success: true });

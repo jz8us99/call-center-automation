@@ -147,9 +147,11 @@ export async function GET(request: NextRequest) {
             .map((slot: { slot_time: string }) => {
               // Calculate end time from start time and duration
               const startTime = new Date(`2000-01-01 ${slot.slot_time}`);
-              const endTime = new Date(startTime.getTime() + serviceDuration * 60000);
+              const endTime = new Date(
+                startTime.getTime() + serviceDuration * 60000
+              );
               const endTimeString = endTime.toTimeString().slice(0, 8);
-              
+
               return {
                 date: checkDate,
                 start_time: slot.slot_time,
@@ -285,7 +287,10 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Error checking slot availability:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     let unavailabilityReason = null;

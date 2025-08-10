@@ -32,9 +32,12 @@ export const useUserProfile = (user: User | null) => {
         setLoading(true);
         setError(null);
 
+        // Use simple query without admin checks to avoid RLS recursion
         const { data, error } = await supabase
           .from('profiles')
-          .select('*')
+          .select(
+            'id, user_id, email, full_name, role, is_super_admin, created_at, updated_at'
+          )
           .eq('user_id', user.id)
           .maybeSingle();
 

@@ -47,7 +47,7 @@ export default function AdminUserAgentConfig() {
   const router = useRouter();
   const params = useParams();
   const userId = params.userId as string;
-  const { loading: profileLoading, isAdmin } = useUserProfile(user);
+  const { profile, loading: profileLoading, isAdmin } = useUserProfile(user);
 
   useEffect(() => {
     const getUser = async () => {
@@ -571,7 +571,7 @@ export default function AdminUserAgentConfig() {
               user={user}
               // Pass additional props to indicate this is admin mode
               isAdminMode={true}
-              targetUser={targetUser || undefined}
+              targetUser={targetUser}
             />
           )}
         </div>

@@ -34,7 +34,10 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Error fetching staff calendar configs:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ configs: data || [] });
@@ -94,7 +97,10 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Error creating staff calendar config:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ config: data });
@@ -166,7 +172,10 @@ export async function PUT(request: NextRequest) {
 
     if (error) {
       console.error('Error updating staff calendar config:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ config: data });
@@ -205,7 +214,10 @@ export async function DELETE(request: NextRequest) {
 
     if (error) {
       console.error('Error deleting staff calendar config:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ success: true });

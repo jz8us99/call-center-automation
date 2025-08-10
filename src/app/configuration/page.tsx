@@ -15,7 +15,7 @@ import { AppointmentSystem } from '@/components/configuration/AppointmentSystem'
 import { AIAgentsStep } from '@/components/configuration/AIAgentsStep';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { HelpButton } from '@/components/HelpDialog';
+import { HelpButton } from '@/components/modals/HelpDialog';
 import {
   SettingsIcon,
   UsersIcon,
@@ -82,7 +82,13 @@ export default function ConfigurationPage() {
           'agent',
         ].includes(savedActiveStep)
       ) {
-        const stepKey = savedActiveStep as 'business' | 'products' | 'services' | 'staff' | 'appointments' | 'agent';
+        const stepKey = savedActiveStep as
+          | 'business'
+          | 'products'
+          | 'services'
+          | 'staff'
+          | 'appointments'
+          | 'agent';
         const stepMapping = {
           business: 'businessInfo',
           products: 'products',
@@ -431,7 +437,7 @@ export default function ConfigurationPage() {
       <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="container mx-auto px-4">
           <nav className="flex space-x-0">
-            {steps.map((step) => (
+            {steps.map(step => (
               <button
                 key={step.id}
                 onClick={() => step.status.canAccess && setActiveStep(step.id)}

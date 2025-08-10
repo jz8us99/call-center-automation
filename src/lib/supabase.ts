@@ -24,9 +24,6 @@ function createSupabaseClient() {
 
 export const supabase = createSupabaseClient();
 
-// Export createClient function for compatibility
-export { createSupabaseClient as createClient };
-
 // 认证相关类型和函数
 export interface AuthUser {
   id: string;
@@ -40,16 +37,6 @@ export async function authenticateRequest(
   request: NextRequest
 ): Promise<AuthUser | null> {
   try {
-    // In development mode, skip authentication
-    if (process.env.NODE_ENV === 'development') {
-      return {
-        id: 'dev-user',
-        email: 'dev@example.com',
-        role: 'admin',
-        is_super_admin: true,
-      };
-    }
-
     const authorization = request.headers.get('authorization');
 
     if (!authorization) {
@@ -71,29 +58,18 @@ export async function authenticateRequest(
       return null;
     }
 
-    // 获取用户profile信息 - with fallback for missing table/columns
-    let profile = null;
-    try {
-      const { data: profileData } = await supabaseWithAuth
-        .from('profiles')
-        .select('role, is_super_admin')
-        .eq('user_id', user.id)
-        .single();
-      profile = profileData;
-    } catch (profileError) {
-      console.warn(
-        'Could not fetch user profile, using defaults:',
-        profileError
-      );
-      // Default to admin for existing users if profile table doesn't exist
-      profile = { role: 'admin', is_super_admin: false };
-    }
+    // 获取用户profile信息
+    const { data: profile } = await supabaseWithAuth
+      .from('profiles')
+      .select('role, is_super_admin')
+      .eq('user_id', user.id)
+      .single();
 
     return {
       id: user.id,
       email: user.email || '',
-      role: profile?.role || 'admin',
-      is_super_admin: profile?.is_super_admin || false,
+      role: profile?.role,
+      is_super_admin: profile?.is_super_admin,
     };
   } catch (error) {
     console.error('Authentication error:', error);

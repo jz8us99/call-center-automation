@@ -12,7 +12,6 @@ import {
 import { initializeBusinessServices } from '@/lib/services/business-registry';
 
 // 导入示例服务以激活自动注册
-import '@/lib/services/example-service';
 
 /**
  * 从agent_id获取user_id

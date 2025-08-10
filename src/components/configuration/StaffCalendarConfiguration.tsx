@@ -1974,7 +1974,10 @@ export function StaffCalendarConfiguration({
                     {jobTypes
                       .map(
                         j =>
-                          j.job_name || (j as any).job_type || (j as any).service_name || (j as any).name
+                          j.job_name ||
+                          (j as any).job_type ||
+                          (j as any).service_name ||
+                          (j as any).name
                       )
                       .join(', ')}
                   </div>
@@ -2412,7 +2415,10 @@ export function StaffCalendarConfiguration({
                 <Select
                   value={dayAvailability.reason || ''}
                   onValueChange={value =>
-                    setDayAvailability((prev: any) => ({ ...prev, reason: value }))
+                    setDayAvailability((prev: any) => ({
+                      ...prev,
+                      reason: value,
+                    }))
                   }
                 >
                   <SelectTrigger>

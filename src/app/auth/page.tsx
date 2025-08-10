@@ -5,9 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useGoogleAuth } from '@/hooks/useGoogleAuth';
-import { HelpButton } from '@/components/HelpDialog';
-import { HomeIcon } from '@/components/icons';
-import { SimpleThemeSwitch } from '@/components/SimpleThemeSwitch';
+import { HelpButton } from '@/components/modals/HelpDialog';
 
 export default function AuthPage() {
   const [email, setEmail] = useState('');
@@ -54,19 +52,58 @@ export default function AuthPage() {
       if (error) {
         setError(error.message);
       } else if (data.user) {
-        // Get user profile to determine role-based redirect
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_id', data.user.id)
-          .maybeSingle();
+        try {
+          // Small delay to allow database triggers to complete
+          await new Promise(resolve => setTimeout(resolve, 1000));
 
-        if (profileError) {
-          console.error('Error fetching profile:', profileError);
-          router.push('/dashboard'); // Default fallback
-        } else if (profile?.role === 'admin') {
-          router.push('/admin');
-        } else {
+          // Get user profile to determine role-based redirect
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('user_id', data.user.id)
+            .maybeSingle();
+
+          let profile = profileData;
+
+          // If profile doesn't exist, create one as fallback
+          if (!profile && !profileError) {
+            console.log('Profile not found, creating one...');
+            const { data: newProfile, error: createError } = await supabase
+              .from('profiles')
+              .insert({
+                user_id: data.user.id,
+                email: data.user.email || '',
+                full_name: data.user.user_metadata?.full_name || null,
+                role: 'user',
+                is_super_admin: false,
+                pricing_tier: 'basic',
+                agent_types_allowed: ['inbound_call'],
+                is_active: true,
+              })
+              .select()
+              .single();
+
+            if (createError) {
+              console.error('Error creating profile:', createError);
+              // Continue with default redirect even if profile creation fails
+              router.push('/dashboard');
+              return;
+            }
+
+            profile = newProfile;
+          }
+
+          if (profileError) {
+            console.error('Error fetching profile:', profileError);
+            router.push('/dashboard'); // Default fallback
+          } else if (profile?.role === 'admin') {
+            router.push('/admin');
+          } else {
+            router.push('/dashboard');
+          }
+        } catch (profileException) {
+          console.error('Profile handling error:', profileException);
+          // Continue with default redirect if profile handling fails
           router.push('/dashboard');
         }
       }
@@ -156,10 +193,10 @@ export default function AuthPage() {
     <div className="min-h-screen bg-white dark:bg-gray-800 dark:bg-gray-900 flex items-center justify-center p-4 transition-colors duration-300">
       {/* Main Login Card */}
       <div className="w-full max-w-md">
-        <div className="bg-white dark:bg-gray-800 dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-600">
           {/* Brand Logo - Above Sign in */}
           <div className="mb-8">
-            <div className="flex items-center justify-between mb-6">
+            <div className="mb-6">
               <Link
                 href="/"
                 className="inline-flex items-center space-x-2 hover:opacity-80 transition-opacity"
@@ -168,23 +205,13 @@ export default function AuthPage() {
                   <span className="text-white text-xl font-bold">R</span>
                 </div>
                 <span className="text-xl font-bold text-black dark:text-white">
-                  JSX-ReceptionAI
+                  ReceptionPro
                 </span>
               </Link>
-              <Link
-                href="/"
-                className="flex items-center gap-2 text-black dark:text-gray-300 hover:text-black dark:text-white transition-colors text-sm"
-              >
-                <HomeIcon className="h-4 w-4" />
-                Home
-              </Link>
             </div>
-            <div className="flex items-center justify-between">
-              <h1 className="text-2xl font-semibold text-black dark:text-white mb-2 text-left">
-                Sign in
-              </h1>
-              <SimpleThemeSwitch />
-            </div>
+            <h1 className="text-2xl font-semibold text-black dark:text-white mb-2 text-left">
+              Sign in
+            </h1>
           </div>
 
           {/* Google Sign In Button */}
@@ -196,15 +223,15 @@ export default function AuthPage() {
             >
               {googleLoading ? (
                 <>
-                  <div className="w-5 h-5 border-2 border-gray-300 dark:border-gray-600 border-t-blue-500 rounded-full animate-spin"></div>
-                  <span className="text-black dark:text-gray-300 font-medium">
+                  <div className="w-5 h-5 border-2 border-gray-300 dark:border-gray-500 border-t-blue-500 dark:border-t-blue-400 rounded-full animate-spin"></div>
+                  <span className="text-black dark:text-gray-100 font-medium">
                     Signing in...
                   </span>
                 </>
               ) : !isGoogleLoaded ? (
                 <>
-                  <div className="w-5 h-5 border-2 border-gray-300 dark:border-gray-600 border-t-gray-400 rounded-full animate-spin"></div>
-                  <span className="text-black dark:text-gray-300 font-medium">
+                  <div className="w-5 h-5 border-2 border-gray-300 dark:border-gray-500 border-t-gray-400 dark:border-t-gray-300 rounded-full animate-spin"></div>
+                  <span className="text-black dark:text-gray-100 font-medium">
                     Loading Google...
                   </span>
                 </>
@@ -228,7 +255,7 @@ export default function AuthPage() {
                       d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                     />
                   </svg>
-                  <span className="text-black dark:text-gray-300 font-medium">
+                  <span className="text-black dark:text-gray-100 font-medium">
                     Sign in with Google
                   </span>
                 </>

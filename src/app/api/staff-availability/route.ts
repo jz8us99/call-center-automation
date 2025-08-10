@@ -41,7 +41,10 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Error fetching staff availability:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ availability: data || [] });
@@ -159,7 +162,10 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Error creating staff availability:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ availability: data });
@@ -221,7 +227,10 @@ export async function PUT(request: NextRequest) {
 
     if (error) {
       console.error('Error updating staff availability:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ availability: data });
@@ -260,7 +269,10 @@ export async function DELETE(request: NextRequest) {
 
     if (error) {
       console.error('Error deleting staff availability:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ success: true });

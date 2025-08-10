@@ -12,19 +12,16 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { BusinessInformationHeader } from './BusinessInformationHeader';
-import { AgentTypeSelector } from './AgentTypeSelector';
-import { AgentTypeCallScripts } from '../ai-agents/AgentTypeCallScripts';
-import { AgentTypeVoiceSettings } from '../ai-agents/AgentTypeVoiceSettings';
-import { AgentTypeCallRouting } from '../ai-agents/AgentTypeCallRouting';
+import { BusinessInformationForm } from '@/components/configuration/BusinessInformationForm';
+import { CallScriptEditor } from '@/components/configuration/CallScriptEditor';
+import { VoiceSettingsPanel } from '@/components/configuration/VoiceSettingsPanel';
+import { AgentTypeSelector } from '@/components/configuration/AgentTypeSelector';
 import { PlusIcon, EditIcon, TrashIcon } from '@/components/icons';
 import {
   AgentType,
   AGENT_TYPE_CONFIGS,
   AgentConfiguration,
 } from '@/types/agent-types';
-import { TemplatePreviewModal } from '../modals/TemplatePreviewModal';
-import { AgentTemplate, BUSINESS_TYPE_CONFIGS } from '@/types/business-types';
 
 // Using AgentConfiguration from types
 
@@ -42,14 +39,12 @@ interface AgentConfigurationDashboardProps {
     business_name?: string;
     business_type?: string;
   };
-  onConfigurationUpdate?: (isComplete: boolean) => void;
 }
 
 export function AgentConfigurationDashboard({
   user,
   isAdminMode = false,
   targetUser,
-  onConfigurationUpdate,
 }: AgentConfigurationDashboardProps) {
   const [agents, setAgents] = useState<AgentConfiguration[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,68 +56,27 @@ export function AgentConfigurationDashboard({
     null
   );
   const [activeSection, setActiveSection] = useState<
-    'business' | 'type' | 'scripts' | 'voice' | 'routing'
-  >('business');
-  const [businessProfile, setBusinessProfile] = useState<any>(null);
-  const [templatePreview, setTemplatePreview] = useState<{
-    agentType: AgentType;
-    template: AgentTemplate;
-  } | null>(null);
+    'type' | 'business' | 'scripts' | 'voice' | 'routing'
+  >('type');
 
   useEffect(() => {
     loadAgentConfigurations();
   }, [user]);
 
-  useEffect(() => {
-    // When business profile is updated, ensure we have the required information
-    if (businessProfile?.business_type && businessProfile?.business_name) {
-      // Business profile is complete, user can proceed with agent configuration
-      if (activeSection === 'business' && selectedAgentType) {
-        setActiveSection('scripts');
-      }
-    } else {
-      // If business profile is incomplete, ensure we're on the business section
-      if (activeSection !== 'business') {
-        setActiveSection('business');
-      }
-    }
-  }, [businessProfile, selectedAgentType, activeSection]);
-
-  // Notify parent component about configuration status
-  useEffect(() => {
-    if (onConfigurationUpdate) {
-      // Consider configuration complete if we have agents configured
-      const isComplete =
-        agents.length > 0 ||
-        (selectedAgentType && businessProfile?.business_type);
-      onConfigurationUpdate(isComplete);
-    }
-  }, [
-    agents.length,
-    selectedAgentType,
-    businessProfile,
-    onConfigurationUpdate,
-  ]);
-
   const loadAgentConfigurations = async () => {
     try {
       setLoading(true);
+      // TODO: Replace with actual API call
+      // const response = await fetch('/api/agent-configurations', {
+      //   headers: { Authorization: `Bearer ${token}` }
+      // });
+      // const result = await response.json();
+      // setAgents(result.data || []);
 
-      if (!user) return;
-
-      const response = await fetch(
-        `/api/agent-configurations?user_id=${user.id}`
-      );
-      if (response.ok) {
-        const result = await response.json();
-        setAgents(result.configurations || []);
-      } else {
-        console.error('Failed to load agent configurations');
-        setAgents([]);
-      }
+      // Mock data for now
+      setAgents([]);
     } catch (error) {
       console.error('Failed to load agent configurations:', error);
-      setAgents([]);
     } finally {
       setLoading(false);
     }
@@ -156,139 +110,6 @@ export function AgentConfigurationDashboard({
     }
   };
 
-  const loadExistingConfiguration = async (agentType: AgentType) => {
-    try {
-      // Get client ID from business profile (this should be the client table ID, not user ID)
-      if (!businessProfile?.id) {
-        return null;
-      }
-      const clientId = businessProfile.id;
-
-      // Get agent type ID from database
-      const agentTypesResponse = await fetch('/api/agent-types');
-      const agentTypesData = await agentTypesResponse.json();
-      const agentTypeObj = agentTypesData.agent_types?.find(
-        (at: any) => at.type_code === agentType
-      );
-
-      if (!agentTypeObj) {
-        return null;
-      }
-
-      const response = await fetch(
-        `/api/agent-configurations?client_id=${clientId}&agent_type_id=${agentTypeObj.id}`
-      );
-
-      if (!response.ok) {
-        return null;
-      }
-
-      const result = await response.json();
-      return result.configuration;
-    } catch (error) {
-      console.error('Error loading existing configuration:', error);
-      return null;
-    }
-  };
-
-  const saveConfiguration = async (
-    configType:
-      | 'call_scripts'
-      | 'voice_settings'
-      | 'call_routing'
-      | 'basic_info_prompt'
-      | 'call_scripts_prompt',
-    configData: any
-  ) => {
-    try {
-      if (!selectedAgentType) {
-        throw new Error('No agent type selected');
-      }
-
-      // Get client ID from business profile (this should be the client table ID, not user ID)
-      if (!businessProfile?.id) {
-        throw new Error('Business profile must be saved first');
-      }
-      const clientId = businessProfile.id;
-
-      // Get agent type ID from database
-      const agentTypesResponse = await fetch('/api/agent-types');
-      const agentTypesData = await agentTypesResponse.json();
-      const agentTypeObj = agentTypesData.agent_types?.find(
-        (at: any) => at.type_code === selectedAgentType
-      );
-
-      if (!agentTypeObj) {
-        throw new Error('Agent type not found');
-      }
-
-      // Generate enhanced prompts if needed
-      let enhancedData = { ...configData };
-      if (configType === 'call_scripts' || configType === 'voice_settings') {
-        try {
-          const promptResponse = await fetch('/api/generate-enhanced-prompts', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              agent_type: selectedAgentType,
-              agent_personality: 'professional',
-              business_context: {
-                business_profile: businessProfile,
-                services: [],
-                staff: [],
-                office_hours: [],
-              },
-              prompt_type: 'combined',
-            }),
-          });
-
-          if (promptResponse.ok) {
-            const promptData = await promptResponse.json();
-            enhancedData.basic_info_prompt =
-              promptData.prompts.basic_info_prompt;
-            enhancedData.call_scripts_prompt =
-              promptData.prompts.call_scripts_prompt;
-            enhancedData.greeting_message = promptData.prompts.greeting_message;
-          }
-        } catch (promptError) {
-          console.warn('Failed to generate enhanced prompts:', promptError);
-        }
-      }
-
-      const response = await fetch('/api/agent-configurations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          client_id: clientId,
-          agent_type_id: agentTypeObj.id,
-          agent_name: `${AGENT_TYPE_CONFIGS[selectedAgentType].name} - ${businessProfile.business_name}`,
-          [configType]: configData,
-          ...enhancedData,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to save configuration');
-      }
-
-      const result = await response.json();
-      console.log(`${configType} saved successfully:`, result);
-
-      // Update local state
-      await loadAgentConfigurations();
-
-      // Show success message
-      alert(`${configType.replace('_', ' ')} saved successfully!`);
-    } catch (error) {
-      console.error(`Error saving ${configType}:`, error);
-      alert(`Error saving ${configType.replace('_', ' ')}. Please try again.`);
-    }
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -300,28 +121,14 @@ export function AgentConfigurationDashboard({
   if (showCreateForm || selectedAgent) {
     return (
       <div className="space-y-6">
-        {/* Business Information Header - Always show for context */}
-        <BusinessInformationHeader
-          user={user}
-          onBusinessProfileUpdate={setBusinessProfile}
-          agentType={selectedAgentType || undefined}
-          showAgentTypeSpecific={!!selectedAgentType}
-        />
-
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold text-gray-900">
-              {selectedAgent
-                ? `Edit ${AGENT_TYPE_CONFIGS[selectedAgent.agent_type]?.name || 'AI Agent'}`
-                : selectedAgentType
-                  ? `Create New ${AGENT_TYPE_CONFIGS[selectedAgentType].name}`
-                  : 'Create New AI Agent'}
+              {selectedAgent ? 'Edit AI Agent' : 'Create New AI Agent'}
             </h2>
             <p className="text-sm text-gray-600">
-              {businessProfile?.business_type && businessProfile?.business_name
-                ? `Configure your AI agent for ${businessProfile.business_name} (${BUSINESS_TYPE_CONFIGS[businessProfile.business_type]?.name || businessProfile.business_type})`
-                : 'Configure your AI voice agent settings and business information'}
+              Configure your AI voice agent settings and business information
             </p>
           </div>
           <Button
@@ -330,7 +137,7 @@ export function AgentConfigurationDashboard({
               setShowCreateForm(false);
               setSelectedAgent(null);
               setSelectedAgentType(null);
-              setActiveSection('business');
+              setActiveSection('type');
             }}
           >
             ← Back to Agents
@@ -349,17 +156,16 @@ export function AgentConfigurationDashboard({
                 <nav className="space-y-1">
                   {[
                     {
-                      id: 'business',
-                      label: 'Business Info',
-                      icon: '🏢',
-                      disabled: false,
-                    },
-                    {
                       id: 'type',
                       label: 'Agent Type',
                       icon: '🤖',
-                      disabled:
-                        !!selectedAgent || !businessProfile?.business_type,
+                      disabled: !!selectedAgent,
+                    },
+                    {
+                      id: 'business',
+                      label: 'Business Info',
+                      icon: '🏢',
+                      disabled: !selectedAgentType,
                     },
                     {
                       id: 'scripts',
@@ -405,111 +211,108 @@ export function AgentConfigurationDashboard({
 
           {/* Content */}
           <div className="lg:col-span-3">
-            {activeSection === 'business' && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <span>🏢</span>
-                    <span>Business Information Setup</span>
-                  </CardTitle>
-                  <CardDescription>
-                    Configure your business details first. This information will
-                    be used to create specialized AI agent templates for your
-                    business type.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-8">
-                    <p className="text-gray-600 mb-4">
-                      Please complete your business information in the section
-                      above to continue with AI agent configuration.
-                    </p>
-                    <div className="text-sm text-gray-500">
-                      <p>✓ Business name and type</p>
-                      <p>✓ Contact information</p>
-                      <p>✓ Business details</p>
-                    </div>
-                    {businessProfile?.business_type &&
-                      businessProfile?.business_name && (
-                        <div className="mt-6">
-                          <Button
-                            onClick={() => setActiveSection('type')}
-                            className="bg-orange-600 hover:bg-orange-700 text-white"
-                          >
-                            Continue to Agent Type Selection
-                          </Button>
-                        </div>
-                      )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
             {activeSection === 'type' && (
               <AgentTypeSelector
                 selectedType={selectedAgentType || undefined}
                 onSelect={type => {
                   setSelectedAgentType(type);
-                  setActiveSection('scripts');
+                  setActiveSection('business');
                 }}
                 showContinueButton={true}
-                onContinue={() => setActiveSection('scripts')}
-                businessType={businessProfile?.business_type}
-                businessTypeName={
-                  businessProfile?.business_type
-                    ? BUSINESS_TYPE_CONFIGS[businessProfile.business_type]?.name
-                    : undefined
-                }
-                onTemplatePreview={(agentType, template) => {
-                  setTemplatePreview({ agentType, template });
+                onContinue={() => setActiveSection('business')}
+              />
+            )}
+
+            {activeSection === 'business' && selectedAgentType && (
+              <BusinessInformationForm
+                agent={selectedAgent}
+                onSave={async data => {
+                  console.log('Saving business info:', data);
+                  // TODO: Implement save
+                  await loadAgentConfigurations();
+                  setShowCreateForm(false);
+                  setSelectedAgent(null);
                 }}
               />
             )}
 
             {activeSection === 'scripts' && selectedAgentType && (
-              <AgentTypeCallScripts
+              <CallScriptEditor
+                agent={selectedAgent}
                 agentType={selectedAgentType}
-                businessInfo={businessProfile}
-                onSave={async scripts => {
-                  console.log('Saving call scripts:', scripts);
-                  await saveConfiguration('call_scripts', scripts);
+                onSave={async data => {
+                  console.log('Saving call scripts:', data);
+                  // TODO: Implement save
                 }}
               />
             )}
 
             {activeSection === 'voice' && selectedAgentType && (
-              <AgentTypeVoiceSettings
+              <VoiceSettingsPanel
+                agent={selectedAgent}
                 agentType={selectedAgentType}
-                businessInfo={businessProfile}
-                onSave={async voiceProfile => {
-                  console.log('Saving voice settings:', voiceProfile);
-                  await saveConfiguration('voice_settings', voiceProfile);
+                onSave={async data => {
+                  console.log('Saving voice settings:', data);
+                  // TODO: Implement save
                 }}
               />
             )}
 
-            {activeSection === 'routing' && selectedAgentType && (
-              <AgentTypeCallRouting
-                agentType={selectedAgentType}
-                businessInfo={businessProfile}
-                onSave={async routingConfig => {
-                  console.log('Saving routing config:', routingConfig);
-                  await saveConfiguration('call_routing', routingConfig);
-                }}
-              />
+            {activeSection === 'routing' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Call Routing & Forwarding</CardTitle>
+                  <CardDescription>
+                    Configure how calls are handled when the AI agent can't
+                    assist
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Forward to Office Number
+                      </label>
+                      <Input
+                        type="tel"
+                        placeholder="+1 (555) 123-4567"
+                        defaultValue=""
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Voicemail Greeting
+                      </label>
+                      <Input placeholder="Custom voicemail message" />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-4">
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        className="rounded border-gray-300"
+                      />
+                      <span className="text-sm">Enable call forwarding</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        className="rounded border-gray-300"
+                        defaultChecked
+                      />
+                      <span className="text-sm">Enable voicemail</span>
+                    </label>
+                  </div>
+
+                  <div className="pt-4 border-t">
+                    <Button>Save Routing Settings</Button>
+                  </div>
+                </CardContent>
+              </Card>
             )}
           </div>
         </div>
-
-        {/* Template Preview Modal */}
-        {templatePreview && (
-          <TemplatePreviewModal
-            isOpen={!!templatePreview}
-            onClose={() => setTemplatePreview(null)}
-            agentType={templatePreview.agentType}
-            template={templatePreview.template}
-          />
-        )}
       </div>
     );
   }

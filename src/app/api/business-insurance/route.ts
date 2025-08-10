@@ -122,7 +122,10 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('Error adding business insurance:', error);
       return NextResponse.json(
-        { error: 'Failed to add business insurance', details: (error as Error).message },
+        {
+          error: 'Failed to add business insurance',
+          details: (error as Error).message,
+        },
         { status: 500 }
       );
     }

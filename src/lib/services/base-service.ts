@@ -1,6 +1,6 @@
 /**
- * 业务服务基类
- * 提供统一的服务生命周期管理和消息处理能力
+ * Business service base class
+ * Provides unified service lifecycle management and message processing capabilities
  */
 
 import {
@@ -18,21 +18,21 @@ import {
 } from '../message-system/message-dispatcher';
 
 /**
- * 业务服务抽象基类
+ * Business service abstract base class
  */
 export abstract class BaseBusinessService {
-  /** 服务名称 */
+  /** Service name */
   abstract readonly name: string;
 
-  /** 服务能力声明 */
+  /** Service capability declaration */
   protected capabilities: IServiceCapabilities = {};
 
-  /** 服务状态 */
+  /** Service status */
   private _initialized = false;
   private _registrationTime?: Date;
 
   constructor() {
-    // 从装饰器中读取能力配置
+    // Read capability configuration from decorator
     const decoratorCapabilities = getServiceCapabilities(
       this.constructor as new () => BaseBusinessService
     );
@@ -40,17 +40,17 @@ export abstract class BaseBusinessService {
       this.capabilities = { ...this.capabilities, ...decoratorCapabilities };
     }
 
-    // 子类构造完成后自动注册到消息分发器
+    // Auto-register to message dispatcher after subclass construction
     setTimeout(() => this.autoRegister(), 0);
   }
 
   /**
-   * 服务初始化（子类必须实现）
+   * Service initialization (must be implemented by subclass)
    */
   abstract initialize(): Promise<void>;
 
   /**
-   * 处理通话分析完成消息（可选实现）
+   * Handle call analysis completed message (optional implementation)
    */
   handleCallAnalyzed?(data: CallAnalyzedData): Promise<void>;
 
@@ -215,6 +215,7 @@ export function ServiceCapabilities(capabilities: IServiceCapabilities) {
     constructor: T
   ): T {
     // 存储能力到类的元数据中
+
     (constructor as any)._serviceCapabilities = capabilities;
 
     // 返回原构造函数

@@ -378,7 +378,10 @@ export class MessageDispatcher {
   private extractBusinessType<T extends MessageData>(data: T): string | null {
     if (data.type === MessageType.CALL_ANALYZED) {
       const callData = data as CallAnalyzedData;
-      return (callData.call.call_analysis?.business_type as string) || null;
+      return (
+        (callData.call.call_analysis?.custom_analysis_data
+          ?.business_type as string) || null
+      );
     }
     return null;
   }
@@ -386,6 +389,7 @@ export class MessageDispatcher {
   /**
    * 从消息中提取用户类型
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private extractUserType<T extends MessageData>(_data: T): string | null {
     // 可以根据 userId 查询用户类型，这里简化处理
     return null;

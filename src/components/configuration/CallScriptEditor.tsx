@@ -37,7 +37,7 @@ interface CallScript {
 interface CallScriptEditorProps {
   agent: AgentConfig | null;
   agentType: AgentType;
-  onSave: (data: any) => Promise<void>;
+  onSave: (data: Record<string, unknown>) => Promise<void>;
 }
 
 const DEFAULT_SCRIPTS = {

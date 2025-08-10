@@ -11,7 +11,7 @@ import { GetStartedPanel } from '@/components/ai-agents/GetStartedPanel';
 import { AgentDashboard } from '@/components/ai-agents/AgentDashboard';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { HelpButton } from '@/components/HelpDialog';
+import { HelpButton } from '@/components/modals/HelpDialog';
 
 // Types
 import {
@@ -43,7 +43,7 @@ export default function AIAgentsPage() {
   const [error, setError] = useState<string | null>(null);
 
   const router = useRouter();
-  const { loading: profileLoading } = useUserProfile(user);
+  const { profile, loading: profileLoading } = useUserProfile(user);
 
   // Authentication effect
   useEffect(() => {
@@ -311,7 +311,7 @@ export default function AIAgentsPage() {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
       {/* Header */}
-      <header className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
+      <header className="border-b border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -342,44 +342,6 @@ export default function AIAgentsPage() {
             </div>
 
             <div className="flex items-center space-x-4">
-              <button
-                onClick={() => router.back()}
-                className="flex items-center gap-2 text-black dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-400 transition-colors"
-              >
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
-                <span className="hidden sm:inline">Back</span>
-              </button>
-              <button
-                onClick={() => router.push('/')}
-                className="flex items-center gap-2 text-black dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-400 transition-colors"
-              >
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="m3 12 2-2m0 0 7-7 7 7M5 10v10a1 1 0 0 0 1 1h3m0 0V11a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v10m3 0a1 1 0 0 0 1-1V10m0 0 7-7"
-                  />
-                </svg>
-                <span className="hidden sm:inline">Home</span>
-              </button>
               <Button
                 variant="ghost"
                 onClick={() => router.push('/dashboard')}
@@ -407,7 +369,7 @@ export default function AIAgentsPage() {
         {viewMode === 'getting-started' && (
           <GetStartedPanel
             onAgentTypeSelect={handleAgentTypeSelect}
-            agentStats={dashboardData?.agent_summary as any}
+            agentStats={dashboardData?.agent_summary}
           />
         )}
 
@@ -474,7 +436,7 @@ export default function AIAgentsPage() {
       </main>
 
       {/* Help Button */}
-      <HelpButton currentPage="dashboard" />
+      <HelpButton currentPage="ai-agents" />
     </div>
   );
 }

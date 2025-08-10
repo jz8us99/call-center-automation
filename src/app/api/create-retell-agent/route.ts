@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
 }
 
 function createKnowledgeBase(
-  businessKnowledge: any[],
+  businessKnowledge: Record<string, unknown>[],
   businessName: string,
   businessType: string
 ): string {
@@ -157,7 +157,7 @@ async function createRetellAgent(config: {
   agentPersonality: string;
   knowledgeBase: string;
   customPrompt?: string;
-  voiceSettings: any;
+  voiceSettings: Record<string, unknown>;
 }) {
   // This would integrate with the actual Retell AI API
   // For now, return a mock response

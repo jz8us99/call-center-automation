@@ -373,7 +373,8 @@ export function BusinessInformationHeader({
                       Payment Methods
                     </p>
                     <p className="text-sm font-medium text-green-600">
-                      {((businessProfile as any).payment_methods?.length || 0) > 0
+                      {((businessProfile as any).payment_methods?.length || 0) >
+                      0
                         ? `✓ ${(businessProfile as any).payment_methods?.length} methods`
                         : '○ Pending'}
                     </p>
@@ -383,7 +384,8 @@ export function BusinessInformationHeader({
                       FAQs
                     </p>
                     <p className="text-sm font-medium text-green-600">
-                      {((businessProfile as any).common_questions?.length || 0) > 0
+                      {((businessProfile as any).common_questions?.length ||
+                        0) > 0
                         ? `✓ ${(businessProfile as any).common_questions?.length} items`
                         : '○ Pending'}
                     </p>
@@ -393,7 +395,8 @@ export function BusinessInformationHeader({
                       Documents
                     </p>
                     <p className="text-sm font-medium text-green-600">
-                      {((businessProfile as any).business_documents?.length || 0) > 0
+                      {((businessProfile as any).business_documents?.length ||
+                        0) > 0
                         ? `✓ ${(businessProfile as any).business_documents?.length} files`
                         : '○ Pending'}
                     </p>

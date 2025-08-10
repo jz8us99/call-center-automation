@@ -58,7 +58,10 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Error fetching appointments:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ appointments: data || [] });
@@ -202,7 +205,10 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Error creating appointment:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     // Optional: Create appointment history record (skip if function doesn't exist)
@@ -368,7 +374,10 @@ export async function PUT(request: NextRequest) {
 
     if (error) {
       console.error('Error updating appointment:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     // Optional: Create appointment history record (skip if function doesn't exist)
@@ -435,7 +444,10 @@ export async function DELETE(request: NextRequest) {
 
       if (error) {
         console.error('Error deleting appointment:', error);
-        return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+        return NextResponse.json(
+          { error: (error as Error).message },
+          { status: 500 }
+        );
       }
 
       return NextResponse.json({
@@ -460,7 +472,10 @@ export async function DELETE(request: NextRequest) {
 
       if (error) {
         console.error('Error cancelling appointment:', error);
-        return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+        return NextResponse.json(
+          { error: (error as Error).message },
+          { status: 500 }
+        );
       }
 
       // Optional: Create appointment history record (skip if function doesn't exist)

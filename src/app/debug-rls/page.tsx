@@ -191,7 +191,7 @@ export default function DebugRLSPage() {
             <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
               <span className="text-white text-lg">✨</span>
             </div>
-            <span className="text-xl font-bold">24x7 Office Assistant</span>
+            <span className="text-xl font-bold">ReceptionPro</span>
             <span className="text-sm bg-yellow-500/20 text-yellow-300 px-2 py-1 rounded-full">
               Debug
             </span>

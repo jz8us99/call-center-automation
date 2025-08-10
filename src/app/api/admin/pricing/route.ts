@@ -1,7 +1,6 @@
 'use server';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
 
 interface PricingTier {
   id: string;
@@ -19,35 +18,9 @@ interface PricingTier {
 }
 
 // GET /api/admin/pricing - Fetch all pricing tiers
-export async function GET() {
+export async function GET(_request: NextRequest) {
   try {
-    // Get the authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Check if user is admin
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('role, is_super_admin')
-      .eq('user_id', user.id)
-      .single();
-
-    if (
-      profileError ||
-      !profile?.role ||
-      (profile.role !== 'admin' && !profile.is_super_admin)
-    ) {
-      return NextResponse.json(
-        { error: 'Forbidden - Admin access required' },
-        { status: 403 }
-      );
-    }
+    // 权限验证已由中间件处理
 
     // For now, return mock pricing tiers since we don't have a pricing_tiers table yet
     // In a real implementation, you would fetch from the database
@@ -143,33 +116,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    // Get the authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Check if user is admin
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('role, is_super_admin')
-      .eq('user_id', user.id)
-      .single();
-
-    if (
-      profileError ||
-      !profile?.role ||
-      (profile.role !== 'admin' && !profile.is_super_admin)
-    ) {
-      return NextResponse.json(
-        { error: 'Forbidden - Admin access required' },
-        { status: 403 }
-      );
-    }
+    // 权限验证已由中间件处理
 
     // For now, just return success message
     // In a real implementation, you would create the tier in the database

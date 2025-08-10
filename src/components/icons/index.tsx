@@ -55,13 +55,6 @@ export const QuestionMarkIcon: React.FC<IconProps> = ({
   </svg>
 );
 
-// Mail icon
-export const MailIcon: React.FC<IconProps> = ({ className = 'h-4 w-4' }) => (
-  <svg className={className} fill="currentColor" viewBox="0 0 16 16">
-    <path d="M.05 3.555A2 2 0 0 1 2 2h12a2 2 0 0 1 1.95 1.555L8 8.414.05 3.555ZM0 4.697v7.104l5.803-3.558L0 4.697ZM6.761 8.83l-6.57 4.027A2 2 0 0 0 2 14h12a2 2 0 0 0 1.808-1.144l-6.57-4.027L8 9.586l-1.239-.757Zm3.436-.586L16 11.801V4.697l-5.803 3.546Z" />
-  </svg>
-);
-
 // Play icon
 export const PlayIcon: React.FC<IconProps> = ({ className = 'h-3 w-3' }) => (
   <svg className={className} fill="currentColor" viewBox="0 0 24 24">
@@ -343,25 +336,6 @@ export const ArrowLeftIcon: React.FC<IconProps> = ({
   </svg>
 );
 
-// Arrow Right icon
-export const ArrowRightIcon: React.FC<IconProps> = ({
-  className = 'h-4 w-4',
-}) => (
-  <svg
-    className={className}
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M9 5l7 7-7 7"
-    />
-  </svg>
-);
-
 // Dollar Sign icon
 export const DollarSignIcon: React.FC<IconProps> = ({
   className = 'h-4 w-4',
@@ -434,23 +408,6 @@ export const BuildingIcon: React.FC<IconProps> = ({
   </svg>
 );
 
-// User icon (single user)
-export const UserIcon: React.FC<IconProps> = ({ className = 'h-5 w-5' }) => (
-  <svg
-    className={className}
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-    />
-  </svg>
-);
-
 // Clock icon
 export const ClockIcon: React.FC<IconProps> = ({ className = 'h-5 w-5' }) => (
   <svg
@@ -464,25 +421,6 @@ export const ClockIcon: React.FC<IconProps> = ({ className = 'h-5 w-5' }) => (
       strokeLinejoin="round"
       strokeWidth={2}
       d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-    />
-  </svg>
-);
-
-// Shopping Bag icon
-export const ShoppingBagIcon: React.FC<IconProps> = ({
-  className = 'h-5 w-5',
-}) => (
-  <svg
-    className={className}
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M16 11V7a4 4 0 00-8 0v4M5 9h14l-1 12H6L5 9z"
     />
   </svg>
 );
@@ -505,28 +443,3 @@ export const CallTypeIcon: React.FC<CallTypeIconProps> = ({
     return <QuestionMarkIcon className={`${className} text-gray-500`} />;
   }
 };
-
-// Package icon (for products)
-export const PackageIcon: React.FC<IconProps> = ({ className = 'h-5 w-5' }) => (
-  <svg className={className} fill="currentColor" viewBox="0 0 16 16">
-    <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1v8h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1v.5a.5.5 0 0 1-1 0V14H4v.5a.5.5 0 0 1-1 0V14H2a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h1V3H2a.5.5 0 0 1-.5-.5v-1A.5.5 0 0 1 2 1h1V.5A.5.5 0 0 1 3.5 0zM4 3v8h8V3H4z" />
-    <path d="M6 5.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5z" />
-  </svg>
-);
-
-// Save icon
-export const SaveIcon: React.FC<IconProps> = ({ className = 'h-5 w-5' }) => (
-  <svg
-    className={className}
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
-    />
-  </svg>
-);

@@ -115,8 +115,7 @@ export default function JobsPage() {
                   Job Management
                 </h1>
                 <p className="text-sm text-black dark:text-gray-300">
-                  Manage job titles, categories, and types for your dental
-                  office
+                  Manage job titles, categories, and types for your office
                 </p>
               </div>
             </div>
@@ -150,7 +149,7 @@ export default function JobsPage() {
               <div>
                 <CardTitle className="flex items-center gap-2">
                   <BuildingIcon className="h-5 w-5 text-orange-600" />
-                  Dental Office Job Structure
+                  Office Job Structure
                 </CardTitle>
                 <CardDescription>
                   Organize your staff responsibilities using a hierarchical
@@ -182,7 +181,7 @@ export default function JobsPage() {
                   Job Title
                 </h3>
                 <p className="text-sm text-blue-700 dark:text-blue-300">
-                  Professional roles like Hygienist, Assistant, Dentist,
+                  Professional roles like Agent, Assistant, Manager,
                   Receptionist
                 </p>
               </div>
@@ -197,7 +196,8 @@ export default function JobsPage() {
                   Category
                 </h3>
                 <p className="text-sm text-green-700 dark:text-green-300">
-                  Service areas like Cleaning, Exams, Treatment, Administrative
+                  Service areas like Customer Service, Sales, Support,
+                  Administrative
                 </p>
               </div>
 
@@ -211,8 +211,8 @@ export default function JobsPage() {
                   Job Type
                 </h3>
                 <p className="text-sm text-purple-700 dark:text-purple-300">
-                  Specific services like Regular Cleaning, Root Canal, X-Ray
-                  Setup
+                  Specific services like Inbound Calls, Outbound Calls, Live
+                  Chat
                 </p>
               </div>
             </div>

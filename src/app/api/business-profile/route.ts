@@ -206,7 +206,10 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('Error saving business profile:', error);
       return NextResponse.json(
-        { error: 'Failed to save business profile', details: (error as Error).message },
+        {
+          error: 'Failed to save business profile',
+          details: (error as Error).message,
+        },
         { status: 500 }
       );
     }
@@ -413,7 +416,10 @@ export async function PUT(request: NextRequest) {
     if (error) {
       console.error('Error updating business profile:', error);
       return NextResponse.json(
-        { error: 'Failed to update business profile', details: (error as Error).message },
+        {
+          error: 'Failed to update business profile',
+          details: (error as Error).message,
+        },
         { status: 500 }
       );
     }

@@ -13,7 +13,7 @@ async function syncStaffAvailabilityWithOfficeHours(
   }>
 ) {
   const supabase = supabaseAdmin;
-  
+
   // Get all staff members for this business
   const { data: staff, error: staffError } = await supabase
     .from('staff')
@@ -33,7 +33,7 @@ async function syncStaffAvailabilityWithOfficeHours(
       const currentYear = new Date().getFullYear();
       const startDate = `${currentYear}-01-01`;
       const endDate = `${currentYear + 1}-12-31`;
-      
+
       // Get existing staff availability records
       const { data: existingAvailability } = await supabase
         .from('staff_availability')
@@ -58,11 +58,13 @@ async function syncStaffAvailabilityWithOfficeHours(
       while (currentDate <= finalDate) {
         const dateStr = currentDate.toISOString().split('T')[0];
         const dayOfWeek = currentDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
-        
+
         // Find matching office hour
-        const officeHour = office_hours.find(oh => oh.day_of_week === dayOfWeek);
+        const officeHour = office_hours.find(
+          oh => oh.day_of_week === dayOfWeek
+        );
         const existing = existingMap.get(dateStr);
-        
+
         // Only update if no existing record or existing record is not a manual override
         if (!existing || !existing.is_override) {
           if (officeHour && officeHour.is_active) {
@@ -75,7 +77,7 @@ async function syncStaffAvailabilityWithOfficeHours(
               is_available: true,
               is_override: false,
               reason: 'office_hours_sync',
-              source: 'office_hours_update'
+              source: 'office_hours_update',
             });
           } else {
             // Office is closed, set staff as unavailable
@@ -87,11 +89,11 @@ async function syncStaffAvailabilityWithOfficeHours(
               is_available: false,
               is_override: false,
               reason: 'office_closed',
-              source: 'office_hours_update'
+              source: 'office_hours_update',
             });
           }
         }
-        
+
         currentDate.setDate(currentDate.getDate() + 1);
       }
 
@@ -99,18 +101,21 @@ async function syncStaffAvailabilityWithOfficeHours(
       const chunkSize = 100;
       for (let i = 0; i < batchUpdates.length; i += chunkSize) {
         const chunk = batchUpdates.slice(i, i + chunkSize);
-        
+
         // Use upsert to handle existing records
-        await supabase
-          .from('staff_availability')
-          .upsert(chunk, {
-            onConflict: 'staff_id,date'
-          });
+        await supabase.from('staff_availability').upsert(chunk, {
+          onConflict: 'staff_id,date',
+        });
       }
-      
-      console.log(`Synced availability for staff ${staffMember.id}: ${batchUpdates.length} records`);
+
+      console.log(
+        `Synced availability for staff ${staffMember.id}: ${batchUpdates.length} records`
+      );
     } catch (error) {
-      console.error(`Failed to sync availability for staff ${staffMember.id}:`, error);
+      console.error(
+        `Failed to sync availability for staff ${staffMember.id}:`,
+        error
+      );
     }
   }
 }
@@ -141,7 +146,10 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Error fetching office hours:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ office_hours: data || [] });
@@ -248,9 +256,16 @@ export async function POST(request: NextRequest) {
 
     // After successfully saving office hours, update staff default availability
     try {
-      await syncStaffAvailabilityWithOfficeHours(user_id, business_id, office_hours);
+      await syncStaffAvailabilityWithOfficeHours(
+        user_id,
+        business_id,
+        office_hours
+      );
     } catch (syncError) {
-      console.warn('Failed to sync staff availability with office hours:', syncError);
+      console.warn(
+        'Failed to sync staff availability with office hours:',
+        syncError
+      );
       // Don't fail the request if sync fails
     }
 
@@ -300,7 +315,10 @@ export async function PUT(request: NextRequest) {
 
     if (error) {
       console.error('Error updating office hours:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ office_hours: data });
@@ -339,7 +357,10 @@ export async function DELETE(request: NextRequest) {
 
     if (error) {
       console.error('Error deleting office hours:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ success: true });

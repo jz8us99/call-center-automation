@@ -78,7 +78,10 @@ export async function POST(request: NextRequest) {
       }
       console.error('Error creating job title:', error);
       return NextResponse.json(
-        { error: 'Failed to create job title', details: (error as Error).message },
+        {
+          error: 'Failed to create job title',
+          details: (error as Error).message,
+        },
         { status: 500 }
       );
     }
@@ -128,7 +131,10 @@ export async function PUT(request: NextRequest) {
     if (error) {
       console.error('Error updating job title:', error);
       return NextResponse.json(
-        { error: 'Failed to update job title', details: (error as Error).message },
+        {
+          error: 'Failed to update job title',
+          details: (error as Error).message,
+        },
         { status: 500 }
       );
     }
@@ -180,7 +186,10 @@ export async function DELETE(request: NextRequest) {
     if (error) {
       console.error('Error deleting job title:', error);
       return NextResponse.json(
-        { error: 'Failed to delete job title', details: (error as Error).message },
+        {
+          error: 'Failed to delete job title',
+          details: (error as Error).message,
+        },
         { status: 500 }
       );
     }

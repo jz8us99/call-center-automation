@@ -100,7 +100,10 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('Error creating staff member:', error);
       return NextResponse.json(
-        { error: 'Failed to create staff member', details: (error as Error).message },
+        {
+          error: 'Failed to create staff member',
+          details: (error as Error).message,
+        },
         { status: 500 }
       );
     }
@@ -169,7 +172,10 @@ export async function PUT(request: NextRequest) {
     if (error) {
       console.error('Error updating staff member:', error);
       return NextResponse.json(
-        { error: 'Failed to update staff member', details: (error as Error).message },
+        {
+          error: 'Failed to update staff member',
+          details: (error as Error).message,
+        },
         { status: 500 }
       );
     }
@@ -223,7 +229,10 @@ export async function DELETE(request: NextRequest) {
     if (error) {
       console.error('Error deleting staff member:', error);
       return NextResponse.json(
-        { error: 'Failed to delete staff member', details: (error as Error).message },
+        {
+          error: 'Failed to delete staff member',
+          details: (error as Error).message,
+        },
         { status: 500 }
       );
     }

@@ -277,10 +277,11 @@ export function HolidaysManagement({
     },
   ];
 
-  const [showNationalHolidaysDialog, setShowNationalHolidaysDialog] = useState(false);
-  const [selectedNationalHolidays, setSelectedNationalHolidays] = useState<string[]>(
-    []
-  );
+  const [showNationalHolidaysDialog, setShowNationalHolidaysDialog] =
+    useState(false);
+  const [selectedNationalHolidays, setSelectedNationalHolidays] = useState<
+    string[]
+  >([]);
   const [savingNationalHolidays, setSavingNationalHolidays] = useState(false);
 
   const openNationalHolidaysDialog = () => {
@@ -642,7 +643,9 @@ export function HolidaysManagement({
       >
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Select National Holidays for {selectedYear}</DialogTitle>
+            <DialogTitle>
+              Select National Holidays for {selectedYear}
+            </DialogTitle>
             <DialogDescription>
               Choose from federal holidays and common business closures to add
               to your calendar
@@ -817,7 +820,8 @@ export function HolidaysManagement({
               <Button
                 onClick={saveNationalHolidays}
                 disabled={
-                  selectedNationalHolidays.length === 0 || savingNationalHolidays
+                  selectedNationalHolidays.length === 0 ||
+                  savingNationalHolidays
                 }
                 className="flex-1"
               >

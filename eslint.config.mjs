@@ -15,22 +15,22 @@ const eslintConfig = [
     extends: ['prettier'],
     plugins: ['prettier'],
     rules: {
-      // Disable prettier/formatting rules for build success
-      'prettier/prettier': 'off',
-      // Disable problematic ESLint rules for build success
+      'prettier/prettier': 'error',
+
+      // ✅ 添加你的自定义规则
+      '@typescript-eslint/no-unused-vars': 'warn',
       '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-expressions': 'off',
-      '@typescript-eslint/prefer-as-const': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
       '@typescript-eslint/no-require-imports': 'off',
+
+      // ✅ 关闭 unescaped entity 报错
       'react/no-unescaped-entities': 'off',
-      'react-hooks/exhaustive-deps': 'off',
-      'react-hooks/rules-of-hooks': 'off',
-      '@next/next/no-img-element': 'off',
-      'prefer-const': 'off',
-      'no-var': 'off',
-      'no-unused-vars': 'off',
-      'no-constant-condition': 'off',
+
+      // ✅ 保留 hooks 检查
+      'react-hooks/rules-of-hooks': 'error',
     },
   }),
 ];

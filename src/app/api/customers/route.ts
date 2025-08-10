@@ -50,7 +50,10 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Error fetching customers:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({
@@ -181,7 +184,10 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Error creating customer:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ customer: data });
@@ -343,7 +349,10 @@ export async function PUT(request: NextRequest) {
 
     if (error) {
       console.error('Error updating customer:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ customer: data });
@@ -403,7 +412,10 @@ export async function DELETE(request: NextRequest) {
 
       if (error) {
         console.error('Error deleting customer:', error);
-        return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+        return NextResponse.json(
+          { error: (error as Error).message },
+          { status: 500 }
+        );
       }
 
       return NextResponse.json({
@@ -425,7 +437,10 @@ export async function DELETE(request: NextRequest) {
 
       if (error) {
         console.error('Error deactivating customer:', error);
-        return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+        return NextResponse.json(
+          { error: (error as Error).message },
+          { status: 500 }
+        );
       }
 
       return NextResponse.json({

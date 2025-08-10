@@ -114,7 +114,10 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('Error creating job title category mapping:', error);
       return NextResponse.json(
-        { error: 'Failed to create mapping', details: (error as Error).message },
+        {
+          error: 'Failed to create mapping',
+          details: (error as Error).message,
+        },
         { status: 500 }
       );
     }
@@ -175,7 +178,10 @@ export async function PUT(request: NextRequest) {
     if (error) {
       console.error('Error updating job title category mapping:', error);
       return NextResponse.json(
-        { error: 'Failed to update mapping', details: (error as Error).message },
+        {
+          error: 'Failed to update mapping',
+          details: (error as Error).message,
+        },
         { status: 500 }
       );
     }
@@ -218,7 +224,10 @@ export async function DELETE(request: NextRequest) {
     if (error) {
       console.error('Error deleting job title category mapping:', error);
       return NextResponse.json(
-        { error: 'Failed to delete mapping', details: (error as Error).message },
+        {
+          error: 'Failed to delete mapping',
+          details: (error as Error).message,
+        },
         { status: 500 }
       );
     }

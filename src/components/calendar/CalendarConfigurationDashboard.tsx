@@ -125,7 +125,8 @@ export function CalendarConfigurationDashboard({
     notes: '',
   });
   const [creatingAppointment, setCreatingAppointment] = useState(false);
-  const [syncingStaffAvailability, setSyncingStaffAvailability] = useState(false);
+  const [syncingStaffAvailability, setSyncingStaffAvailability] =
+    useState(false);
 
   useEffect(() => {
     loadStaffAndStats();
@@ -367,7 +368,11 @@ export function CalendarConfigurationDashboard({
   };
 
   const handleSyncStaffAvailability = async () => {
-    if (!confirm('This will update all staff availability to match current office hours. Staff members with manual overrides will keep their custom schedules. Continue?')) {
+    if (
+      !confirm(
+        'This will update all staff availability to match current office hours. Staff members with manual overrides will keep their custom schedules. Continue?'
+      )
+    ) {
       return;
     }
 
@@ -386,8 +391,10 @@ export function CalendarConfigurationDashboard({
 
       if (response.ok) {
         const result = await response.json();
-        alert(`Successfully synchronized ${result.total_records_updated} availability records for ${result.total_staff} staff members.`);
-        
+        alert(
+          `Successfully synchronized ${result.total_records_updated} availability records for ${result.total_staff} staff members.`
+        );
+
         // Reload staff stats to reflect changes
         await loadStaffAndStats();
       } else {
@@ -500,7 +507,7 @@ export function CalendarConfigurationDashboard({
                 <PlusIcon className="h-4 w-4 mr-2" />
                 Book Appointment
               </Button>
-              <Button 
+              <Button
                 onClick={handleSyncStaffAvailability}
                 disabled={syncingStaffAvailability}
                 variant="outline"

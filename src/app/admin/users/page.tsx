@@ -6,7 +6,8 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { User } from '@supabase/supabase-js';
-import { SimpleThemeSwitch } from '@/components/SimpleThemeSwitch';
+import { SimpleThemeSwitch } from '@/components/common/SimpleThemeSwitch';
+import { useBrand } from '@/lib/brand';
 
 // Components
 import { Button } from '@/components/ui/button';
@@ -23,7 +24,6 @@ import {
   PlusIcon,
   UsersIcon,
   SettingsIcon,
-  HomeIcon,
   SignOutIcon,
 } from '@/components/icons';
 
@@ -47,10 +47,11 @@ export default function AdminUserManagement() {
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
-  const [,] = useState('');
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [showUserForm, setShowUserForm] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
+
+  const brand = useBrand();
 
   // Individual filter states
   const [fullNameFilter, setFullNameFilter] = useState('');
@@ -137,6 +138,33 @@ export default function AdminUserManagement() {
   const handleEditUser = (userProfile: UserProfile) => {
     setSelectedUser(userProfile);
     setShowUserForm(true);
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    if (!confirm('Are you sure you want to delete this user?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/users/${userId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete user');
+      }
+
+      // Reload users after successful deletion
+      await loadUsers();
+      alert('User deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete user:', error);
+      alert('Failed to delete user. Please try again.');
+    }
   };
 
   const handleSaveUser = async (formData: FormData) => {
@@ -234,7 +262,7 @@ export default function AdminUserManagement() {
   if (!isDevelopment && (!user || !isAdmin)) {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
-        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-8 text-center shadow-lg">
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-2xl p-8 text-center shadow-lg">
           <h1 className="text-2xl font-bold text-black dark:text-white mb-4">
             Access Denied
           </h1>
@@ -256,7 +284,7 @@ export default function AdminUserManagement() {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900">
         {/* Header */}
-        <header className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
+        <header className="border-b border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 shadow-sm">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
@@ -446,7 +474,7 @@ export default function AdminUserManagement() {
                         ].map(agentType => (
                           <label
                             key={agentType.id}
-                            className="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg"
+                            className="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg"
                           >
                             <input
                               type="checkbox"
@@ -534,7 +562,7 @@ export default function AdminUserManagement() {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
       {/* Header */}
-      <header className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
+      <header className="border-b border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link
@@ -545,7 +573,7 @@ export default function AdminUserManagement() {
                 <span className="text-white text-xl font-bold">R</span>
               </div>
               <span className="text-xl font-bold text-black dark:text-white">
-                JSX-ReceptionAI
+                {brand.name}
               </span>
               <span className="text-sm bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
                 Admin - User Management
@@ -553,32 +581,6 @@ export default function AdminUserManagement() {
             </Link>
 
             <div className="flex items-center space-x-4">
-              <button
-                onClick={() => router.back()}
-                className="flex items-center gap-2 text-black dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-400 transition-colors"
-              >
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
-                <span className="hidden sm:inline">Back</span>
-              </button>
-              <Link
-                href="/"
-                className="flex items-center gap-2 text-black dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-400 transition-colors"
-              >
-                <HomeIcon className="h-4 w-4" />
-                <span className="hidden sm:inline">Home</span>
-              </Link>
               <Link
                 href="/admin/dashboard"
                 className="flex items-center gap-2 text-black dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-400 transition-colors"
@@ -805,7 +807,7 @@ export default function AdminUserManagement() {
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-gray-200 dark:border-gray-700">
+                      <tr className="border-b border-gray-200 dark:border-gray-600">
                         <th className="text-left py-3 px-4 font-semibold text-black dark:text-white">
                           Full Name
                         </th>
@@ -834,7 +836,7 @@ export default function AdminUserManagement() {
                         return (
                           <tr
                             key={userProfile.id}
-                            className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                            className="border-b border-gray-100 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                           >
                             <td className="py-4 px-4">
                               <div className="font-medium text-black dark:text-white">

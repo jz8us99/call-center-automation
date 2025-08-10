@@ -171,8 +171,13 @@ function generateAgentPrompt(
 
   // Generate business locations section
   let locationsText = '';
-  if ((context as any).business_locations && (context as any).business_locations.length > 0) {
-    locationsText = `\n\nOur business locations:\n${(context as any).business_locations
+  if (
+    (context as any).business_locations &&
+    (context as any).business_locations.length > 0
+  ) {
+    locationsText = `\n\nOur business locations:\n${(
+      context as any
+    ).business_locations
       .map((location: any) => {
         const address = [
           location.street_address,

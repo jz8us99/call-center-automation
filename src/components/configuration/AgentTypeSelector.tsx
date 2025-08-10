@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Card,
   CardContent,
@@ -10,21 +10,13 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-  AgentType,
-  AGENT_TYPE_CONFIGS,
-  AgentTypeConfig,
-} from '@/types/agent-types';
-import { BusinessType, AgentTemplate } from '@/types/business-types';
+import { AgentType, AGENT_TYPE_CONFIGS } from '@/types/agent-types';
 
 interface AgentTypeSelectorProps {
   selectedType?: AgentType;
   onSelect: (type: AgentType) => void;
   onContinue?: () => void;
   showContinueButton?: boolean;
-  businessType?: string;
-  businessTypeName?: string;
-  onTemplatePreview?: (agentType: AgentType, template: AgentTemplate) => void;
 }
 
 export function AgentTypeSelector({
@@ -32,97 +24,23 @@ export function AgentTypeSelector({
   onSelect,
   onContinue,
   showContinueButton = false,
-  businessType,
-  businessTypeName,
-  onTemplatePreview,
 }: AgentTypeSelectorProps) {
   const [hoveredType, setHoveredType] = useState<AgentType | null>(null);
-  const [templates, setTemplates] = useState<Record<string, AgentTemplate>>({});
-  const [loadingTemplates, setLoadingTemplates] = useState<Set<string>>(
-    new Set()
-  );
 
   const handleTypeSelect = (type: AgentType) => {
     onSelect(type);
   };
 
-  const loadTemplate = async (
-    agentType: AgentType,
-    businessTypeId?: string
-  ) => {
-    if (templates[agentType] || !businessTypeId) return;
-
-    setLoadingTemplates(prev => new Set([...prev, agentType]));
-
-    try {
-      // Get business type ID from the database
-      const businessTypesResponse = await fetch('/api/business-types');
-      const businessTypesData = await businessTypesResponse.json();
-      const businessTypeObj = businessTypesData.business_types?.find(
-        (bt: BusinessType) => bt.type_code === businessTypeId
-      );
-
-      if (businessTypeObj) {
-        // Get agent type ID - we'll need to map the enum to database ID
-        const agentTypesResponse = await fetch('/api/agent-types');
-        const agentTypesData = await agentTypesResponse.json();
-        const agentTypeObj = agentTypesData.agent_types?.find(
-          (at: any) => at.type_code === agentType
-        );
-
-        if (agentTypeObj) {
-          const templateResponse = await fetch(
-            `/api/agent-templates?business_type_id=${businessTypeObj.id}&agent_type_id=${agentTypeObj.id}`
-          );
-          const templateData = await templateResponse.json();
-
-          if (templateData.template) {
-            setTemplates(prev => ({
-              ...prev,
-              [agentType]: templateData.template,
-            }));
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error loading template:', error);
-    } finally {
-      setLoadingTemplates(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(agentType);
-        return newSet;
-      });
-    }
-  };
-
-  const handleTemplatePreview = (agentType: AgentType) => {
-    const template = templates[agentType];
-    if (template && onTemplatePreview) {
-      onTemplatePreview(agentType, template);
-    }
-  };
-
-  useEffect(() => {
-    // Load templates for all agent types when businessType changes
-    if (businessType) {
-      Object.values(AgentType).forEach(agentType => {
-        loadTemplate(agentType, businessType);
-      });
-    }
-  }, [businessType]);
-
   return (
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          {businessTypeName
-            ? `Configuring: AI Agent for ${businessTypeName}`
-            : 'Choose Your AI Agent Type'}
+          Choose Your AI Agent Type
         </h2>
         <p className="text-gray-600 max-w-2xl mx-auto">
-          {businessTypeName
-            ? `Select the AI agent type optimized for ${businessTypeName} businesses. Each template includes pre-configured scripts, voice settings, and routing rules.`
-            : 'Select the type of AI voice agent that best fits your business needs. Each agent type is optimized for specific tasks and customer interactions.'}
+          Select the type of AI voice agent that best fits your business needs.
+          Each agent type is optimized for specific tasks and customer
+          interactions.
         </p>
       </div>
 
@@ -219,55 +137,6 @@ export function AgentTypeSelector({
                         ))}
                       </ul>
                     </div>
-                  </div>
-                )}
-
-                {businessType && (
-                  <div className="pt-3 border-t border-gray-200">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={e => {
-                        e.stopPropagation();
-                        handleTemplatePreview(config.type);
-                      }}
-                      disabled={
-                        loadingTemplates.has(config.type) ||
-                        !templates[config.type]
-                      }
-                      className="w-full"
-                    >
-                      {loadingTemplates.has(config.type) ? (
-                        <div className="flex items-center space-x-2">
-                          <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
-                          <span>Loading...</span>
-                        </div>
-                      ) : (
-                        <>
-                          <svg
-                            className="w-4 h-4 mr-2"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                            />
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                            />
-                          </svg>
-                          Template Preview
-                        </>
-                      )}
-                    </Button>
                   </div>
                 )}
               </div>

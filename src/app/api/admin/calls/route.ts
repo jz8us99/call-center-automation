@@ -1,59 +1,32 @@
 'use server';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { authenticateRequest, createAuthenticatedClient } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 
 // GET /api/admin/calls - Fetch call logs with optional user filtering
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId'); // Optional user filter
+    const userId = searchParams.get('userId') || searchParams.get('user_id'); // Optional user filter
     const limit = parseInt(searchParams.get('limit') || '50');
-    const offset = parseInt(searchParams.get('offset') || '0');
+    const page = parseInt(searchParams.get('page') || '1');
+    const offset = searchParams.get('offset')
+      ? parseInt(searchParams.get('offset') || '0')
+      : (page - 1) * limit;
 
-    // Verify user authentication using the app's authentication system
-    const user = await authenticateRequest(request);
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Please provide a valid JWT token' },
-        { status: 401 }
-      );
-    }
+    // Additional filter parameters
+    const startTimeFrom = searchParams.get('start_time_from');
+    const startTimeTo = searchParams.get('start_time_to');
+    const callType = searchParams.get('type');
+    const phoneNumber = searchParams.get('phone_number');
 
-    // Check if user is admin or super admin
-    if (user.role !== 'admin' && !user.is_super_admin) {
-      return NextResponse.json(
-        { error: 'Forbidden - Admin access required' },
-        { status: 403 }
-      );
-    }
+    // Permission verification handled by middleware
+    // Use existing admin client that bypasses RLS
 
-    // Get JWT token from authorization header
-    const authorization = request.headers.get('authorization');
-    const token = authorization?.replace('Bearer ', '') || '';
-
-    // Create authenticated Supabase client with user's JWT token
-    // This allows RLS policies to work correctly for admin users
-    const supabaseWithAuth = await createAuthenticatedClient(token);
-
-    // Build the query for call logs using the authenticated client
-    // Try to fetch from call_logs table first, then fallback to customer_call_logs
-    let query = supabaseWithAuth
-      .from('call_logs')
-      .select(
-        `
-        id,
-        user_id,
-        phone_number,
-        call_status,
-        started_at,
-        ended_at,
-        duration,
-        call_summary,
-        created_at
-      `,
-        { count: 'exact' }
-      )
+    // Build the query for call logs with manual join using service role
+    let query = supabaseAdmin
+      .from('customer_call_logs')
+      .select('*')
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
@@ -62,66 +35,93 @@ export async function GET(request: NextRequest) {
       query = query.eq('user_id', userId);
     }
 
-    let { data: calls, error: callsError, count } = await query;
-
-    // If call_logs table doesn't exist, try customer_call_logs
-    if (callsError && callsError.code === 'PGRST116') {
-      query = supabaseWithAuth
-        .from('customer_call_logs')
-        .select(
-          `
-          id,
-          user_id,
-          phone_number,
-          call_status,
-          started_at,
-          ended_at,
-          duration,
-          call_summary,
-          created_at
-        `,
-          { count: 'exact' }
-        )
-        .order('created_at', { ascending: false })
-        .range(offset, offset + limit - 1);
-
-      // Apply user filter if specified
-      if (userId && userId !== 'all') {
-        query = query.eq('user_id', userId);
-      }
-
-      const result = await query;
-      calls = result.data;
-      callsError = result.error;
-      count = result.count;
-    }
+    const { data: calls, error: callsError } = await query;
 
     if (callsError) {
       console.error('Error fetching calls:', callsError);
-      // Return empty result instead of error to prevent 500
-      return NextResponse.json({
-        calls: [],
-        totalCount: 0,
-        currentOffset: offset,
-        limit: limit,
-        warning: 'Could not fetch calls: ' + callsError.message,
-      });
+      return NextResponse.json(
+        { error: 'Failed to fetch calls' },
+        { status: 500 }
+      );
     }
 
-    // For now, return calls without profile data to test basic functionality
+    // Manually fetch user profiles for the calls
+    let callsWithProfiles = calls || [];
+
+    if (calls && calls.length > 0) {
+      // Get unique user IDs from calls
+      const userIds = [
+        ...new Set(calls.map(call => call.user_id).filter(Boolean)),
+      ];
+
+      if (userIds.length > 0) {
+        // Fetch profiles for these users using service role
+        const { data: profiles, error: profilesError } = await supabaseAdmin
+          .from('profiles')
+          .select('id, user_id, full_name, email, business_name')
+          .in('user_id', userIds);
+
+        if (!profilesError && profiles) {
+          // Create a map for quick lookup
+          const profileMap = new Map();
+          profiles.forEach(profile => {
+            profileMap.set(profile.user_id, profile);
+          });
+
+          // Add profile data to each call
+          callsWithProfiles = calls.map(call => ({
+            ...call,
+            profiles: profileMap.get(call.user_id) || null,
+          }));
+        }
+      }
+    }
+
+    // Also get total count for pagination using service role
+    let countQuery = supabaseAdmin
+      .from('customer_call_logs')
+      .select('*', { count: 'exact', head: true });
+
+    // Apply same filters to count query
+    if (userId && userId !== 'all') {
+      countQuery = countQuery.eq('user_id', userId);
+    }
+    if (startTimeFrom) {
+      countQuery = countQuery.gte('start_timestamp', startTimeFrom);
+    }
+    if (startTimeTo) {
+      countQuery = countQuery.lte('start_timestamp', startTimeTo);
+    }
+    if (callType && callType !== 'all') {
+      countQuery = countQuery.or(
+        `direction.eq.${callType},call_type.eq.${callType}`
+      );
+    }
+    if (phoneNumber) {
+      countQuery = countQuery.or(
+        `from_number.ilike.%${phoneNumber}%,to_number.ilike.%${phoneNumber}%`
+      );
+    }
+
+    const { count, error: countError } = await countQuery;
+
+    if (countError) {
+      console.error('Error getting call count:', countError);
+    }
+
     return NextResponse.json({
-      calls: calls || [],
+      calls: callsWithProfiles,
       totalCount: count || 0,
-      currentOffset: offset,
-      limit: limit,
+      pagination: {
+        page: page,
+        limit: limit,
+        totalPages: Math.ceil((count || 0) / limit),
+      },
     });
   } catch (error) {
     console.error('Unexpected error:', error);
     return NextResponse.json(
-      {
-        error: 'Internal server error',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

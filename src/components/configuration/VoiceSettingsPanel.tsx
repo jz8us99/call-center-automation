@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Card,
   CardContent,
@@ -41,16 +41,44 @@ interface VoiceSettingsPanelProps {
   onSave: (data: VoiceSettings) => Promise<void>;
 }
 
-interface RetellVoice {
-  id: string;
-  name: string;
-  accent: string;
-  style: string;
-  gender?: string;
-  age?: string;
-  provider?: string;
-  preview_audio_url?: string;
-}
+const AVAILABLE_VOICES = [
+  {
+    id: 'voice_1',
+    name: 'Sarah - Professional Female',
+    accent: 'American',
+    style: 'Professional',
+  },
+  {
+    id: 'voice_2',
+    name: 'Michael - Friendly Male',
+    accent: 'American',
+    style: 'Friendly',
+  },
+  {
+    id: 'voice_3',
+    name: 'Emma - Warm Female',
+    accent: 'British',
+    style: 'Warm',
+  },
+  {
+    id: 'voice_4',
+    name: 'James - Authoritative Male',
+    accent: 'American',
+    style: 'Authoritative',
+  },
+  {
+    id: 'voice_5',
+    name: 'Sofia - Calm Female',
+    accent: 'American',
+    style: 'Calm',
+  },
+  {
+    id: 'voice_6',
+    name: 'David - Gentle Male',
+    accent: 'Australian',
+    style: 'Gentle',
+  },
+];
 
 export function VoiceSettingsPanel({
   agent,
@@ -58,11 +86,9 @@ export function VoiceSettingsPanel({
   onSave,
 }: VoiceSettingsPanelProps) {
   const agentConfig = AGENT_TYPE_CONFIGS[agentType];
-  const [availableVoices, setAvailableVoices] = useState<RetellVoice[]>([]);
-  const [loadingVoices, setLoadingVoices] = useState(true);
   const [voiceSettings, setVoiceSettings] = useState<VoiceSettings>({
-    voice_id: '',
-    voice_name: '',
+    voice_id: 'voice_1',
+    voice_name: 'Sarah - Professional Female',
     language: 'en-US',
     speed: agentConfig.suggestedVoiceSettings.speed,
     pitch: agentConfig.suggestedVoiceSettings.pitch,
@@ -74,55 +100,14 @@ export function VoiceSettingsPanel({
   const [isPlaying, setIsPlaying] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Load Retell AI voices
-  useEffect(() => {
-    const loadVoices = async () => {
-      try {
-        setLoadingVoices(true);
-        const response = await fetch('/api/retell-voices');
-        if (response.ok) {
-          const data = await response.json();
-          setAvailableVoices(data.voices || []);
-
-          // Set default voice if none selected
-          if (
-            data.voices &&
-            data.voices.length > 0 &&
-            !voiceSettings.voice_id
-          ) {
-            const defaultVoice = data.voices[0];
-            setVoiceSettings(prev => ({
-              ...prev,
-              voice_id: defaultVoice.id,
-              voice_name: defaultVoice.name,
-              style:
-                defaultVoice.style || defaultVoice.gender || 'professional',
-            }));
-          }
-        } else {
-          console.error('Failed to load voices from Retell AI');
-          // Fallback to empty array
-          setAvailableVoices([]);
-        }
-      } catch (error) {
-        console.error('Error loading voices:', error);
-        setAvailableVoices([]);
-      } finally {
-        setLoadingVoices(false);
-      }
-    };
-
-    loadVoices();
-  }, []);
-
   const handleVoiceChange = (voiceId: string) => {
-    const selectedVoice = availableVoices.find(v => v.id === voiceId);
+    const selectedVoice = AVAILABLE_VOICES.find(v => v.id === voiceId);
     if (selectedVoice) {
       setVoiceSettings(prev => ({
         ...prev,
         voice_id: voiceId,
         voice_name: selectedVoice.name,
-        style: selectedVoice.style || selectedVoice.gender || 'professional',
+        style: selectedVoice.style.toLowerCase(),
       }));
     }
   };
@@ -137,32 +122,14 @@ export function VoiceSettingsPanel({
   const handleTestVoice = async () => {
     setIsPlaying(true);
     try {
-      const selectedVoice = availableVoices.find(
-        v => v.id === voiceSettings.voice_id
-      );
+      // TODO: Implement voice testing with Retell API
+      console.log('Testing voice with settings:', voiceSettings);
 
-      if (selectedVoice?.preview_audio_url) {
-        // Play the preview audio from Retell AI
-        const audio = new Audio(selectedVoice.preview_audio_url);
-
-        audio.onended = () => {
-          setIsPlaying(false);
-        };
-
-        audio.onerror = () => {
-          console.error('Error playing preview audio');
-          setIsPlaying(false);
-        };
-
-        await audio.play();
-      } else {
-        console.log('Testing voice with settings:', voiceSettings);
-        // Fallback to simulation if no preview URL available
-        await new Promise(resolve => setTimeout(resolve, 3000));
-        setIsPlaying(false);
-      }
+      // Simulate audio playback
+      await new Promise(resolve => setTimeout(resolve, 3000));
     } catch (error) {
       console.error('Error testing voice:', error);
+    } finally {
       setIsPlaying(false);
     }
   };
@@ -206,27 +173,16 @@ export function VoiceSettingsPanel({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {loadingVoices ? (
-                  <SelectItem value="" disabled>
-                    Loading voices...
+                {AVAILABLE_VOICES.map(voice => (
+                  <SelectItem key={voice.id} value={voice.id}>
+                    <div className="flex flex-col">
+                      <span>{voice.name}</span>
+                      <span className="text-xs text-gray-500">
+                        {voice.accent} • {voice.style}
+                      </span>
+                    </div>
                   </SelectItem>
-                ) : availableVoices.length === 0 ? (
-                  <SelectItem value="" disabled>
-                    No voices available
-                  </SelectItem>
-                ) : (
-                  availableVoices.map(voice => (
-                    <SelectItem key={voice.id} value={voice.id}>
-                      <div className="flex flex-col">
-                        <span>{voice.name}</span>
-                        <span className="text-xs text-gray-500">
-                          {voice.accent} • {voice.style || voice.gender}
-                          {voice.provider && ` • ${voice.provider}`}
-                        </span>
-                      </div>
-                    </SelectItem>
-                  ))
-                )}
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -412,10 +368,10 @@ export function VoiceSettingsPanel({
               Sample Script:
             </p>
             <p className="text-sm text-gray-600 italic">
-              &quot;Hello! Thank you for calling Sunshine Medical Clinic. I&apos;m your AI
-              assistant, and I&apos;m here to help you today. I can assist you with
+              `Hello! Thank you for calling Sunshine Medical Clinic. I'm your AI
+              assistant, and I'm here to help you today. I can assist you with
               scheduling appointments, providing information about our services,
-              or connecting you with our staff. How may I help you today?&quot;
+              or connecting you with our staff. How may I help you today?`
             </p>
           </div>
 

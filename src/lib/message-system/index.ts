@@ -43,12 +43,8 @@ export {
   type BusinessService,
 } from '../services/business-registry';
 
-// 示例服务
+// 诊所服务
 export {
-  CRMService,
-  DentalAppointmentService,
-  NotificationService,
-  crmService,
-  dentalAppointmentService,
-  notificationService,
-} from '../services/example-service';
+  ClinicAppointmentService,
+  clinicAppointmentService,
+} from '../services/clinic-service';

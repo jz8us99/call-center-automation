@@ -53,7 +53,10 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Error fetching appointment types:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ appointment_types: data || [] });
@@ -154,7 +157,10 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Error creating appointment type:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ appointment_type: data });
@@ -285,7 +291,10 @@ export async function PUT(request: NextRequest) {
 
     if (error) {
       console.error('Error updating appointment type:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ appointment_type: data });
@@ -347,7 +356,10 @@ export async function DELETE(request: NextRequest) {
 
       if (error) {
         console.error('Error deleting appointment type:', error);
-        return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+        return NextResponse.json(
+          { error: (error as Error).message },
+          { status: 500 }
+        );
       }
 
       return NextResponse.json({
@@ -369,7 +381,10 @@ export async function DELETE(request: NextRequest) {
 
       if (error) {
         console.error('Error deactivating appointment type:', error);
-        return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+        return NextResponse.json(
+          { error: (error as Error).message },
+          { status: 500 }
+        );
       }
 
       return NextResponse.json({

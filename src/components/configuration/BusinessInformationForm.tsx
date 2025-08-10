@@ -25,7 +25,6 @@ import {
   CheckCircle,
   AlertCircle,
 } from 'lucide-react';
-import { Textarea } from '@/components/ui/textarea';
 
 interface DocumentUpload {
   file: File;
@@ -40,9 +39,6 @@ interface AgentConfig {
   agent_name?: string;
   business_name?: string;
   business_address?: string;
-  city?: string;
-  state?: string;
-  postal_code?: string;
   business_phone?: string;
   business_email?: string;
   business_website?: string;
@@ -56,7 +52,6 @@ interface AgentConfig {
   documents?: DocumentUpload[];
   website_url?: string;
   agent_personality?: 'professional' | 'friendly' | 'technical';
-  support_content?: string;
 }
 
 interface BusinessInformationFormProps {
@@ -72,9 +67,6 @@ export function BusinessInformationForm({
     agent_name: agent?.agent_name || '',
     business_name: agent?.business_name || '',
     business_address: agent?.business_address || '',
-    city: agent?.city || '',
-    state: agent?.state || '',
-    postal_code: agent?.postal_code || '',
     business_phone: agent?.business_phone || '',
     business_email: agent?.business_email || '',
     business_website: agent?.business_website || '',
@@ -86,9 +78,8 @@ export function BusinessInformationForm({
     greeting_message: agent?.greeting_message || '',
     timezone: agent?.timezone || 'America/New_York',
     documents: agent?.documents || [],
-    website_url: agent?.website_url || agent?.business_website || '',
+    website_url: agent?.website_url || '',
     agent_personality: agent?.agent_personality || 'professional',
-    support_content: agent?.support_content || '',
   });
 
   const [saving, setSaving] = useState(false);
@@ -351,55 +342,17 @@ export function BusinessInformationForm({
             />
           </div>
 
-          {/* Business Address Fields */}
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Street Address
-              </label>
-              <Input
-                value={formData.business_address}
-                onChange={e =>
-                  handleInputChange('business_address', e.target.value)
-                }
-                placeholder="123 Main Street, Suite 100"
-              />
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  City
-                </label>
-                <Input
-                  value={formData.city}
-                  onChange={e => handleInputChange('city', e.target.value)}
-                  placeholder="City"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  State
-                </label>
-                <Input
-                  value={formData.state}
-                  onChange={e => handleInputChange('state', e.target.value)}
-                  placeholder="State"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  ZIP Code
-                </label>
-                <Input
-                  value={formData.postal_code}
-                  onChange={e =>
-                    handleInputChange('postal_code', e.target.value)
-                  }
-                  placeholder="12345"
-                />
-              </div>
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Business Address
+            </label>
+            <Input
+              value={formData.business_address}
+              onChange={e =>
+                handleInputChange('business_address', e.target.value)
+              }
+              placeholder="123 Main St, City, State 12345"
+            />
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
@@ -587,26 +540,7 @@ export function BusinessInformationForm({
             </p>
           </div>
 
-          <div className="border-t pt-6">
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <FileText className="h-4 w-4 inline mr-2" />
-                Paste or Type Support Content
-              </label>
-              <Textarea
-                value={formData.support_content}
-                onChange={e =>
-                  handleInputChange('support_content', e.target.value)
-                }
-                placeholder="Paste or type your business policies, services, pricing, FAQs, or any other information that will help the AI agent provide better customer service..."
-                className="min-h-[120px]"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                This content will be used by the AI agent to provide accurate
-                information about your business
-              </p>
-            </div>
-
+          <div className="border-t pt-4">
             <p className="text-sm text-gray-600 mb-4">
               Or upload specific documents:
             </p>

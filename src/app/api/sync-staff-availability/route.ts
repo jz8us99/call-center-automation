@@ -6,9 +6,9 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = supabaseAdmin;
     const body = await request.json();
-    
+
     const { user_id, business_id } = body;
-    
+
     if (!user_id || !business_id) {
       return NextResponse.json(
         {
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    
+
     // Get current office hours
     const { data: officeHours, error: officeHoursError } = await supabase
       .from('office_hours')
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       .eq('user_id', user_id)
       .eq('business_id', business_id)
       .order('day_of_week', { ascending: true });
-    
+
     if (officeHoursError) {
       return NextResponse.json(
         {
@@ -34,23 +34,24 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
-    
+
     if (!officeHours || officeHours.length === 0) {
       return NextResponse.json(
         {
-          error: 'No office hours configured. Please set up office hours first.',
+          error:
+            'No office hours configured. Please set up office hours first.',
         },
         { status: 400 }
       );
     }
-    
+
     // Get all active staff members
     const { data: staff, error: staffError } = await supabase
       .from('staff')
       .select('id, first_name, last_name')
       .eq('user_id', user_id)
       .eq('is_active', true);
-    
+
     if (staffError) {
       return NextResponse.json(
         {
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
-    
+
     if (!staff || staff.length === 0) {
       return NextResponse.json(
         {
@@ -68,10 +69,10 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    
+
     let totalUpdated = 0;
     const staffResults: Record<string, unknown>[] = [];
-    
+
     // Sync availability for each staff member
     for (const staffMember of staff) {
       try {
@@ -79,14 +80,14 @@ export async function POST(request: NextRequest) {
           staffMember.id,
           officeHours
         );
-        
+
         staffResults.push({
           staff_id: staffMember.id,
           staff_name: `${staffMember.first_name} ${staffMember.last_name}`,
           records_updated: result.recordsUpdated,
           success: true,
         });
-        
+
         totalUpdated += result.recordsUpdated;
       } catch (error) {
         console.error(`Failed to sync staff ${staffMember.id}:`, error);
@@ -99,7 +100,7 @@ export async function POST(request: NextRequest) {
         });
       }
     }
-    
+
     return NextResponse.json({
       success: true,
       message: `Successfully synchronized staff availability`,
@@ -126,12 +127,12 @@ async function syncStaffMemberAvailability(
   }>
 ) {
   const supabase = supabaseAdmin;
-  
+
   // Get current date range (current year + next year)
   const currentYear = new Date().getFullYear();
   const startDate = `${currentYear}-01-01`;
   const endDate = `${currentYear + 1}-12-31`;
-  
+
   // Get existing staff availability records (only non-overrides)
   const { data: existingAvailability } = await supabase
     .from('staff_availability')
@@ -139,7 +140,7 @@ async function syncStaffMemberAvailability(
     .eq('staff_id', staffId)
     .gte('date', startDate)
     .lte('date', endDate);
-  
+
   // Create a set of dates that are manual overrides (don't update these)
   const overrideDates = new Set();
   if (existingAvailability) {
@@ -149,25 +150,25 @@ async function syncStaffMemberAvailability(
       }
     });
   }
-  
+
   // Generate availability records for the date range
   const batchUpdates = [];
   const currentDate = new Date(startDate);
   const finalDate = new Date(endDate);
-  
+
   while (currentDate <= finalDate) {
     const dateStr = currentDate.toISOString().split('T')[0];
     const dayOfWeek = currentDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
-    
+
     // Skip if this date has a manual override
     if (overrideDates.has(dateStr)) {
       currentDate.setDate(currentDate.getDate() + 1);
       continue;
     }
-    
+
     // Find matching office hour
     const officeHour = officeHours.find(oh => oh.day_of_week === dayOfWeek);
-    
+
     if (officeHour && officeHour.is_active) {
       // Office is open, set staff as available with office hours
       batchUpdates.push({
@@ -195,30 +196,30 @@ async function syncStaffMemberAvailability(
         updated_at: new Date().toISOString(),
       });
     }
-    
+
     currentDate.setDate(currentDate.getDate() + 1);
   }
-  
+
   // Batch update staff availability (in chunks to avoid large queries)
   const chunkSize = 100;
   let totalRecordsUpdated = 0;
-  
+
   for (let i = 0; i < batchUpdates.length; i += chunkSize) {
     const chunk = batchUpdates.slice(i, i + chunkSize);
-    
+
     // Use upsert to handle existing records
     const { error: upsertError } = await supabase
       .from('staff_availability')
       .upsert(chunk, {
-        onConflict: 'staff_id,date'
+        onConflict: 'staff_id,date',
       });
-      
+
     if (upsertError) {
       throw new Error(`Failed to upsert chunk: ${upsertError.message}`);
     }
-    
+
     totalRecordsUpdated += chunk.length;
   }
-  
+
   return { recordsUpdated: totalRecordsUpdated };
 }

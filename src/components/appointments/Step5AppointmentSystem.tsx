@@ -700,7 +700,8 @@ export function Step5AppointmentSystem({
                     No holidays configured for {selectedYear}
                   </h3>
                   <p className="text-gray-600 mb-6">
-                    Add holidays to let customers know when you&apos;re closed for business
+                    Add holidays to let customers know when you&apos;re closed
+                    for business
                   </p>
                   <Button
                     onClick={() => {

@@ -83,7 +83,8 @@ export async function POST(
 
     // Check if source is already in target language
     if (
-      (sourceAgent.supported_languages as any)?.code === duplicateRequest.target_language
+      (sourceAgent.supported_languages as any)?.code ===
+      duplicateRequest.target_language
     ) {
       return NextResponse.json(
         { error: 'Source agent is already in the target language' },

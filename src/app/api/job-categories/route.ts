@@ -82,7 +82,10 @@ export async function POST(request: NextRequest) {
       }
       console.error('Error creating job category:', error);
       return NextResponse.json(
-        { error: 'Failed to create job category', details: (error as Error).message },
+        {
+          error: 'Failed to create job category',
+          details: (error as Error).message,
+        },
         { status: 500 }
       );
     }
@@ -130,7 +133,10 @@ export async function PUT(request: NextRequest) {
     if (error) {
       console.error('Error updating job category:', error);
       return NextResponse.json(
-        { error: 'Failed to update job category', details: (error as Error).message },
+        {
+          error: 'Failed to update job category',
+          details: (error as Error).message,
+        },
         { status: 500 }
       );
     }
@@ -204,7 +210,10 @@ export async function DELETE(request: NextRequest) {
     if (error) {
       console.error('Error deleting job category:', error);
       return NextResponse.json(
-        { error: 'Failed to delete job category', details: (error as Error).message },
+        {
+          error: 'Failed to delete job category',
+          details: (error as Error).message,
+        },
         { status: 500 }
       );
     }

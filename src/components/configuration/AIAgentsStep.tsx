@@ -26,13 +26,9 @@ import {
   SettingsIcon,
   EditIcon,
   TrashIcon,
-  UserIcon,
-  MicIcon,
   PhoneIcon,
+  UsersIcon as UserIcon,
 } from '@/components/icons';
-import { AgentTypeCallScripts } from '../ai-agents/AgentTypeCallScripts';
-import { AgentTypeVoiceSettings } from '../ai-agents/AgentTypeVoiceSettings';
-import { AgentTypeCallRouting } from '../ai-agents/AgentTypeCallRouting';
 import { AgentType, AGENT_TYPE_CONFIGS } from '@/types/agent-types';
 
 interface AIAgent {
@@ -528,7 +524,9 @@ export function AIAgentsStep({
     } catch (error) {
       console.error(`Error saving ${section} configuration:`, error);
       setSaveStatus(prev => ({ ...prev, [section]: 'error' }));
-      alert(`Error saving ${section} configuration: ${(error as Error).message}`);
+      alert(
+        `Error saving ${section} configuration: ${(error as Error).message}`
+      );
     } finally {
       setSavingTab(null);
     }
@@ -822,7 +820,9 @@ export function AIAgentsStep({
                           {formData.agent_type &&
                             (AGENT_TYPES as any)[formData.agent_type] &&
                             (() => {
-                              const config = (AGENT_TYPES as any)[formData.agent_type];
+                              const config = (AGENT_TYPES as any)[
+                                formData.agent_type
+                              ];
                               return (
                                 <div className="flex items-center gap-2">
                                   <config.icon className="h-4 w-4" />
@@ -1051,50 +1051,27 @@ export function AIAgentsStep({
             {/* Call Scripts */}
             {activeSection === 'scripts' && (
               <div className="space-y-4">
-                <AgentTypeCallScripts
-                  agentType={formData.agent_type as any}
-                  initialScripts={(formData as any).call_scripts}
-                  initialPrompt={formData.call_scripts_prompt}
-                  onSave={async (scripts: any) => {
-                    // Handle different script formats
-                    let scriptData = {};
-                    let scriptPrompt = '';
-
-                    if (Array.isArray(scripts)) {
-                      const firstScript = scripts[0];
-                      scriptData = {
-                        greeting_script: firstScript?.greeting_script || '',
-                        main_script: firstScript?.main_script || '',
-                        closing_script: firstScript?.closing_script || '',
-                        escalation_script: firstScript?.escalation_script || '',
-                      };
-                      scriptPrompt =
-                        firstScript?.main_script ||
-                        firstScript?.greeting_script ||
-                        '';
-                    } else {
-                      scriptData = scripts;
-                      scriptPrompt =
-                        scripts?.main_script || scripts?.greeting_script || '';
-                    }
-
-                    setFormData(prev => ({
-                      ...prev,
-                      call_scripts: scriptData,
-                      call_scripts_prompt: scriptPrompt,
-                    }));
-
-                    // Auto-save to database when scripts are generated
-                    setTimeout(async () => {
-                      try {
-                        await saveAgentConfiguration('scripts');
-                      } catch (error) {
-                        console.error('Failed to auto-save scripts:', error);
-                      }
-                    }, 100);
-                  }}
-                  businessInfo={{ ...businessInfo, user_id: user.id }}
-                />
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Call Scripts Configuration</CardTitle>
+                    <CardDescription>
+                      Configure custom call scripts for your AI agent (Coming
+                      soon)
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center py-8">
+                      <SettingsIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        Call Scripts Configuration
+                      </h3>
+                      <p className="text-gray-600">
+                        Advanced call script configuration will be available in
+                        a future update.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
 
                 {/* Save Button for Call Scripts */}
                 <div className="flex justify-end pt-4 border-t">
@@ -1136,29 +1113,26 @@ export function AIAgentsStep({
             {/* Voice Settings */}
             {activeSection === 'voice' && (
               <div className="space-y-4">
-                <AgentTypeVoiceSettings
-                  agentType={formData.agent_type as any}
-                  initialVoiceSettings={formData.voice_settings as any}
-                  businessInfo={{ ...businessInfo, user_id: user.id }}
-                  onSave={async (voiceProfile: any) => {
-                    setFormData(prev => ({
-                      ...prev,
-                      voice_settings: voiceProfile.voice_settings,
-                    }));
-
-                    // Auto-save to database
-                    setTimeout(async () => {
-                      try {
-                        await saveAgentConfiguration('voice');
-                      } catch (error) {
-                        console.error(
-                          'Failed to auto-save voice settings:',
-                          error
-                        );
-                      }
-                    }, 100);
-                  }}
-                />
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Voice Settings Configuration</CardTitle>
+                    <CardDescription>
+                      Configure voice settings for your AI agent (Coming soon)
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center py-8">
+                      <SettingsIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        Voice Settings Configuration
+                      </h3>
+                      <p className="text-gray-600">
+                        Advanced voice configuration will be available in a
+                        future update.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
 
                 {/* Save Button for Voice Settings */}
                 <div className="flex justify-end pt-4 border-t">
@@ -1200,16 +1174,26 @@ export function AIAgentsStep({
             {/* Call Routing */}
             {activeSection === 'routing' && (
               <div className="space-y-4">
-                <AgentTypeCallRouting
-                  agentType={formData.agent_type as any}
-                  businessInfo={{ ...businessInfo, user_id: user.id }}
-                  onSave={async (routing: any) => {
-                    setFormData(prev => ({
-                      ...prev,
-                      call_routing: routing,
-                    }));
-                  }}
-                />
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Call Routing Configuration</CardTitle>
+                    <CardDescription>
+                      Configure call routing for your AI agent (Coming soon)
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center py-8">
+                      <SettingsIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        Call Routing Configuration
+                      </h3>
+                      <p className="text-gray-600">
+                        Advanced call routing will be available in a future
+                        update.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
 
                 {/* Save Button for Call Routing */}
                 <div className="flex justify-end pt-4 border-t">

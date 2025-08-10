@@ -6,13 +6,15 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { User } from '@supabase/supabase-js';
-import { SimpleThemeSwitch } from '@/components/SimpleThemeSwitch';
+import { DashboardHeader } from '@/components/layout/DashboardHeader';
+import { useBrand } from '@/lib/brand';
 
 export default function AdminPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const { profile, loading: profileLoading, isAdmin } = useUserProfile(user);
+  const brand = useBrand();
 
   useEffect(() => {
     const getUser = async () => {
@@ -51,7 +53,7 @@ export default function AdminPage() {
   if (!user || !isAdmin) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-8 text-center shadow-lg">
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-2xl p-8 text-center shadow-lg">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
             Access Denied
           </h1>
@@ -69,71 +71,24 @@ export default function AdminPage() {
     );
   }
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.push('/');
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <header className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link
-              href="/"
-              className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
-            >
-              <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
-                <span className="text-white text-xl font-bold">R</span>
-              </div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">
-                JSX-ReceptionAI
-              </span>
-              <span className="text-sm bg-red-100 text-red-700 px-2 py-1 rounded-full">
-                Admin
-              </span>
-            </Link>
-
-            <div className="flex items-center space-x-4">
-              <SimpleThemeSwitch />
-              <span className="text-sm text-gray-600 dark:text-gray-300">
-                Welcome, {profile?.full_name || user?.email}
-              </span>
-              <button
-                onClick={handleSignOut}
-                className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-400 transition-colors"
-              >
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                  />
-                </svg>
-                Sign out
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <DashboardHeader
+        user={user}
+        userDisplayName={profile?.full_name || user?.email || 'Admin'}
+        pageType="admin"
+      />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <div className="grid gap-6">
           {/* Welcome Card */}
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
+          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-2xl p-6 shadow-sm">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
               Admin Control Panel
             </h1>
             <p className="text-gray-600 dark:text-gray-300">
-              Manage your JSX-ReceptionAI system from here.
+              Manage your {brand.name} system from here.
             </p>
           </div>
 
@@ -141,7 +96,7 @@ export default function AdminPage() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             <button
               onClick={() => router.push('/admin/dashboard')}
-              className="flex items-center gap-4 p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 active:scale-95 transition-all duration-150 shadow-sm hover:shadow-md active:shadow-lg transform"
+              className="flex items-center gap-4 p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 active:scale-95 transition-all duration-150 shadow-sm hover:shadow-md active:shadow-lg transform"
             >
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                 <svg
@@ -170,7 +125,7 @@ export default function AdminPage() {
 
             <button
               onClick={() => router.push('/admin/users')}
-              className="flex items-center gap-4 p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 active:scale-95 transition-all duration-150 shadow-sm hover:shadow-md active:shadow-lg transform"
+              className="flex items-center gap-4 p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 active:scale-95 transition-all duration-150 shadow-sm hover:shadow-md active:shadow-lg transform"
             >
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
                 <svg
@@ -197,7 +152,7 @@ export default function AdminPage() {
               </div>
             </button>
 
-            <button className="flex items-center gap-4 p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 active:scale-95 transition-all duration-150 shadow-sm hover:shadow-md active:shadow-lg transform">
+            <button className="flex items-center gap-4 p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 active:scale-95 transition-all duration-150 shadow-sm hover:shadow-md active:shadow-lg transform">
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                 <svg
                   className="h-6 w-6 text-green-600"
@@ -229,7 +184,7 @@ export default function AdminPage() {
               </div>
             </button>
 
-            <button className="flex items-center gap-4 p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 active:scale-95 transition-all duration-150 shadow-sm hover:shadow-md active:shadow-lg transform">
+            <button className="flex items-center gap-4 p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 active:scale-95 transition-all duration-150 shadow-sm hover:shadow-md active:shadow-lg transform">
               <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
                 <svg
                   className="h-6 w-6 text-orange-600"
@@ -255,7 +210,7 @@ export default function AdminPage() {
               </div>
             </button>
 
-            <button className="flex items-center gap-4 p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 active:scale-95 transition-all duration-150 shadow-sm hover:shadow-md active:shadow-lg transform">
+            <button className="flex items-center gap-4 p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 active:scale-95 transition-all duration-150 shadow-sm hover:shadow-md active:shadow-lg transform">
               <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
                 <svg
                   className="h-6 w-6 text-red-600"
@@ -281,7 +236,7 @@ export default function AdminPage() {
               </div>
             </button>
 
-            <button className="flex items-center gap-4 p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 active:scale-95 transition-all duration-150 shadow-sm hover:shadow-md active:shadow-lg transform">
+            <button className="flex items-center gap-4 p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600 active:scale-95 transition-all duration-150 shadow-sm hover:shadow-md active:shadow-lg transform">
               <div className="w-12 h-12 bg-cyan-100 rounded-lg flex items-center justify-center">
                 <svg
                   className="h-6 w-6 text-cyan-600"
@@ -309,7 +264,7 @@ export default function AdminPage() {
           </div>
 
           {/* Quick Stats */}
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
+          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-2xl p-6 shadow-sm">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
               Quick Overview
             </h2>

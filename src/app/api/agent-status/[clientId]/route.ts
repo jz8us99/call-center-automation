@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase-admin';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ clientId: string }> }
+  { params }: { params: { clientId: string } }
 ) {
   try {
     const user = await authenticateRequest(request);
@@ -12,7 +12,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { clientId } = await params;
+    const clientId = params.clientId;
 
     // Verify user has access to this client's data
     if (user.id !== clientId && !user.is_super_admin && user.role !== 'admin') {

@@ -122,7 +122,10 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('Error creating job type:', error);
       return NextResponse.json(
-        { error: 'Failed to create job type', details: (error as Error).message },
+        {
+          error: 'Failed to create job type',
+          details: (error as Error).message,
+        },
         { status: 500 }
       );
     }
@@ -192,7 +195,10 @@ export async function PUT(request: NextRequest) {
     if (error) {
       console.error('Error updating job type:', error);
       return NextResponse.json(
-        { error: 'Failed to update job type', details: (error as Error).message },
+        {
+          error: 'Failed to update job type',
+          details: (error as Error).message,
+        },
         { status: 500 }
       );
     }
@@ -244,7 +250,10 @@ export async function DELETE(request: NextRequest) {
     if (error) {
       console.error('Error deleting job type:', error);
       return NextResponse.json(
-        { error: 'Failed to delete job type', details: (error as Error).message },
+        {
+          error: 'Failed to delete job type',
+          details: (error as Error).message,
+        },
         { status: 500 }
       );
     }
