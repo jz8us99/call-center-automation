@@ -75,7 +75,9 @@ export default function AdminPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <DashboardHeader
         user={user}
-        userDisplayName={profile?.full_name || user?.email || 'Admin'}
+        userDisplayName={
+          profile?.full_name || user?.email?.split('@')[0] || 'Admin'
+        }
         pageType="admin"
       />
 

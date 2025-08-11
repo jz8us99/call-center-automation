@@ -16,10 +16,10 @@ export default function BillingSettings({ user }: BillingSettingsProps) {
         {/* Current Plan Section */}
         <Card className="p-6">
           <div className="mb-6">
-            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+            <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
               Current Plan
             </h2>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-xs text-gray-600 dark:text-gray-400">
               Your current subscription and usage information.
             </p>
           </div>
@@ -76,10 +76,10 @@ export default function BillingSettings({ user }: BillingSettingsProps) {
           <div className="mb-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+                <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
                   Payment Methods
                 </h2>
-                <p className="text-gray-600 dark:text-gray-400">
+                <p className="text-xs text-gray-600 dark:text-gray-400">
                   Manage your payment methods and billing information.
                 </p>
               </div>
@@ -123,10 +123,10 @@ export default function BillingSettings({ user }: BillingSettingsProps) {
           <div className="mb-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+                <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
                   Billing History
                 </h2>
-                <p className="text-gray-600 dark:text-gray-400">
+                <p className="text-xs text-gray-600 dark:text-gray-400">
                   Download your previous invoices and receipts.
                 </p>
               </div>
@@ -207,10 +207,10 @@ export default function BillingSettings({ user }: BillingSettingsProps) {
         {/* Usage Analytics Section */}
         <Card className="p-6">
           <div className="mb-6">
-            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+            <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
               Usage Analytics
             </h2>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-xs text-gray-600 dark:text-gray-400">
               Detailed breakdown of your monthly usage.
             </p>
           </div>

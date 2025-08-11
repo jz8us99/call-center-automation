@@ -207,7 +207,9 @@ export default function UserDashboard() {
     <div className="min-h-screen bg-white dark:bg-gray-800 dark:bg-gray-900">
       <DashboardHeader
         user={user}
-        userDisplayName={profile?.full_name || user?.email || 'User'}
+        userDisplayName={
+          profile?.full_name || user?.email?.split('@')[0] || 'User'
+        }
         pageType="dashboard"
         showConfigurationLink={true}
       />

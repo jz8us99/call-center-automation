@@ -1,9 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { User, CreditCard, Settings } from 'lucide-react';
+import { User, CreditCard, Settings, SlidersHorizontal } from 'lucide-react';
 
-export type SettingsTab = 'business' | 'account' | 'payment';
+export type SettingsTab = 'business' | 'account' | 'payment' | 'preferences';
 
 interface SettingsTabsProps {
   activeTab: SettingsTab;
@@ -18,6 +17,12 @@ interface TabItem {
 }
 
 const tabs: TabItem[] = [
+  {
+    id: 'preferences',
+    label: 'Preferences',
+    icon: SlidersHorizontal,
+    description: 'Language, notifications, and app preferences',
+  },
   {
     id: 'account',
     label: 'Account',

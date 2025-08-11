@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { SimpleThemeSwitch } from '@/components/common/SimpleThemeSwitch';
 import { User } from '@supabase/supabase-js';
 import { useBrand } from '@/lib/brand';
 import {
@@ -32,9 +31,14 @@ export function DashboardHeader({
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   useEffect(() => {
-    const handleClickOutside = () => {
+    const handleClickOutside = (event: MouseEvent) => {
       if (showUserMenu) {
-        setShowUserMenu(false);
+        // Check if the click is inside the dropdown menu
+        const target = event.target as Element;
+        const dropdown = target.closest('[data-dropdown="user-menu"]');
+        if (!dropdown) {
+          setShowUserMenu(false);
+        }
       }
     };
 
@@ -183,10 +187,17 @@ export function DashboardHeader({
                 </div>
 
                 {showUserMenu && (
-                  <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-50">
+                  <div
+                    data-dropdown="user-menu"
+                    className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-50"
+                  >
                     <div className="py-2">
                       <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-600">
-                        <div className="flex items-center space-x-3">
+                        <Link
+                          href="/profile"
+                          className="flex items-center space-x-3 hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-lg transition-colors"
+                          onClick={() => setShowUserMenu(false)}
+                        >
                           <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center text-white font-semibold">
                             {userDisplayName.charAt(0).toUpperCase()}
                           </div>
@@ -198,7 +209,7 @@ export function DashboardHeader({
                               {user.email}
                             </p>
                           </div>
-                        </div>
+                        </Link>
                       </div>
 
                       <div className="py-1">
@@ -238,7 +249,6 @@ export function DashboardHeader({
                 )}
               </div>
             )}
-            <SimpleThemeSwitch />
           </div>
         </div>
       </div>

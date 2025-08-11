@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
@@ -13,11 +13,12 @@ import { SettingsTab } from '@/components/settings/SettingsTabs';
 import BusinessSettings from '@/components/settings/business/BusinessSettings';
 import AccountSettings from '@/components/settings/account/AccountSettings';
 import BillingSettings from '@/components/settings/billing/BillingSettings';
+import PreferencesSettings from '@/components/settings/preferences/PreferencesSettings';
 
-export default function SettingsPage() {
+function SettingsContent() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<SettingsTab>('account');
+  const [activeTab, setActiveTab] = useState<SettingsTab>('preferences');
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -26,7 +27,10 @@ export default function SettingsPage() {
   // Get tab from URL params
   useEffect(() => {
     const tabParam = searchParams.get('tab') as SettingsTab;
-    if (tabParam && ['business', 'account', 'payment'].includes(tabParam)) {
+    if (
+      tabParam &&
+      ['business', 'account', 'payment', 'preferences'].includes(tabParam)
+    ) {
       setActiveTab(tabParam);
     }
   }, [searchParams]);
@@ -86,8 +90,10 @@ export default function SettingsPage() {
         return <AccountSettings user={user} />;
       case 'payment':
         return <BillingSettings user={user} />;
+      case 'preferences':
+        return <PreferencesSettings user={user} />;
       default:
-        return <BusinessSettings user={user} />;
+        return <PreferencesSettings user={user} />;
     }
   };
 
@@ -104,5 +110,24 @@ export default function SettingsPage() {
 
       <HelpButton currentPage="settings" />
     </>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-400">
+              Loading settings...
+            </p>
+          </div>
+        </div>
+      }
+    >
+      <SettingsContent />
+    </Suspense>
   );
 }

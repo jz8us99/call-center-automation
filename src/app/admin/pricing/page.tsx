@@ -481,7 +481,9 @@ export default function AdminPricingConfig() {
     <div className="min-h-screen bg-white dark:bg-gray-900">
       <DashboardHeader
         user={user}
-        userDisplayName={profile?.full_name || user?.email || 'Admin'}
+        userDisplayName={
+          profile?.full_name || user?.email?.split('@')[0] || 'Admin'
+        }
         pageType="admin"
       />
 

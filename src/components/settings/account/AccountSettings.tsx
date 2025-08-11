@@ -17,10 +17,10 @@ export default function AccountSettings({ user }: AccountSettingsProps) {
         {/* Profile Section */}
         <Card className="p-6">
           <div className="mb-6">
-            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+            <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
               Profile Information
             </h2>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-xs text-gray-600 dark:text-gray-400">
               Update your account profile information and email address.
             </p>
           </div>
@@ -68,10 +68,10 @@ export default function AccountSettings({ user }: AccountSettingsProps) {
         {/* Security Section */}
         <Card className="p-6">
           <div className="mb-6">
-            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+            <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
               Security
             </h2>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-xs text-gray-600 dark:text-gray-400">
               Manage your password and account security settings.
             </p>
           </div>
@@ -114,10 +114,10 @@ export default function AccountSettings({ user }: AccountSettingsProps) {
         {/* Preferences Section */}
         <Card className="p-6">
           <div className="mb-6">
-            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+            <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
               Preferences
             </h2>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-xs text-gray-600 dark:text-gray-400">
               Customize your account preferences and notification settings.
             </p>
           </div>
@@ -128,7 +128,7 @@ export default function AccountSettings({ user }: AccountSettingsProps) {
                 <Label htmlFor="timezone">Timezone</Label>
                 <select
                   id="timezone"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-xs"
                   defaultValue="UTC"
                 >
                   <option value="UTC">UTC</option>
@@ -143,7 +143,7 @@ export default function AccountSettings({ user }: AccountSettingsProps) {
                 <Label htmlFor="language">Language</Label>
                 <select
                   id="language"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-xs"
                   defaultValue="en"
                 >
                   <option value="en">English</option>

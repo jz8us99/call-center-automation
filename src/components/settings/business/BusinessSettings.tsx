@@ -6,12 +6,7 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 
 // Import existing configuration components
 import { LoadingScreen } from '@/components/configuration/ConfigurationPage/LoadingScreen';
-import { ProgressBar } from '@/components/configuration/ConfigurationPage/ProgressBar';
-import {
-  StepNavigation,
-  Step,
-} from '@/components/configuration/ConfigurationPage/StepNavigation';
-import { ProgressNotification } from '@/components/configuration/ConfigurationPage/ProgressNotification';
+import { Step } from '@/components/configuration/ConfigurationPage/StepNavigation';
 import { RequirementsNotice } from '@/components/configuration/ConfigurationPage/RequirementsNotice';
 import { StepContent } from '@/components/configuration/ConfigurationPage/StepContent';
 import { useWorkflowState } from '@/components/configuration/ConfigurationPage/hooks/useWorkflowState';
@@ -23,6 +18,7 @@ import {
   CalendarIcon,
   BuildingIcon,
   ClockIcon,
+  CheckIcon,
 } from '@/components/icons';
 
 interface BusinessSettingsProps {
@@ -33,7 +29,7 @@ export default function BusinessSettings({ user }: BusinessSettingsProps) {
   const [mounted, setMounted] = useState(false);
   const [activeStep, setActiveStep] = useState<Step['id']>('business');
 
-  const { profile, loading: profileLoading } = useUserProfile(user);
+  const { loading: profileLoading } = useUserProfile(user);
 
   // Use custom hook for workflow state management
   const {
@@ -45,7 +41,6 @@ export default function BusinessSettings({ user }: BusinessSettingsProps) {
     handleStaffUpdate,
     handleAppointmentUpdate,
     handleAgentSetupUpdate,
-    getProgressPercentage,
   } = useWorkflowState(user, mounted);
 
   useEffect(() => {
@@ -162,32 +157,90 @@ export default function BusinessSettings({ user }: BusinessSettingsProps) {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <ProgressBar percentage={getProgressPercentage()} />
-      <StepNavigation
-        steps={steps}
-        activeStep={activeStep}
-        onStepChange={setActiveStep}
-      />
-      <ProgressNotification
-        activeStep={activeStep}
-        workflowState={workflowState}
-        onStepChange={setActiveStep}
-      />
-      <RequirementsNotice showNotice={!workflowState.aiAgentSetup.canAccess} />
+      <div className="flex gap-6">
+        {/* Left Sidebar Menu */}
+        <div className="w-80 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+          <nav className="space-y-2">
+            {steps.map(step => {
+              return (
+                <button
+                  key={step.id}
+                  onClick={() =>
+                    step.status.canAccess && setActiveStep(step.id)
+                  }
+                  disabled={!step.status.canAccess}
+                  className={`w-full flex items-center space-x-3 p-3 rounded-lg text-left transition-colors ${
+                    activeStep === step.id
+                      ? 'bg-orange-200 text-orange-800 dark:bg-orange-300/30 dark:text-orange-200'
+                      : step.status.canAccess
+                        ? 'text-gray-900 hover:bg-orange-50 dark:text-gray-100 dark:hover:bg-orange-900/20'
+                        : 'text-gray-400 cursor-not-allowed dark:text-gray-600'
+                  }`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
+                        step.status.completed
+                          ? 'bg-green-500 text-white'
+                          : activeStep === step.id
+                            ? 'bg-orange-600 text-white dark:bg-orange-500 dark:text-white'
+                            : step.status.canAccess
+                              ? 'bg-orange-100 text-orange-600 dark:bg-orange-900 dark:text-orange-400'
+                              : 'bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-500'
+                      }`}
+                    >
+                      {step.status.completed ? (
+                        <CheckIcon className="h-4 w-4" />
+                      ) : (
+                        step.step
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div
+                        className={`text-sm font-medium ${
+                          activeStep === step.id
+                            ? 'text-orange-800 dark:text-orange-200'
+                            : ''
+                        }`}
+                      >
+                        {step.label}
+                      </div>
+                      <div
+                        className={`text-xs mt-1 ${
+                          activeStep === step.id
+                            ? 'text-orange-700 dark:text-orange-300'
+                            : 'text-gray-500 dark:text-gray-400'
+                        }`}
+                      >
+                        {step.description}
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </nav>
+        </div>
 
-      {/* Main Content */}
-      <div className="space-y-8">
-        <StepContent
-          activeStep={activeStep}
-          user={user}
-          workflowState={workflowState}
-          onBusinessInfoUpdate={handleBusinessInfoUpdate}
-          onProductsUpdate={handleProductsUpdate}
-          onServicesUpdate={handleServicesUpdate}
-          onStaffUpdate={handleStaffUpdate}
-          onAppointmentUpdate={handleAppointmentUpdate}
-          onAgentSetupUpdate={handleAgentSetupUpdate}
-        />
+        {/* Main Content */}
+        <div className="flex-1">
+          <div className="mb-6">
+            <RequirementsNotice
+              showNotice={!workflowState.aiAgentSetup.canAccess}
+            />
+          </div>
+          <StepContent
+            activeStep={activeStep}
+            user={user}
+            workflowState={workflowState}
+            onBusinessInfoUpdate={handleBusinessInfoUpdate}
+            onProductsUpdate={handleProductsUpdate}
+            onServicesUpdate={handleServicesUpdate}
+            onStaffUpdate={handleStaffUpdate}
+            onAppointmentUpdate={handleAppointmentUpdate}
+            onAgentSetupUpdate={handleAgentSetupUpdate}
+          />
+        </div>
       </div>
     </div>
   );
