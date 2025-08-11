@@ -7,13 +7,17 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 import { User } from '@supabase/supabase-js';
 import { SimpleThemeSwitch } from '@/components/common/SimpleThemeSwitch';
 import { ChevronDown, Monitor, Settings, LogOut, Phone } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export default function Header() {
   const [user, setUser] = useState<User | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { profile, isAdmin } = useUserProfile(user);
+  const t = useTranslations('header');
 
   useEffect(() => {
+    setMounted(true);
     const getUser = async () => {
       const {
         data: { user },
@@ -73,40 +77,40 @@ export default function Header() {
               href="#products"
               className="text-black dark:text-gray-300 hover:text-orange-500 dark:hover:text-white transition-colors"
             >
-              Products
+              {mounted ? t('nav.products') : 'Products'}
             </a>
             <a
               href="#solutions"
               className="text-black dark:text-gray-300 hover:text-orange-500 dark:hover:text-white transition-colors"
             >
-              Solutions
+              {mounted ? t('nav.solutions') : 'Solutions'}
             </a>
             <Link
               href="/pricing"
               className="text-black dark:text-gray-300 hover:text-orange-500 dark:hover:text-white transition-colors"
             >
-              Pricing
+              {mounted ? t('nav.pricing') : 'Pricing'}
             </Link>
             <a
               href="#partners"
               className="text-black dark:text-gray-300 hover:text-orange-500 dark:hover:text-white transition-colors"
             >
-              Partners
+              {mounted ? t('nav.partners') : 'Partners'}
             </a>
             <a
               href="#company"
               className="text-black dark:text-gray-300 hover:text-orange-500 dark:hover:text-white transition-colors"
             >
-              Company
+              {mounted ? t('nav.company') : 'Company'}
             </a>
           </nav>
 
           <div className="flex items-center space-x-4">
-            {user ? (
+            {mounted && user ? (
               <div className="relative">
                 <div className="flex items-center space-x-3">
                   <span className="text-sm text-black dark:text-gray-300">
-                    Welcome, {getUserDisplayName()}
+                    {t('user.welcome', { name: getUserDisplayName() })}
                   </span>
                   <button
                     onClick={e => {
@@ -157,7 +161,7 @@ export default function Header() {
                           onClick={() => setShowUserMenu(false)}
                         >
                           <Monitor className="h-4 w-4" />
-                          {isAdmin ? 'Admin Panel' : 'Dashboard'}
+                          {t(isAdmin ? 'user.adminPanel' : 'user.dashboard')}
                         </Link>
 
                         <Link
@@ -166,7 +170,7 @@ export default function Header() {
                           onClick={() => setShowUserMenu(false)}
                         >
                           <Settings className="h-4 w-4" />
-                          Settings
+                          {t('user.settings')}
                         </Link>
 
                         <div className="border-t border-gray-200 dark:border-gray-600 my-1"></div>
@@ -176,14 +180,32 @@ export default function Header() {
                           className="flex items-center gap-3 px-4 py-2 text-black dark:text-gray-300 hover:text-orange-500 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-300 transition-colors w-full text-left"
                         >
                           <LogOut className="h-4 w-4" />
-                          Sign Out
+                          {t('user.signOut')}
                         </button>
                       </div>
                     </div>
                   </div>
                 )}
               </div>
+            ) : mounted ? (
+              <>
+                <Link
+                  href="/auth"
+                  className="text-black dark:text-gray-300 hover:text-orange-500 dark:hover:text-white transition-colors"
+                >
+                  {t('user.signIn')}
+                </Link>
+                <span className="text-gray-400">|</span>
+                <a
+                  href="tel:+15551234567"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-orange-500 hover:text-white text-black dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-orange-500 rounded-lg transition-all duration-200 border border-gray-300 dark:border-gray-600 hover:border-orange-500 shadow-sm"
+                >
+                  <Phone className="h-4 w-4" />
+                  {t('contact.phone')}
+                </a>
+              </>
             ) : (
+              // 服务端渲染时显示的静态版本
               <>
                 <Link
                   href="/auth"
@@ -197,11 +219,11 @@ export default function Header() {
                   className="inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-orange-500 hover:text-white text-black dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-orange-500 rounded-lg transition-all duration-200 border border-gray-300 dark:border-gray-600 hover:border-orange-500 shadow-sm"
                 >
                   <Phone className="h-4 w-4" />
-                  (555) 123-4567
+                  +1 (555) 123-4567
                 </a>
               </>
             )}
-            {!user && <SimpleThemeSwitch />}
+            {mounted && !user && <SimpleThemeSwitch />}
           </div>
         </div>
       </div>

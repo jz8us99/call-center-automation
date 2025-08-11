@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { supabase } from '@/lib/supabase';
 
 export default function SignUpPage() {
+  const t = useTranslations('signup');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -35,7 +37,7 @@ export default function SignUpPage() {
     setError('');
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('passwordsDoNotMatch'));
       setLoading(false);
       return;
     }
@@ -57,22 +59,20 @@ export default function SignUpPage() {
           error.message.includes('already been registered') ||
           error.message.includes('already registered')
         ) {
-          setError('This user already exists');
+          setError(t('userAlreadyExists'));
         } else {
           setError(error.message);
         }
       } else {
         setError('');
-        setSuccess(
-          'Registration successful! Please check your email and click the verification link to complete your account setup.'
-        );
+        setSuccess(t('registrationSuccess'));
         setEmail('');
         setPassword('');
         setConfirmPassword('');
         setFullName('');
       }
     } catch {
-      setError('An unexpected error occurred');
+      setError(t('unexpectedError'));
     } finally {
       setLoading(false);
     }
@@ -98,12 +98,12 @@ export default function SignUpPage() {
 
       if (error) {
         console.error('Google OAuth error:', error);
-        setError(`Google sign up failed: ${error.message}`);
+        setError(`${t('googleSignUpFailed')}: ${error.message}`);
         setGoogleLoading(false);
       }
     } catch (err) {
       console.error('Google sign up error:', err);
-      setError('Failed to initialize Google sign up. Please try again.');
+      setError(t('googleSignUpInitFailed'));
       setGoogleLoading(false);
     }
   };
@@ -126,7 +126,7 @@ export default function SignUpPage() {
               </h1>
             </Link>
             <p className="text-black dark:text-gray-300 text-sm">
-              Create your account to get started
+              {t('createAccountPrompt')}
             </p>
           </div>
 
@@ -142,7 +142,7 @@ export default function SignUpPage() {
                   <>
                     <div className="w-5 h-5 border-2 border-gray-300 dark:border-gray-600 border-t-blue-500 rounded-full animate-spin"></div>
                     <span className="text-black dark:text-gray-300 font-medium">
-                      Connecting...
+                      {t('connecting')}
                     </span>
                   </>
                 ) : (
@@ -166,13 +166,13 @@ export default function SignUpPage() {
                       />
                     </svg>
                     <span className="text-black dark:text-gray-300 font-medium">
-                      Sign up with Google
+                      {t('signUpWithGoogle')}
                     </span>
                   </>
                 )}
               </button>
               <p className="text-xs text-gray-500 mt-2 text-center">
-                安全提示：点击后将跳转到Google官方认证页面进行安全注册
+                {t('googleSecurityTip')}
               </p>
             </div>
 
@@ -183,7 +183,7 @@ export default function SignUpPage() {
               </div>
               <div className="relative flex justify-center text-sm">
                 <span className="px-4 bg-white dark:bg-gray-800 text-gray-500">
-                  or with your email below
+                  {t('orWithEmail')}
                 </span>
               </div>
             </div>
@@ -194,7 +194,7 @@ export default function SignUpPage() {
                   htmlFor="fullName"
                   className="text-sm font-medium text-black dark:text-white"
                 >
-                  Full Name
+                  {t('fullName')}
                 </label>
                 <div className="relative">
                   <svg
@@ -216,7 +216,7 @@ export default function SignUpPage() {
                     value={fullName}
                     onChange={e => setFullName(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200"
-                    placeholder="Enter your full name"
+                    placeholder={t('enterFullName')}
                     required
                   />
                 </div>
@@ -227,7 +227,7 @@ export default function SignUpPage() {
                   htmlFor="email"
                   className="text-sm font-medium text-black dark:text-white"
                 >
-                  Email
+                  {t('email')}
                 </label>
                 <div className="relative">
                   <svg
@@ -249,7 +249,7 @@ export default function SignUpPage() {
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200"
-                    placeholder="Enter your email"
+                    placeholder={t('enterEmail')}
                     required
                   />
                 </div>
@@ -260,7 +260,7 @@ export default function SignUpPage() {
                   htmlFor="password"
                   className="text-sm font-medium text-black dark:text-white"
                 >
-                  Password
+                  {t('password')}
                 </label>
                 <div className="relative">
                   <svg
@@ -282,7 +282,7 @@ export default function SignUpPage() {
                     value={password}
                     onChange={e => setPassword(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200"
-                    placeholder="Enter your password"
+                    placeholder={t('enterPassword')}
                     required
                   />
                 </div>
@@ -293,7 +293,7 @@ export default function SignUpPage() {
                   htmlFor="confirmPassword"
                   className="text-sm font-medium text-black dark:text-white"
                 >
-                  Confirm Password
+                  {t('confirmPassword')}
                 </label>
                 <div className="relative">
                   <svg
@@ -315,7 +315,7 @@ export default function SignUpPage() {
                     value={confirmPassword}
                     onChange={e => setConfirmPassword(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200"
-                    placeholder="Confirm your password"
+                    placeholder={t('confirmPasswordPlaceholder')}
                     required
                   />
                 </div>
@@ -338,7 +338,7 @@ export default function SignUpPage() {
                 disabled={loading}
                 className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl"
               >
-                {loading ? 'Creating account...' : 'Create Account'}
+                {loading ? t('creatingAccount') : t('createAccount')}
               </button>
             </form>
 
@@ -347,7 +347,7 @@ export default function SignUpPage() {
                 href="/auth"
                 className="text-orange-500 hover:text-orange-600 text-sm transition-colors duration-200 font-medium"
               >
-                Already have an account? Sign in
+                {t('alreadyHaveAccount')}
               </Link>
             </div>
 
@@ -369,7 +369,7 @@ export default function SignUpPage() {
                     d="M10 19l-7-7m0 0l7-7m-7 7h18"
                   />
                 </svg>
-                Back to Home
+                {t('backToHome')}
               </Link>
             </div>
           </div>

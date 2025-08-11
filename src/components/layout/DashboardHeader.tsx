@@ -13,6 +13,7 @@ import {
   Settings,
   LogOut,
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface DashboardHeaderProps {
   user: User | null;
@@ -29,6 +30,7 @@ export function DashboardHeader({
   const pathname = usePathname();
   const brand = useBrand();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const t = useTranslations('dashboardHeader');
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -58,7 +60,7 @@ export function DashboardHeader({
 
     if (parts.length > 0 && parts[0] === 'admin') {
       breadcrumbs.push({
-        label: 'Admin',
+        label: t('breadcrumbs.admin'),
         href: '/admin',
         isActive: parts.length === 1,
       });
@@ -66,10 +68,10 @@ export function DashboardHeader({
       if (parts.length > 1) {
         const subPage = parts[1];
         const subPageLabels: Record<string, string> = {
-          dashboard: 'Dashboard',
-          users: 'Users',
-          pricing: 'Pricing',
-          settings: 'Settings',
+          dashboard: t('breadcrumbs.dashboard'),
+          users: t('breadcrumbs.users'),
+          pricing: t('breadcrumbs.pricing'),
+          settings: t('breadcrumbs.settings'),
         };
 
         if (subPageLabels[subPage]) {
@@ -85,7 +87,7 @@ export function DashboardHeader({
           if (subPage === 'users' && parts[2]) {
             breadcrumbs[breadcrumbs.length - 1].isActive = false;
             breadcrumbs.push({
-              label: 'User Details',
+              label: t('breadcrumbs.userDetails'),
               href: `/admin/users/${parts[2]}`,
               isActive: parts.length === 3,
             });
@@ -93,7 +95,7 @@ export function DashboardHeader({
             if (parts.length > 3 && parts[3] === 'agent-config') {
               breadcrumbs[breadcrumbs.length - 1].isActive = false;
               breadcrumbs.push({
-                label: 'Agent Config',
+                label: t('breadcrumbs.agentConfig'),
                 href: `/admin/users/${parts[2]}/agent-config`,
                 isActive: true,
               });
@@ -103,13 +105,13 @@ export function DashboardHeader({
       }
     } else if (pageType === 'dashboard') {
       breadcrumbs.push({
-        label: 'Dashboard',
+        label: t('breadcrumbs.dashboard'),
         href: '/dashboard',
         isActive: true,
       });
     } else if (pageType === 'settings') {
       breadcrumbs.push({
-        label: 'Settings',
+        label: t('breadcrumbs.settings'),
         href: '/settings',
         isActive: true,
       });
@@ -168,7 +170,7 @@ export function DashboardHeader({
               <div className="relative">
                 <div className="flex items-center space-x-3">
                   <span className="text-sm text-black dark:text-gray-300">
-                    Welcome, {userDisplayName}
+                    {t('welcome', { name: userDisplayName })}
                   </span>
                   <button
                     onClick={e => {
@@ -219,7 +221,9 @@ export function DashboardHeader({
                           onClick={() => setShowUserMenu(false)}
                         >
                           <Monitor className="h-4 w-4" />
-                          {pageType === 'admin' ? 'Admin Panel' : 'Dashboard'}
+                          {pageType === 'admin'
+                            ? t('navigation.adminPanel')
+                            : t('navigation.dashboard')}
                         </Link>
 
                         {/* Only show Settings for non-admin users */}
@@ -230,7 +234,7 @@ export function DashboardHeader({
                             onClick={() => setShowUserMenu(false)}
                           >
                             <Settings className="h-4 w-4" />
-                            Settings
+                            {t('navigation.settings')}
                           </Link>
                         )}
 
@@ -241,7 +245,7 @@ export function DashboardHeader({
                           className="flex items-center gap-3 px-4 py-2 text-black dark:text-gray-300 hover:text-orange-500 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-300 transition-colors w-full text-left"
                         >
                           <LogOut className="h-4 w-4" />
-                          Sign Out
+                          {t('navigation.signOut')}
                         </button>
                       </div>
                     </div>

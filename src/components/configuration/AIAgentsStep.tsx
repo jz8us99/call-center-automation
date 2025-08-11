@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { User } from '@supabase/supabase-js';
 import {
   Card,
@@ -28,6 +29,7 @@ import {
   TrashIcon,
   PhoneIcon,
   UsersIcon as UserIcon,
+  MicIcon,
 } from '@/components/icons';
 import { AgentType, AGENT_TYPE_CONFIGS } from '@/types/agent-types';
 
@@ -110,6 +112,7 @@ export function AIAgentsStep({
   user,
   onConfigurationUpdate,
 }: AIAgentsStepProps) {
+  const t = useTranslations('aiAgents');
   const [agents, setAgents] = useState<AIAgent[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingAgent, setEditingAgent] = useState<AIAgent | null>(null);
@@ -600,20 +603,16 @@ export function AIAgentsStep({
             <div>
               <CardTitle className="flex items-center gap-2">
                 <SettingsIcon className="h-5 w-5" />
-                Your AI Agents
+                {t('title')}
               </CardTitle>
-              <CardDescription>
-                Create and manage multiple AI agents for different purposes.
-                Each agent can have unique personalities, scripts, and
-                capabilities.
-              </CardDescription>
+              <CardDescription>{t('description')}</CardDescription>
             </div>
             <Button
               onClick={handleCreateAgent}
               className="flex items-center gap-2"
             >
               <PlusIcon className="h-4 w-4" />
-              Create New Agent
+              {t('createNewAgent')}
             </Button>
           </div>
         </CardHeader>

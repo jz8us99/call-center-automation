@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { User } from '@supabase/supabase-js';
 import {
   Card,
@@ -69,6 +70,7 @@ export function BusinessServices({
   user,
   onServicesUpdate,
 }: BusinessServicesProps) {
+  const t = useTranslations('businessServices');
   const [businessProfile, setBusinessProfile] =
     useState<BusinessProfile | null>(null);
   const [jobCategories, setJobCategories] = useState<JobCategory[]>([]);

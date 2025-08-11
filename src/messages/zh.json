@@ -1,0 +1,705 @@
+{
+  "LocaleSwitcher": {
+    "label": "语言",
+    "en": "English",
+    "zh": "中文",
+    "es": "Español"
+  },
+  "auth": {
+    "signIn": "登录",
+    "signOut": "退出登录",
+    "signUp": "注册",
+    "email": "邮箱",
+    "password": "密码",
+    "signingIn": "登录中...",
+    "loadingGoogle": "加载Google中...",
+    "signInWithGoogle": "使用Google登录",
+    "continue": "继续",
+    "enterYourEmail": "输入您的邮箱",
+    "orWithYourEmailBelow": "或使用以下邮箱",
+    "forgotPassword": "忘记密码？",
+    "needAnAccount": "需要创建账户？",
+    "termsOfService": "服务条款",
+    "privacyPolicy": "隐私政策",
+    "resetPassword": "重置密码",
+    "resetPasswordDescription": "输入您的邮箱地址，我们将向您发送重置密码的链接。",
+    "cancel": "取消",
+    "sendResetEmail": "发送重置链接",
+    "sending": "发送中...",
+    "unexpectedError": "发生意外错误",
+    "googleServicesLoading": "Google服务仍在加载中，请稍后重试。",
+    "googleSignInTimeout": "Google登录超时。请确保您已登录您的Google账户并重试。",
+    "googleSignInNotAvailable": "Google登录现在不可用。请使用邮箱和密码登录。",
+    "googleSignInUnavailable": "Google登录暂时不可用。请使用邮箱和密码登录。",
+    "googleSignInFailed": "Google登录失败。请重试或使用邮箱和密码登录。",
+    "passwordResetEmailSent": "密码重置邮件已发送！请查看您的邮箱获取说明。"
+  },
+  "header": {
+    "nav": {
+      "products": "产品",
+      "solutions": "解决方案",
+      "pricing": "价格",
+      "partners": "合作伙伴",
+      "company": "公司"
+    },
+    "user": {
+      "welcome": "欢迎，{name}",
+      "adminPanel": "管理面板",
+      "dashboard": "仪表板",
+      "settings": "设置",
+      "signIn": "登录",
+      "signOut": "退出登录"
+    },
+    "contact": {
+      "phone": "+1 (555) 123-4567"
+    }
+  },
+  "dashboard": {
+    "loadingDashboard": "加载仪表板中...",
+    "welcome": "欢迎，{name}",
+    "adminView": "您正以管理员身份查看，可以访问所有用户数据",
+    "userView": "您的个人仪表板",
+    "adminViewBadge": "管理员",
+    "totalCallRecords": "总通话记录",
+    "todaysCalls": "今日通话",
+    "uniqueNumbers": "不同号码",
+    "auth": {
+      "needSignIn": "请登录以访问您的仪表板。",
+      "goToSignIn": "前往登录"
+    }
+  },
+  "settings": {
+    "preferences": {
+      "appearance": "外观",
+      "appearanceDesc": "自定义应用程序在您设备上的显示方式",
+      "darkMode": "深色模式",
+      "darkModeDesc": "在明亮和深色主题之间切换",
+      "language": "语言和地区",
+      "languageDesc": "设置您的语言和地区偏好",
+      "interfaceLanguage": "界面语言",
+      "languageChangeNote": "语言更改立即生效",
+      "timezone": "时区",
+      "timezoneDesc": "用于显示日期和时间",
+      "emailNotifications": "邮件通知",
+      "emailNotificationsDesc": "选择您要接收的通知类型",
+      "callNotifications": "通话通知",
+      "callNotificationsDesc": "接收有关来电和去电的通知",
+      "appointmentNotifications": "预约提醒",
+      "appointmentNotificationsDesc": "接收即将到来的预约提醒",
+      "systemUpdates": "系统更新",
+      "systemUpdatesDesc": "重要更新和维护通知",
+      "billingPayments": "账单和付款",
+      "billingPaymentsDesc": "付款收据和账单信息",
+      "marketingPromotions": "营销和促销",
+      "marketingPromotionsDesc": "特别优惠和产品更新",
+      "savePreferences": "保存偏好"
+    }
+  },
+  "languages": {
+    "en": "English",
+    "zh": "中文",
+    "es": "Español"
+  },
+  "timezones": {
+    "UTC": "UTC (协调世界时)",
+    "America/New_York": "东部时间 (纽约)",
+    "America/Chicago": "中部时间 (芝加哥)",
+    "America/Denver": "山区时间 (丹佛)",
+    "America/Los_Angeles": "太平洋时间 (洛杉矶)",
+    "Europe/London": "GMT (伦敦)",
+    "Europe/Paris": "CET (巴黎)",
+    "Europe/Berlin": "CET (柏林)",
+    "Asia/Tokyo": "JST (东京)",
+    "Asia/Shanghai": "CST (上海)",
+    "Asia/Seoul": "KST (首尔)"
+  },
+  "appointmentSystem": {
+    "title": "📅 步骤5: 预约系统配置",
+    "description": "配置您的营业时间、节假日、预约类型和预订设置以完成系统设置",
+    "tabs": {
+      "appointmentTypes": "预约类型",
+      "businessHours": "营业时间",
+      "holidays": "节假日配置",
+      "bookingSettings": "预订设置"
+    },
+    "appointmentTypes": {
+      "title": "预约类型",
+      "description": "您的预约类型已就绪！我们已加载常见预约类型作为默认项。您可以编辑、删除或添加新的预约类型以匹配您的业务需求。",
+      "saveChanges": "💾 保存更改",
+      "cancelChanges": "取消更改",
+      "addAppointmentType": "添加预约类型",
+      "table": {
+        "appointmentType": "预约类型",
+        "duration": "持续时间",
+        "status": "状态",
+        "color": "颜色",
+        "actions": "操作"
+      }
+    },
+    "businessHours": {
+      "title": "营业时间",
+      "description": "设置每天的营业时间。所有日期都可自定义，包括周末。",
+      "editHours": "编辑时间"
+    }
+  },
+  "staffManagement": {
+    "loading": "加载员工管理中..."
+  },
+  "aiAgents": {
+    "title": "您的AI代理",
+    "description": "创建和管理多个用于不同目的的AI代理。每个代理都可以具有独特的个性、脚本和功能。",
+    "createNewAgent": "创建新代理"
+  },
+  "modals": {
+    "help": {
+      "title": "帮助和导航指南",
+      "helpButton": "帮助",
+      "needMoreHelp": "需要更多帮助？请联系我们的支持团队。",
+      "gotIt": "明白了！",
+      "pages": {
+        "home": {
+          "title": "首页指南",
+          "description": "了解如何导航首页并开始使用",
+          "gettingStarted": "开始使用",
+          "gettingStartedContent1": "• 点击「登录」访问您的账户",
+          "gettingStartedContent2": "• 使用导航菜单探索功能",
+          "gettingStartedContent3": "• 拨打电话号码获得即时帮助",
+          "availableFeatures": "可用功能",
+          "availableFeaturesContent1": "• 查看产品信息和价格",
+          "availableFeaturesContent2": "• 访问客户推荐和案例研究",
+          "availableFeaturesContent3": "• 联系销售团队进行演示"
+        },
+        "auth": {
+          "title": "身份验证指南",
+          "description": "如何登录和管理您的账户",
+          "signInOptions": "登录选项",
+          "signInOptionsContent1": "• 使用您的邮箱和密码",
+          "signInOptionsContent2": "• 使用Google OAuth登录",
+          "signInOptionsContent3": "• 如需要可请求密码重置",
+          "newUsers": "新用户",
+          "newUsersContent1": "• 点击「注册」创建账户",
+          "newUsersContent2": "• 验证您的邮箱地址",
+          "newUsersContent3": "• 完成个人资料设置"
+        },
+        "dashboard": {
+          "title": "仪表板指南",
+          "description": "了解您的仪表板及其功能",
+          "mainNavigation": "主要导航",
+          "mainNavigationContent1": "• 仪表板：您的账户概览",
+          "mainNavigationContent2": "• 配置：设置您的AI助手",
+          "mainNavigationContent3": "• 设置：管理偏好和账户",
+          "dashboardFeatures": "仪表板功能",
+          "dashboardFeaturesContent1": "• 查看通话统计和日志",
+          "dashboardFeaturesContent2": "• 监控AI助手性能",
+          "dashboardFeaturesContent3": "• 访问最近活动",
+          "quickActions": "快速操作",
+          "quickActionsContent1": "• 点击通话条目查看详情",
+          "quickActionsContent2": "• 使用过滤器搜索特定通话",
+          "quickActionsContent3": "• 导出数据进行报告"
+        },
+        "configuration": {
+          "title": "配置指南",
+          "description": "设置和管理您的AI助手",
+          "navigationTabs": "导航标签",
+          "navigationTabsContent1": "• 企业信息：公司详细信息和设置",
+          "navigationTabsContent2": "• AI代理：配置您的助手",
+          "navigationTabsContent3": "• 员工：管理团队成员",
+          "navigationTabsContent4": "• 通话流程：设置通话路由",
+          "navigationTabsContent5": "• 知识库：上传培训材料",
+          "navigationTabsContent6": "• 测试：测试您的配置",
+          "aiAgentSetup": "AI代理设置",
+          "aiAgentSetupContent1": "• 选择您助手的个性",
+          "aiAgentSetupContent2": "• 设置问候消息",
+          "aiAgentSetupContent3": "• 配置响应模板",
+          "staffManagement": "员工管理",
+          "staffManagementContent1": "• 添加团队成员和角色",
+          "staffManagementContent2": "• 设置权限和访问级别",
+          "staffManagementContent3": "• 配置转接规则"
+        },
+        "signup": {
+          "title": "注册指南",
+          "description": "创建您的账户并开始使用",
+          "accountCreation": "账户创建",
+          "accountCreationContent1": "• 提供您的邮箱并创建密码",
+          "accountCreationContent2": "• 验证您的邮箱地址",
+          "accountCreationContent3": "• 完成您的企业资料",
+          "gettingStarted": "开始使用",
+          "gettingStartedContent1": "• 设置您的企业信息",
+          "gettingStartedContent2": "• 配置您的AI助手",
+          "gettingStartedContent3": "• 使用示例通话测试您的设置",
+          "existingUsers": "已有账户用户",
+          "existingUsersContent1": "• 已有账户？请使用登录",
+          "existingUsersContent2": "• 忘记密码？使用密码重置",
+          "existingUsersContent3": "• 需要帮助？联系支持"
+        }
+      },
+      "allPages": {
+        "title": "所有可用页面",
+        "description": "应用程序中所有部分的快速概览",
+        "pages": {
+          "homePage": "首页",
+          "signIn": "登录",
+          "signUp": "注册",
+          "dashboard": "仪表板",
+          "configuration": "配置",
+          "adminDashboard": "管理仪表板"
+        },
+        "descriptions": {
+          "homePage": "带有产品信息的主要着陆页",
+          "signIn": "身份验证和账户访问",
+          "signUp": "创建新账户和注册",
+          "dashboard": "用户仪表板，包含通话日志和统计",
+          "configuration": "AI助手设置和企业配置",
+          "adminDashboard": "系统管理的管理面板"
+        }
+      },
+      "navigationTips": {
+        "title": "导航提示",
+        "description": "在应用程序中导航的有用提示",
+        "homeNavigation": "首页导航",
+        "homeNavigationContent1": "• 使用logo返回首页",
+        "homeNavigationContent2": "• 导航菜单始终可用",
+        "homeNavigationContent3": "• 右上角的用户菜单",
+        "findingFeatures": "查找功能",
+        "findingFeaturesContent1": "• 查看侧边栏中的主要部分",
+        "findingFeaturesContent2": "• 在可用时使用搜索功能",
+        "findingFeaturesContent3": "• 在每个页面上寻找帮助按钮",
+        "accountManagement": "账户管理",
+        "accountManagementContent1": "• 从用户下拉菜单访问个人资料",
+        "accountManagementContent2": "• 设置在主导航中可用",
+        "accountManagementContent3": "• 用户菜单中的退出登录选项",
+        "configuration": "配置",
+        "configurationContent1": "• 按步骤跟随设置向导",
+        "configurationContent2": "• 在进入下一步前保存更改",
+        "configurationContent3": "• 在上线前测试您的设置"
+      },
+      "keyboardShortcuts": {
+        "title": "键盘快捷键",
+        "description": "有用的键盘快捷键可以更快地导航",
+        "general": "通用",
+        "generalShortcuts": {
+          "help": "显示此帮助对话框",
+          "escape": "关闭对话框和菜单",
+          "tab": "在表单元素之间导航"
+        },
+        "dashboard": "仪表板",
+        "dashboardShortcuts": {
+          "search": "聚焦搜索框",
+          "playPause": "播放/暂停音频",
+          "openDetails": "打开选定项目的详情"
+        }
+      }
+    }
+  },
+  "dashboardHeader": {
+    "breadcrumbs": {
+      "admin": "管理员",
+      "dashboard": "仪表板",
+      "users": "用户",
+      "pricing": "价格",
+      "settings": "设置",
+      "userDetails": "用户详情",
+      "agentConfig": "代理配置"
+    },
+    "welcome": "欢迎，{name}",
+    "navigation": {
+      "adminPanel": "管理面板",
+      "dashboard": "仪表板",
+      "settings": "设置",
+      "signOut": "退出登录"
+    }
+  },
+  "settingsTabs": {
+    "preferences": {
+      "label": "偏好设置",
+      "description": "语言、通知和应用偏好"
+    },
+    "account": {
+      "label": "账户",
+      "description": "个人资料、安全和偏好"
+    },
+    "payment": {
+      "label": "付款",
+      "description": "账单、订阅和付款方式"
+    },
+    "business": {
+      "label": "业务",
+      "description": "业务配置和AI代理设置"
+    }
+  },
+  "callLogs": {
+    "title": "通话记录",
+    "loading": "加载通话记录中...",
+    "unknown": "未知",
+    "noRecords": "还没有通话记录",
+    "noRecordsDesc": "通话记录将在通话后出现在这里。",
+    "columns": {
+      "startTime": "开始时间",
+      "endTime": "结束时间",
+      "duration": "持续时间",
+      "type": "类型",
+      "phoneNumber": "电话号码",
+      "cost": "费用",
+      "summary": "摘要",
+      "audio": "音频"
+    }
+  },
+  "searchFilters": {
+    "startTimeFrom": "开始时间从",
+    "startTimeTo": "开始时间到",
+    "selectStartTime": "选择开始时间",
+    "selectEndTime": "选择结束时间",
+    "type": "类型",
+    "allTypes": "所有类型",
+    "inbound": "呼入",
+    "outbound": "呼出",
+    "phoneNumber": "电话号码",
+    "enterPhoneNumber": "输入电话号码",
+    "search": "搜索",
+    "clear": "清除"
+  },
+  "home": {
+    "hero": {
+      "title": "您的7x24小时前台接待",
+      "subtitle": "由AI驱动",
+      "description": "获得小企业排名第一的前台接待服务。",
+      "getStarted": "立即开始"
+    },
+    "valueProposition": {
+      "title": "全面通话覆盖，由",
+      "titleHighlight": "先进AI技术",
+      "description": "我们的智能AI系统提供专业、高效的通话处理服务，确保每位客户都能获得卓越的服务体验。",
+      "stats": {
+        "satisfaction": "客户满意度",
+        "clutchRating": "Clutch评分",
+        "availability": "可用性",
+        "trustpilotRating": "Trustpilot评分"
+      }
+    },
+    "industries": {
+      "title": "我们服务多种行业",
+      "subtitle": "为每种业务类型量身定制AI解决方案",
+      "homeServices": {
+        "title": "家庭服务",
+        "subtitle": "7x24小时将来电转化为预约工作",
+        "description": "从管道维修到暖通空调，我们专业处理客户来电"
+      },
+      "medical": {
+        "title": "医疗和健康诊所",
+        "subtitle": "更快地帮助客户",
+        "description": "专业的AI驱动通话处理、预约安排等服务"
+      },
+      "marketing": {
+        "title": "营销代理",
+        "subtitle": "绝不错过任何潜在客户",
+        "description": "为营销专业人士提供专业通话处理服务"
+      },
+      "petServices": {
+        "title": "宠物服务",
+        "subtitle": "让宠物主人满意",
+        "description": "为兽医和宠物护理提供贴心的AI通话处理"
+      },
+      "propertyManagement": {
+        "title": "物业管理",
+        "subtitle": "7x24小时租户支持",
+        "description": "全天候物业管理通话处理服务"
+      },
+      "salonsSpas": {
+        "title": "美容院和水疗中心",
+        "subtitle": "无缝预约服务",
+        "description": "专业的预约预订和客户服务"
+      }
+    },
+    "testimonials": {
+      "title": "客户评价",
+      "testimonial1": {
+        "name": "莎拉·约翰逊",
+        "company": "约翰逊律师事务所",
+        "text": "AI前台彻底改变了我们的执业方式。我们再也不会错过任何电话，客户也非常喜欢这种专业服务。"
+      },
+      "testimonial2": {
+        "name": "迈克尔·陈",
+        "company": "精英家庭服务",
+        "text": "自从使用这项服务以来，我们的预订率增加了40%。投资回报率令人难以置信。"
+      },
+      "testimonial3": {
+        "name": "艾玛·罗德里格斯",
+        "company": "贝拉水疗中心",
+        "text": "专业、可靠且经济实惠。我们的客户喜欢这种一致的高质量服务。"
+      }
+    },
+    "integrations": {
+      "title": "与您常用的工具集成"
+    }
+  },
+  "signup": {
+    "createAccountPrompt": "创建您的账户开始使用",
+    "connecting": "连接中...",
+    "signUpWithGoogle": "使用Google注册",
+    "googleSecurityTip": "安全提示：点击后将跳转到Google官方认证页面进行安全注册",
+    "orWithEmail": "或使用以下邮箱",
+    "fullName": "姓名",
+    "enterFullName": "输入您的姓名",
+    "email": "邮箱",
+    "enterEmail": "输入您的邮箱",
+    "password": "密码",
+    "enterPassword": "输入您的密码",
+    "confirmPassword": "确认密码",
+    "confirmPasswordPlaceholder": "确认您的密码",
+    "creatingAccount": "创建账户中...",
+    "createAccount": "创建账户",
+    "alreadyHaveAccount": "已有账户？立即登录",
+    "backToHome": "返回首页",
+    "passwordsDoNotMatch": "密码不匹配",
+    "userAlreadyExists": "该用户已存在",
+    "registrationSuccess": "注册成功！请查看您的邮箱并点击验证链接完成账户设置。",
+    "unexpectedError": "发生意外错误",
+    "googleSignUpFailed": "Google注册失败",
+    "googleSignUpInitFailed": "初始化Google注册失败。请重试。"
+  },
+  "accountSettings": {
+    "profile": {
+      "title": "个人资料信息",
+      "description": "更新您的账户个人资料信息和邮箱地址。",
+      "firstName": "名字",
+      "lastName": "姓氏",
+      "email": "邮箱地址",
+      "firstNamePlaceholder": "输入您的名字",
+      "lastNamePlaceholder": "输入您的姓氏",
+      "emailPlaceholder": "输入您的邮箱",
+      "emailNote": "联系客服更改您的邮箱地址。",
+      "saveChanges": "保存更改"
+    },
+    "security": {
+      "title": "安全设置",
+      "description": "管理您的密码和账户安全设置。",
+      "currentPassword": "当前密码",
+      "newPassword": "新密码",
+      "confirmPassword": "确认新密码",
+      "currentPasswordPlaceholder": "输入当前密码",
+      "newPasswordPlaceholder": "输入新密码",
+      "confirmPasswordPlaceholder": "确认新密码",
+      "updatePassword": "更新密码"
+    },
+    "preferences": {
+      "title": "偏好设置",
+      "description": "自定义您的账户偏好和通知设置。",
+      "timezone": "时区",
+      "language": "语言",
+      "savePreferences": "保存偏好",
+      "timezoneOptions": {
+        "utc": "UTC",
+        "eastern": "东部时间",
+        "central": "中部时间",
+        "mountain": "山区时间",
+        "pacific": "太平洋时间"
+      },
+      "languageOptions": {
+        "english": "English",
+        "spanish": "Español",
+        "chinese": "中文"
+      }
+    }
+  },
+  "billingSettings": {
+    "currentPlan": {
+      "title": "当前计划",
+      "description": "您当前的订阅和使用情况信息。",
+      "planName": "专业版计划",
+      "active": "激活",
+      "planDetails": "每月300通话 • $800.00/月",
+      "changePlan": "更改计划",
+      "usage": {
+        "callsThisMonth": "本月通话数",
+        "callsRemaining": "剩余通话数",
+        "overageCharges": "超量费用"
+      }
+    },
+    "paymentMethods": {
+      "title": "付款方式",
+      "description": "管理您的付款方式和账单信息。",
+      "addPaymentMethod": "添加付款方式",
+      "expires": "到期日期 12/2025",
+      "default": "默认",
+      "remove": "移除",
+      "addPrompt": "添加付款方式以管理您的订阅"
+    },
+    "billingHistory": {
+      "title": "账单历史",
+      "description": "下载您之前的发票和收据。",
+      "table": {
+        "invoice": "发票",
+        "date": "日期",
+        "status": "状态",
+        "amount": "金额",
+        "actions": "操作",
+        "paid": "已付款",
+        "download": "下载"
+      }
+    },
+    "usageAnalytics": {
+      "title": "使用分析",
+      "description": "您月度使用情况的详细分析。",
+      "chartPlaceholder": "使用分析图表将显示在这里",
+      "comingSoon": "即将推出..."
+    }
+  },
+  "businessSettings": {
+    "steps": {
+      "business": {
+        "label": "企业信息",
+        "description": "训练您的AI尽可能了解您的业务"
+      },
+      "products": {
+        "label": "产品",
+        "description": "管理您的产品库存和定价"
+      },
+      "services": {
+        "label": "服务",
+        "description": "配置基于预约的服务，包括持续时间和定价"
+      },
+      "appointments": {
+        "label": "预约系统",
+        "description": "配置预约类型、营业时间和预订设置"
+      },
+      "staff": {
+        "label": "员工管理",
+        "description": "添加员工成员并根据营业时间管理他们的日程安排"
+      },
+      "agent": {
+        "label": "AI代理设置",
+        "description": "创建和管理具有不同功能的多个AI代理"
+      }
+    }
+  },
+  "businessInformation": {
+    "loading": "正在加载您的企业信息...",
+    "basicInfo": {
+      "title": "基本企业信息",
+      "description": "提供关于您企业的基本信息，这些信息将在您的AI代理配置中使用。",
+      "businessName": "企业名称 *",
+      "businessNamePlaceholder": "您的企业名称",
+      "businessType": "企业类型 *",
+      "businessTypePlaceholder": "选择您的企业类型",
+      "businessDescription": "企业描述",
+      "businessDescriptionPlaceholder": "简要描述您的企业和服务...",
+      "yearsInBusiness": "经营年数",
+      "numberOfEmployees": "员工人数",
+      "timezone": "时区"
+    },
+    "contactInfo": {
+      "title": "联系信息",
+      "description": "企业联系详情和主要联系人信息。",
+      "businessPhone": "企业电话 *",
+      "phonePlaceholder": "(555) 123-4567",
+      "businessEmail": "企业邮箱",
+      "emailPlaceholder": "info@yourbusiness.com",
+      "businessAddress": "企业地址",
+      "streetAddress": "街道地址",
+      "streetAddressPlaceholder": "北京市朝阳区建国路1号，100室",
+      "city": "城市",
+      "cityPlaceholder": "城市",
+      "stateProvince": "省/州",
+      "statePlaceholder": "省份",
+      "postalCode": "邮政编码",
+      "postalCodePlaceholder": "100000",
+      "primaryContactName": "主要联系人姓名",
+      "contactNamePlaceholder": "张三",
+      "contactRole": "联系人职位",
+      "contactRolePlaceholder": "办公室经理",
+      "contactPhone": "联系人电话",
+      "contactEmail": "联系人邮箱",
+      "contactEmailPlaceholder": "zhang@yourbusiness.com"
+    },
+    "insuranceInfo": {
+      "title": "保险合作",
+      "description": "列出您的企业接受的保险提供商。这有助于客户了解您合作的保险类型。",
+      "acceptedProviders": "接受的保险提供商",
+      "noProviders": "尚未添加保险提供商。",
+      "providerPlaceholder": "输入保险提供商名称",
+      "add": "添加",
+      "commonProviders": "常见保险提供商："
+    },
+    "locations": {
+      "title": "企业地点",
+      "description": "管理多个企业地点。员工可以分配到特定地点以便更好地组织和安排。",
+      "addLocation": "添加地点",
+      "noLocations": "暂无企业地点",
+      "firstLocationHelp": "添加您的第一个企业地点以帮助组织员工和服务。保存企业信息时将自动创建默认地点。",
+      "addFirstLocation": "添加首个地点",
+      "editLocation": "编辑地点",
+      "addNewLocation": "添加新地点",
+      "locationName": "地点名称 *",
+      "locationNamePlaceholder": "总部、分店等...",
+      "setPrimary": "设为主要地点",
+      "saveLocation": "保存地点",
+      "cancel": "取消"
+    },
+    "saveStatus": {
+      "success": "企业信息保存成功！",
+      "error": "保存企业信息时出错",
+      "completeInfo": "完成企业信息",
+      "successDescription": "您现在可以进入员工管理。您的信息将在所有AI代理中使用。",
+      "errorDescription": "保存信息时出现错误。请重试。",
+      "fillRequiredFields": "请填写上述必填字段以启用保存。",
+      "instructionDescription": "此信息将在您所有的AI代理中使用，并可随时更新。",
+      "savedSuccessfully": "保存成功",
+      "saveBusinessInfo": "保存企业信息"
+    },
+    "form": {
+      "title": "企业信息",
+      "description": "AI代理与来电者交谈时使用的企业信息",
+      "businessName": "企业名称 *",
+      "businessNamePlaceholder": "如：阳光医疗诊所",
+      "businessType": "企业类型 *",
+      "businessTypePlaceholder": "选择企业类型",
+      "businessDescription": "企业描述",
+      "businessDescriptionPlaceholder": "告诉我关于您的企业...",
+      "businessAddress": "企业地址",
+      "addressPlaceholder": "北京市朝阳区建国路1号",
+      "businessPhone": "企业电话 *",
+      "phonePlaceholder": "+86 (010) 1234-5678",
+      "businessEmail": "企业邮箱",
+      "emailPlaceholder": "info@business.com",
+      "websiteUrl": "网站URL（作为文档上传的替代方案）",
+      "websitePlaceholder": "https://www.yourbusiness.com",
+      "primaryContactTitle": "主要联系人",
+      "primaryContactDescription": "此企业地点的主要联系人",
+      "primaryContactName": "主要联系人姓名",
+      "contactNamePlaceholder": "李医生",
+      "primaryContactRole": "主要联系人职位",
+      "contactRolePlaceholder": "执业经理",
+      "contactEmailPlaceholder": "contact@business.com",
+      "businessKnowledgeTitle": "企业知识",
+      "businessKnowledgeDescription": "上传文档或提供您的网站URL以帮助AI更好地了解您的企业",
+      "businessKnowledgeInstructions": "通过上传相关文档或分享您的网站URL来提供有关您企业的信息。AI将分析此内容以更好地为您的客户服务。",
+      "pricingDocuments": "定价文档",
+      "pricingDocumentsDesc": "服务价格、套餐、保险信息",
+      "businessPolicies": "企业政策",
+      "businessPoliciesDesc": "政策、程序、条款和条件",
+      "operatingHours": "营业时间",
+      "operatingHoursDesc": "营业时间、时间表、可用性",
+      "uploading": "上传中...",
+      "uploadLabel": "上传{label}",
+      "chooseFiles": "选择文件",
+      "noFilesSelected": "未选择文件",
+      "saving": "保存中...",
+      "saveConfiguration": "保存配置"
+    }
+  },
+  "businessProducts": {
+    "loading": "正在加载企业概况和产品...",
+    "businessTypeRequired": "需要企业类型",
+    "businessTypeRequiredDesc": "请先完成企业信息步骤以配置您的产品库存。",
+    "title": "企业产品",
+    "description": "管理您的{businessType}企业的产品库存{businessName, select, null {} other {（{businessName}）}}。产品是您销售的不需要预约的物品。",
+    "categoriesTitle": "产品类别和产品",
+    "categoriesDescription": "将您的产品组织到类别中，并管理具有定价和库存详细信息的单个产品。",
+    "addCategory": "添加类别",
+    "noCategories": "无产品类别",
+    "noCategoriesDesc": "创建您的第一个产品类别来组织您的库存。",
+    "addFirstCategory": "添加您的第一个类别",
+    "editCategory": "编辑产品类别",
+    "categoryName": "类别名称 *"
+  }
+}

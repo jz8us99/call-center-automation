@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { User } from '@supabase/supabase-js';
 import {
   Card,
@@ -17,6 +18,7 @@ interface StaffManagementProps {
 }
 
 export function StaffManagement({ user, onStaffUpdate }: StaffManagementProps) {
+  const t = useTranslations('staffManagement');
   const [serviceTypeCode, setServiceTypeCode] = useState<string>('');
   const [loading, setLoading] = useState(true);
 
@@ -49,7 +51,7 @@ export function StaffManagement({ user, onStaffUpdate }: StaffManagementProps) {
         <Card>
           <CardContent className="p-8 text-center">
             <div className="w-16 h-16 border-4 border-blue-300 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading staff management...</p>
+            <p className="text-gray-600">{t('loading')}</p>
           </CardContent>
         </Card>
       </div>

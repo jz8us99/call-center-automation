@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { User } from '@supabase/supabase-js';
 import {
   Card,
@@ -65,6 +66,7 @@ export function BusinessProducts({
   user,
   onProductsUpdate,
 }: BusinessProductsProps) {
+  const t = useTranslations('businessProducts');
   const [businessProfile, setBusinessProfile] =
     useState<BusinessProfile | null>(null);
   const [productCategories, setProductCategories] = useState<ProductCategory[]>(
@@ -540,9 +542,7 @@ export function BusinessProducts({
       <div className="space-y-6">
         <div className="text-center py-8">
           <div className="w-16 h-16 border-4 border-green-300 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">
-            Loading business profile and products...
-          </p>
+          <p className="text-gray-600">{t('loading')}</p>
         </div>
       </div>
     );
@@ -553,7 +553,7 @@ export function BusinessProducts({
       <div className="text-center py-12 border rounded-lg bg-amber-50">
         <SettingsIcon className="h-16 w-16 text-amber-500 mx-auto mb-4" />
         <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          Business Type Required
+          {t('businessTypeRequired')}
         </h3>
         <p className="text-gray-600 mb-4">
           Please complete the Business Information step first to configure your
@@ -575,7 +575,7 @@ export function BusinessProducts({
             <div>
               <CardTitle className="flex items-center gap-2">
                 <SettingsIcon className="h-5 w-5" />
-                Business Products
+                {t('title')}
               </CardTitle>
               <CardDescription>
                 Manage your product inventory for your{' '}
@@ -596,12 +596,9 @@ export function BusinessProducts({
             <div>
               <CardTitle className="flex items-center gap-2">
                 <SettingsIcon className="h-5 w-5" />
-                Product Categories & Products
+                {t('categoriesTitle')}
               </CardTitle>
-              <CardDescription>
-                Organize your products into categories and manage individual
-                product offerings with pricing and inventory details.
-              </CardDescription>
+              <CardDescription>{t('categoriesDescription')}</CardDescription>
             </div>
             <Button
               onClick={() => {
@@ -612,7 +609,7 @@ export function BusinessProducts({
               className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white"
             >
               <PlusIcon className="h-4 w-4" />
-              Add Category
+              {t('addCategory')}
             </Button>
           </div>
         </CardHeader>
@@ -622,7 +619,7 @@ export function BusinessProducts({
             <div className="text-center py-8">
               <SettingsIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                No Product Categories
+                {t('noCategories')}
               </h3>
               <p className="text-gray-600 mb-4">
                 Create your first product category to organize your{' '}
@@ -1114,9 +1111,7 @@ export function BusinessProducts({
         <Card>
           <CardHeader>
             <CardTitle>
-              {editingCategory
-                ? 'Edit Product Category'
-                : 'Add Product Category'}
+              {editingCategory ? t('editCategory') : t('addCategory')}
             </CardTitle>
             <CardDescription>
               {editingCategory
@@ -1126,7 +1121,7 @@ export function BusinessProducts({
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="category-name">Category Name *</Label>
+              <Label htmlFor="category-name">{t('categoryName')}</Label>
               <Input
                 id="category-name"
                 value={categoryForm.category_name}

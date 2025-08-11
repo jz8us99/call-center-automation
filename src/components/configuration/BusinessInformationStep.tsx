@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import {
@@ -171,6 +172,7 @@ export function BusinessInformationStep({
   onBusinessProfileUpdate,
   initialData = null,
 }: BusinessInformationStepProps) {
+  const t = useTranslations('businessInformation');
   const [formData, setFormData] = useState<BusinessProfile>({
     user_id: user.id,
     business_name: initialData?.business_name || '',
@@ -825,9 +827,7 @@ export function BusinessInformationStep({
         <Card>
           <CardContent className="p-8 text-center">
             <div className="w-16 h-16 border-4 border-orange-300 dark:border-orange-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600 dark:text-gray-400">
-              Loading your business information...
-            </p>
+            <p className="text-gray-600 dark:text-gray-400">{t('loading')}</p>
           </CardContent>
         </Card>
       </div>
@@ -842,29 +842,30 @@ export function BusinessInformationStep({
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Building className="h-5 w-5" />
-              Basic Business Information
+              {t('basicInfo.title')}
             </CardTitle>
-            <CardDescription>
-              Provide essential information about your business that will be
-              used throughout your AI agent configuration.
-            </CardDescription>
+            <CardDescription>{t('basicInfo.description')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="business-name">Business Name *</Label>
+                <Label htmlFor="business-name">
+                  {t('basicInfo.businessName')}
+                </Label>
                 <Input
                   id="business-name"
                   value={formData.business_name}
                   onChange={e =>
                     handleInputChange('business_name', e.target.value)
                   }
-                  placeholder="Your Business Name"
+                  placeholder={t('basicInfo.businessNamePlaceholder')}
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="business-type">Business Type *</Label>
+                <Label htmlFor="business-type">
+                  {t('basicInfo.businessType')}
+                </Label>
                 <Select
                   value={formData.business_type}
                   onValueChange={value =>
@@ -873,7 +874,9 @@ export function BusinessInformationStep({
                   required
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select your business type" />
+                    <SelectValue
+                      placeholder={t('basicInfo.businessTypePlaceholder')}
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     {Object.entries(businessTypeCategories).map(
@@ -903,21 +906,25 @@ export function BusinessInformationStep({
             </div>
 
             <div>
-              <Label htmlFor="business-description">Business Description</Label>
+              <Label htmlFor="business-description">
+                {t('basicInfo.businessDescription')}
+              </Label>
               <Textarea
                 id="business-description"
                 value={formData.business_description}
                 onChange={e =>
                   handleInputChange('business_description', e.target.value)
                 }
-                placeholder="Brief description of your business and services..."
+                placeholder={t('basicInfo.businessDescriptionPlaceholder')}
                 rows={3}
               />
             </div>
 
             <div className="grid md:grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="years-business">Years in Business</Label>
+                <Label htmlFor="years-business">
+                  {t('basicInfo.yearsInBusiness')}
+                </Label>
                 <Input
                   id="years-business"
                   type="number"
@@ -933,7 +940,9 @@ export function BusinessInformationStep({
                 />
               </div>
               <div>
-                <Label htmlFor="num-employees">Number of Employees</Label>
+                <Label htmlFor="num-employees">
+                  {t('basicInfo.numberOfEmployees')}
+                </Label>
                 <Input
                   id="num-employees"
                   type="number"
@@ -949,7 +958,7 @@ export function BusinessInformationStep({
                 />
               </div>
               <div>
-                <Label htmlFor="timezone">Timezone</Label>
+                <Label htmlFor="timezone">{t('basicInfo.timezone')}</Label>
                 <Select
                   value={formData.timezone}
                   onValueChange={value => handleInputChange('timezone', value)}
@@ -980,15 +989,15 @@ export function BusinessInformationStep({
         {/* Contact Information */}
         <Card>
           <CardHeader>
-            <CardTitle>Contact Information</CardTitle>
-            <CardDescription>
-              Business contact details and primary contact person information.
-            </CardDescription>
+            <CardTitle>{t('contactInfo.title')}</CardTitle>
+            <CardDescription>{t('contactInfo.description')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="business-phone">Business Phone *</Label>
+                <Label htmlFor="business-phone">
+                  {t('contactInfo.businessPhone')}
+                </Label>
                 <Input
                   id="business-phone"
                   type="tel"
@@ -996,12 +1005,14 @@ export function BusinessInformationStep({
                   onChange={e =>
                     handleInputChange('business_phone', e.target.value)
                   }
-                  placeholder="(555) 123-4567"
+                  placeholder={t('contactInfo.phonePlaceholder')}
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="business-email">Business Email</Label>
+                <Label htmlFor="business-email">
+                  {t('contactInfo.businessEmail')}
+                </Label>
                 <Input
                   id="business-email"
                   type="email"
@@ -1009,83 +1020,93 @@ export function BusinessInformationStep({
                   onChange={e =>
                     handleInputChange('business_email', e.target.value)
                   }
-                  placeholder="info@yourbusiness.com"
+                  placeholder={t('contactInfo.emailPlaceholder')}
                 />
               </div>
             </div>
 
             <div>
-              <Label htmlFor="street-address">Street Address</Label>
+              <Label htmlFor="street-address">
+                {t('contactInfo.streetAddress')}
+              </Label>
               <Input
                 id="street-address"
                 value={formData.street_address}
                 onChange={e =>
                   handleInputChange('street_address', e.target.value)
                 }
-                placeholder="123 Main Street, Suite 100"
+                placeholder={t('contactInfo.streetAddressPlaceholder')}
               />
             </div>
 
             <div className="grid md:grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="city">City</Label>
+                <Label htmlFor="city">{t('contactInfo.city')}</Label>
                 <Input
                   id="city"
                   value={formData.city}
                   onChange={e => handleInputChange('city', e.target.value)}
-                  placeholder="City"
+                  placeholder={t('contactInfo.cityPlaceholder')}
                 />
               </div>
               <div>
-                <Label htmlFor="state">State/Province</Label>
+                <Label htmlFor="state">{t('contactInfo.stateProvince')}</Label>
                 <Input
                   id="state"
                   value={formData.state}
                   onChange={e => handleInputChange('state', e.target.value)}
-                  placeholder="State"
+                  placeholder={t('contactInfo.statePlaceholder')}
                 />
               </div>
               <div>
-                <Label htmlFor="postal-code">ZIP/Postal Code</Label>
+                <Label htmlFor="postal-code">
+                  {t('contactInfo.postalCode')}
+                </Label>
                 <Input
                   id="postal-code"
                   value={formData.postal_code}
                   onChange={e =>
                     handleInputChange('postal_code', e.target.value)
                   }
-                  placeholder="12345"
+                  placeholder={t('contactInfo.postalCodePlaceholder')}
                 />
               </div>
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="contact-name">Primary Contact Name</Label>
+                <Label htmlFor="contact-name">
+                  {t('contactInfo.primaryContactName')}
+                </Label>
                 <Input
                   id="contact-name"
                   value={formData.contact_person_name}
                   onChange={e =>
                     handleInputChange('contact_person_name', e.target.value)
                   }
-                  placeholder="John Smith"
+                  placeholder={t('contactInfo.contactNamePlaceholder')}
                 />
               </div>
               <div>
-                <Label htmlFor="contact-role">Contact Role</Label>
+                <Label htmlFor="contact-role">
+                  {t('contactInfo.contactRole')}
+                </Label>
                 <Input
                   id="contact-role"
                   value={formData.contact_person_role}
                   onChange={e =>
                     handleInputChange('contact_person_role', e.target.value)
                   }
-                  placeholder="Office Manager"
+                  placeholder={t('contactInfo.contactRolePlaceholder')}
                 />
               </div>
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="contact-phone">Contact Phone</Label>
+                <Label htmlFor="contact-phone">
+                  {t('contactInfo.contactPhone')}
+                </Label>
                 <Input
                   id="contact-phone"
                   type="tel"
@@ -1097,7 +1118,9 @@ export function BusinessInformationStep({
                 />
               </div>
               <div>
-                <Label htmlFor="contact-email">Contact Email</Label>
+                <Label htmlFor="contact-email">
+                  {t('contactInfo.contactEmail')}
+                </Label>
                 <Input
                   id="contact-email"
                   type="email"
@@ -1105,7 +1128,7 @@ export function BusinessInformationStep({
                   onChange={e =>
                     handleInputChange('contact_person_email', e.target.value)
                   }
-                  placeholder="john@yourbusiness.com"
+                  placeholder={t('contactInfo.contactEmailPlaceholder')}
                 />
               </div>
             </div>
@@ -1115,15 +1138,12 @@ export function BusinessInformationStep({
         {/* Insurance Acceptance */}
         <Card>
           <CardHeader>
-            <CardTitle>Insurance Acceptance</CardTitle>
-            <CardDescription>
-              List the insurance providers your business accepts. This helps
-              customers know which insurances you work with.
-            </CardDescription>
+            <CardTitle>{t('insuranceInfo.title')}</CardTitle>
+            <CardDescription>{t('insuranceInfo.description')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label>Accepted Insurance Providers</Label>
+              <Label>{t('insuranceInfo.acceptedProviders')}</Label>
               <div className="mt-2">
                 {(formData.accepted_insurances?.length || 0) > 0 ? (
                   <div className="space-y-2">
@@ -1157,13 +1177,13 @@ export function BusinessInformationStep({
                   </div>
                 ) : (
                   <p className="text-sm text-gray-500 dark:text-gray-400 italic">
-                    No insurance providers added yet.
+                    {t('insuranceInfo.noProviders')}
                   </p>
                 )}
 
                 <div className="flex gap-2 mt-3">
                   <Input
-                    placeholder="Enter insurance provider name"
+                    placeholder={t('insuranceInfo.providerPlaceholder')}
                     value={newInsuranceInput}
                     onChange={e => setNewInsuranceInput(e.target.value)}
                     onKeyPress={e => {
@@ -1179,13 +1199,13 @@ export function BusinessInformationStep({
                     disabled={!newInsuranceInput.trim()}
                   >
                     <PlusIcon className="h-4 w-4" />
-                    Add
+                    {t('insuranceInfo.add')}
                   </Button>
                 </div>
 
                 <div className="mt-3">
                   <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
-                    Common Insurance Providers:
+                    {t('insuranceInfo.commonProviders')}
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {COMMON_INSURANCES.filter(
@@ -1227,12 +1247,9 @@ export function BusinessInformationStep({
               <div>
                 <CardTitle className="flex items-center gap-2">
                   <Building className="h-5 w-5" />
-                  Business Locations
+                  {t('locations.title')}
                 </CardTitle>
-                <CardDescription>
-                  Manage multiple business locations. Staff can be assigned to
-                  specific locations for better organization and scheduling.
-                </CardDescription>
+                <CardDescription>{t('locations.description')}</CardDescription>
               </div>
               <Button
                 type="button"
@@ -1241,7 +1258,7 @@ export function BusinessInformationStep({
                 size="sm"
               >
                 <PlusIcon className="h-4 w-4 mr-2" />
-                Add Location
+                {t('locations.addLocation')}
               </Button>
             </div>
           </CardHeader>
@@ -1250,12 +1267,10 @@ export function BusinessInformationStep({
               <div className="text-center py-8 bg-gray-50 dark:bg-gray-700 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
                 <Building className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                  No Business Locations
+                  {t('locations.noLocations')}
                 </h3>
                 <p className="text-gray-600 dark:text-gray-300 mb-4">
-                  Add your first business location to help organize staff and
-                  services. A default location will be created automatically
-                  when you save your business information.
+                  {t('locations.firstLocationHelp')}
                 </p>
                 <Button
                   type="button"
@@ -1263,7 +1278,7 @@ export function BusinessInformationStep({
                   variant="outline"
                 >
                   <PlusIcon className="h-4 w-4 mr-2" />
-                  Add First Location
+                  {t('locations.addFirstLocation')}
                 </Button>
               </div>
             ) : (
@@ -1375,8 +1390,8 @@ export function BusinessInformationStep({
                   <div className="flex items-center justify-between mb-4">
                     <h4 className="font-medium text-gray-900 dark:text-gray-100">
                       {editingLocation.id
-                        ? 'Edit Location'
-                        : 'Add New Location'}
+                        ? t('locations.editLocation')
+                        : t('locations.addNewLocation')}
                     </h4>
                     <Button
                       type="button"
@@ -1394,7 +1409,9 @@ export function BusinessInformationStep({
                   <div className="space-y-4">
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="location-name">Location Name *</Label>
+                        <Label htmlFor="location-name">
+                          {t('locations.locationName')}
+                        </Label>
                         <Input
                           id="location-name"
                           value={editingLocation.location_name}
@@ -1405,7 +1422,7 @@ export function BusinessInformationStep({
                                 : null
                             )
                           }
-                          placeholder="Main Office, Branch Location, etc."
+                          placeholder={t('locations.locationNamePlaceholder')}
                           required
                         />
                       </div>
@@ -1424,13 +1441,15 @@ export function BusinessInformationStep({
                           className="rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700"
                         />
                         <Label htmlFor="is-primary" className="text-sm">
-                          Set as primary location
+                          {t('locations.setPrimary')}
                         </Label>
                       </div>
                     </div>
 
                     <div>
-                      <Label htmlFor="location-street">Street Address</Label>
+                      <Label htmlFor="location-street">
+                        {t('contactInfo.streetAddress')}
+                      </Label>
                       <Input
                         id="location-street"
                         value={editingLocation.street_address || ''}
@@ -1447,7 +1466,9 @@ export function BusinessInformationStep({
 
                     <div className="grid md:grid-cols-3 gap-4">
                       <div>
-                        <Label htmlFor="location-city">City</Label>
+                        <Label htmlFor="location-city">
+                          {t('contactInfo.city')}
+                        </Label>
                         <Input
                           id="location-city"
                           value={editingLocation.city || ''}
@@ -1539,7 +1560,7 @@ export function BusinessInformationStep({
                           setEditingLocation(null);
                         }}
                       >
-                        Cancel
+                        {t('locations.cancel')}
                       </Button>
                     </div>
                   </div>
@@ -1909,10 +1930,10 @@ export function BusinessInformationStep({
                   }`}
                 >
                   {saveStatus === 'success'
-                    ? 'Business Information Saved Successfully!'
+                    ? t('saveStatus.success')
                     : saveStatus === 'error'
-                      ? 'Error Saving Business Information'
-                      : 'Complete Business Information'}
+                      ? t('saveStatus.error')
+                      : t('saveStatus.completeInfo')}
                 </h3>
                 <p
                   className={`text-sm ${
@@ -1924,14 +1945,14 @@ export function BusinessInformationStep({
                   }`}
                 >
                   {saveStatus === 'success'
-                    ? 'You can now proceed to Staff Management. Your information will be used across all AI agents.'
+                    ? t('saveStatus.successDescription')
                     : saveStatus === 'error'
-                      ? 'There was an error saving your information. Please try again.'
+                      ? t('saveStatus.errorDescription')
                       : !formData.business_name ||
                           !formData.business_type ||
                           !formData.business_phone
-                        ? 'Please fill in the required fields above to enable saving.'
-                        : 'This information will be used across all your AI agents and can be updated anytime.'}
+                        ? t('saveStatus.fillRequiredFields')
+                        : t('saveStatus.instructionDescription')}
                 </p>
               </div>
               <Button
@@ -1963,7 +1984,7 @@ export function BusinessInformationStep({
                 ) : saveStatus === 'success' ? (
                   <>
                     <CheckCircle className="h-4 w-4 mr-2" />
-                    Saved Successfully
+                    {t('saveStatus.savedSuccessfully')}
                   </>
                 ) : saveStatus === 'error' ? (
                   <>
@@ -1980,7 +2001,7 @@ export function BusinessInformationStep({
                 ) : (
                   <>
                     <CheckCircle className="h-4 w-4 mr-2" />
-                    Save Business Information
+                    {t('saveStatus.saveBusinessInfo')}
                   </>
                 )}
               </Button>

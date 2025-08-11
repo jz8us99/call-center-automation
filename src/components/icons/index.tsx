@@ -25,6 +25,7 @@ import {
   Clock,
   User,
   CreditCard,
+  Mic,
 } from 'lucide-react';
 
 export interface IconProps {
@@ -198,6 +199,12 @@ export const CreditCardIcon: React.FC<IconProps> = ({
   className = 'h-5 w-5',
   size,
 }) => <CreditCard className={className} size={size} />;
+
+// Microphone icon using Lucide
+export const MicIcon: React.FC<IconProps> = ({
+  className = 'h-5 w-5',
+  size,
+}) => <Mic className={className} size={size} />;
 
 // Call Type Icon Component
 export interface CallTypeIconProps {

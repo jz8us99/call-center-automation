@@ -1,9 +1,12 @@
+import { useTranslations } from 'next-intl';
+
 interface Integration {
   name: string;
   logo: string;
 }
 
 export default function IntegrationsSection() {
+  const t = useTranslations('home.integrations');
   const integrations: Integration[] = [
     { name: 'Salesforce', logo: '/api/placeholder/120/60' },
     { name: 'Zapier', logo: '/api/placeholder/120/60' },
@@ -18,7 +21,7 @@ export default function IntegrationsSection() {
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-black dark:text-white mb-6">
-            Integrates with your favorite tools
+            {t('title')}
           </h2>
         </div>
 

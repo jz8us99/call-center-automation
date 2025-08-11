@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { User } from '@supabase/supabase-js';
 import {
   Card,
@@ -84,6 +85,7 @@ export function AppointmentSystem({
   user,
   onAppointmentUpdate,
 }: AppointmentSystemProps) {
+  const t = useTranslations('appointmentSystem');
   const [appointmentTypes, setAppointmentTypes] = useState<AppointmentType[]>(
     []
   );
@@ -731,11 +733,10 @@ export function AppointmentSystem({
         <CardHeader>
           <CardTitle className="text-blue-900 flex items-center gap-2">
             <CalendarIcon className="h-6 w-6" />
-            📅 Step 5: Appointment System Configuration
+            {t('title')}
           </CardTitle>
           <CardDescription className="text-blue-700">
-            Configure your business hours, holidays, appointment types, and
-            booking settings to complete your system setup
+            {t('description')}
           </CardDescription>
         </CardHeader>
       </Card>
@@ -753,25 +754,25 @@ export function AppointmentSystem({
                 className="flex items-center gap-2"
               >
                 <CalendarIcon className="h-4 w-4" />
-                Appointment Types
+                {t('tabs.appointmentTypes')}
               </TabsTrigger>
               <TabsTrigger
                 value="business-hours"
                 className="flex items-center gap-2"
               >
                 <ClockIcon className="h-4 w-4" />
-                Business Hours
+                {t('tabs.businessHours')}
               </TabsTrigger>
               <TabsTrigger value="holidays" className="flex items-center gap-2">
                 <CalendarIcon className="h-4 w-4" />
-                Holiday Configuration
+                {t('tabs.holidays')}
               </TabsTrigger>
               <TabsTrigger
                 value="booking-settings"
                 className="flex items-center gap-2"
               >
                 <SettingsIcon className="h-4 w-4" />
-                Booking Settings
+                {t('tabs.bookingSettings')}
               </TabsTrigger>
             </TabsList>
           </CardHeader>
@@ -785,12 +786,10 @@ export function AppointmentSystem({
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <CalendarIcon className="h-5 w-5" />
-                    Appointment Types
+                    {t('appointmentTypes.title')}
                   </CardTitle>
                   <CardDescription>
-                    Your appointment types are ready! We've loaded common
-                    appointment types as defaults. You can edit, remove, or add
-                    new ones to match your business needs.
+                    {t('appointmentTypes.description')}
                   </CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
@@ -807,7 +806,7 @@ export function AppointmentSystem({
                             Saving...
                           </>
                         ) : (
-                          <>💾 Save Changes</>
+                          <>{t('appointmentTypes.saveChanges')}</>
                         )}
                       </Button>
                       <Button
@@ -816,7 +815,7 @@ export function AppointmentSystem({
                         variant="outline"
                         className="text-red-600 border-red-300 hover:bg-red-50"
                       >
-                        Cancel Changes
+                        {t('appointmentTypes.cancelChanges')}
                       </Button>
                     </>
                   )}
@@ -825,7 +824,7 @@ export function AppointmentSystem({
                     className="flex items-center gap-2"
                   >
                     <PlusIcon className="h-4 w-4" />
-                    Add Appointment Type
+                    {t('appointmentTypes.addAppointmentType')}
                   </Button>
                 </div>
               </div>
@@ -923,11 +922,21 @@ export function AppointmentSystem({
 
                   {/* Header Row */}
                   <div className="grid grid-cols-12 gap-4 px-4 py-2 bg-gray-50 rounded-lg text-sm font-medium text-gray-700">
-                    <div className="col-span-4">Appointment Type</div>
-                    <div className="col-span-2">Duration</div>
-                    <div className="col-span-2">Status</div>
-                    <div className="col-span-1">Color</div>
-                    <div className="col-span-3 text-right">Actions</div>
+                    <div className="col-span-4">
+                      {t('appointmentTypes.table.appointmentType')}
+                    </div>
+                    <div className="col-span-2">
+                      {t('appointmentTypes.table.duration')}
+                    </div>
+                    <div className="col-span-2">
+                      {t('appointmentTypes.table.status')}
+                    </div>
+                    <div className="col-span-1">
+                      {t('appointmentTypes.table.color')}
+                    </div>
+                    <div className="col-span-3 text-right">
+                      {t('appointmentTypes.table.actions')}
+                    </div>
                   </div>
 
                   {/* Appointment List */}
@@ -1087,11 +1096,10 @@ export function AppointmentSystem({
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <ClockIcon className="h-5 w-5" />
-                    Business Operating Hours
+                    {t('businessHours.title')}
                   </CardTitle>
                   <CardDescription>
-                    Set your operating hours for each day. All days are
-                    customizable including weekends.
+                    {t('businessHours.description')}
                   </CardDescription>
                 </div>
                 <div className="flex gap-2">
@@ -1101,7 +1109,7 @@ export function AppointmentSystem({
                       variant="outline"
                     >
                       <EditIcon className="h-4 w-4 mr-2" />
-                      Edit Hours
+                      {t('businessHours.editHours')}
                     </Button>
                   ) : (
                     <>

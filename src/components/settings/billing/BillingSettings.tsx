@@ -4,12 +4,15 @@ import { User } from '@supabase/supabase-js';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useTranslations } from 'next-intl';
 
 interface BillingSettingsProps {
   user: User;
 }
 
 export default function BillingSettings({ user }: BillingSettingsProps) {
+  const t = useTranslations('billingSettings');
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="space-y-8">
@@ -17,10 +20,10 @@ export default function BillingSettings({ user }: BillingSettingsProps) {
         <Card className="p-6">
           <div className="mb-6">
             <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
-              Current Plan
+              {t('currentPlan.title')}
             </h2>
             <p className="text-xs text-gray-600 dark:text-gray-400">
-              Your current subscription and usage information.
+              {t('currentPlan.description')}
             </p>
           </div>
 
@@ -29,17 +32,17 @@ export default function BillingSettings({ user }: BillingSettingsProps) {
               <div>
                 <div className="flex items-center space-x-3">
                   <h3 className="font-semibold text-gray-900 dark:text-white">
-                    Pro Plan
+                    {t('currentPlan.planName')}
                   </h3>
                   <Badge variant="outline" className="text-green-600">
-                    Active
+                    {t('currentPlan.active')}
                   </Badge>
                 </div>
                 <p className="text-gray-600 dark:text-gray-400">
-                  300 calls per month • $800.00/month
+                  {t('currentPlan.planDetails')}
                 </p>
               </div>
-              <Button variant="outline">Change Plan</Button>
+              <Button variant="outline">{t('currentPlan.changePlan')}</Button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -48,7 +51,7 @@ export default function BillingSettings({ user }: BillingSettingsProps) {
                   247
                 </div>
                 <div className="text-sm text-gray-500 dark:text-gray-400">
-                  Calls this month
+                  {t('currentPlan.usage.callsThisMonth')}
                 </div>
               </div>
               <div className="p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
@@ -56,7 +59,7 @@ export default function BillingSettings({ user }: BillingSettingsProps) {
                   53
                 </div>
                 <div className="text-sm text-gray-500 dark:text-gray-400">
-                  Calls remaining
+                  {t('currentPlan.usage.callsRemaining')}
                 </div>
               </div>
               <div className="p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
@@ -64,7 +67,7 @@ export default function BillingSettings({ user }: BillingSettingsProps) {
                   $0.00
                 </div>
                 <div className="text-sm text-gray-500 dark:text-gray-400">
-                  Overage charges
+                  {t('currentPlan.usage.overageCharges')}
                 </div>
               </div>
             </div>
@@ -77,13 +80,13 @@ export default function BillingSettings({ user }: BillingSettingsProps) {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
-                  Payment Methods
+                  {t('paymentMethods.title')}
                 </h2>
                 <p className="text-xs text-gray-600 dark:text-gray-400">
-                  Manage your payment methods and billing information.
+                  {t('paymentMethods.description')}
                 </p>
               </div>
-              <Button>Add Payment Method</Button>
+              <Button>{t('paymentMethods.addPaymentMethod')}</Button>
             </div>
           </div>
 
@@ -98,22 +101,22 @@ export default function BillingSettings({ user }: BillingSettingsProps) {
                     •••• •••• •••• 4242
                   </p>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Expires 12/2025
+                    {t('paymentMethods.expires')}
                   </p>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
                 <Badge variant="outline" className="text-green-600">
-                  Default
+                  {t('paymentMethods.default')}
                 </Badge>
                 <Button variant="outline" size="sm">
-                  Remove
+                  {t('paymentMethods.remove')}
                 </Button>
               </div>
             </div>
 
             <div className="p-8 text-center text-gray-500 dark:text-gray-400 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
-              <p>Add a payment method to manage your subscription</p>
+              <p>{t('paymentMethods.addPrompt')}</p>
             </div>
           </div>
         </Card>
@@ -124,10 +127,10 @@ export default function BillingSettings({ user }: BillingSettingsProps) {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
-                  Billing History
+                  {t('billingHistory.title')}
                 </h2>
                 <p className="text-xs text-gray-600 dark:text-gray-400">
-                  Download your previous invoices and receipts.
+                  {t('billingHistory.description')}
                 </p>
               </div>
             </div>
@@ -139,19 +142,19 @@ export default function BillingSettings({ user }: BillingSettingsProps) {
                 <thead>
                   <tr className="border-b border-gray-200 dark:border-gray-600">
                     <th className="text-left py-3 font-medium text-gray-900 dark:text-white">
-                      Invoice
+                      {t('billingHistory.table.invoice')}
                     </th>
                     <th className="text-left py-3 font-medium text-gray-900 dark:text-white">
-                      Date
+                      {t('billingHistory.table.date')}
                     </th>
                     <th className="text-left py-3 font-medium text-gray-900 dark:text-white">
-                      Status
+                      {t('billingHistory.table.status')}
                     </th>
                     <th className="text-left py-3 font-medium text-gray-900 dark:text-white">
-                      Amount
+                      {t('billingHistory.table.amount')}
                     </th>
                     <th className="text-right py-3 font-medium text-gray-900 dark:text-white">
-                      Actions
+                      {t('billingHistory.table.actions')}
                     </th>
                   </tr>
                 </thead>
@@ -165,7 +168,7 @@ export default function BillingSettings({ user }: BillingSettingsProps) {
                     </td>
                     <td className="py-3">
                       <Badge variant="outline" className="text-green-600">
-                        Paid
+                        {t('billingHistory.table.paid')}
                       </Badge>
                     </td>
                     <td className="py-3 text-gray-900 dark:text-white">
@@ -173,7 +176,7 @@ export default function BillingSettings({ user }: BillingSettingsProps) {
                     </td>
                     <td className="py-3 text-right">
                       <Button variant="outline" size="sm">
-                        Download
+                        {t('billingHistory.table.download')}
                       </Button>
                     </td>
                   </tr>
@@ -186,7 +189,7 @@ export default function BillingSettings({ user }: BillingSettingsProps) {
                     </td>
                     <td className="py-3">
                       <Badge variant="outline" className="text-green-600">
-                        Paid
+                        {t('billingHistory.table.paid')}
                       </Badge>
                     </td>
                     <td className="py-3 text-gray-900 dark:text-white">
@@ -194,7 +197,7 @@ export default function BillingSettings({ user }: BillingSettingsProps) {
                     </td>
                     <td className="py-3 text-right">
                       <Button variant="outline" size="sm">
-                        Download
+                        {t('billingHistory.table.download')}
                       </Button>
                     </td>
                   </tr>
@@ -208,10 +211,10 @@ export default function BillingSettings({ user }: BillingSettingsProps) {
         <Card className="p-6">
           <div className="mb-6">
             <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
-              Usage Analytics
+              {t('usageAnalytics.title')}
             </h2>
             <p className="text-xs text-gray-600 dark:text-gray-400">
-              Detailed breakdown of your monthly usage.
+              {t('usageAnalytics.description')}
             </p>
           </div>
 
@@ -219,8 +222,8 @@ export default function BillingSettings({ user }: BillingSettingsProps) {
             <div className="h-64 bg-gray-50 dark:bg-gray-700 rounded-lg flex items-center justify-center">
               <div className="text-center text-gray-500 dark:text-gray-400">
                 <div className="w-16 h-16 bg-gray-200 dark:bg-gray-600 rounded-full mx-auto mb-4"></div>
-                <p>Usage analytics chart will be displayed here</p>
-                <p className="text-sm">Coming soon...</p>
+                <p>{t('usageAnalytics.chartPlaceholder')}</p>
+                <p className="text-sm">{t('usageAnalytics.comingSoon')}</p>
               </div>
             </div>
           </div>

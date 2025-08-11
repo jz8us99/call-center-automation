@@ -1,33 +1,36 @@
+import { useTranslations } from 'next-intl';
+
 interface Testimonial {
   avatar: string;
-  name: string;
-  company: string;
+  nameKey: string;
+  companyKey: string;
   rating: number;
-  text: string;
+  textKey: string;
 }
 
 export default function TestimonialsSection() {
+  const t = useTranslations('home.testimonials');
   const testimonials: Testimonial[] = [
     {
       avatar: '/api/placeholder/60/60',
-      name: 'Sarah Johnson',
-      company: 'Johnson & Associates Law',
+      nameKey: 'testimonial1.name',
+      companyKey: 'testimonial1.company',
       rating: 5,
-      text: 'The AI receptionist has transformed our practice. We never miss a call and clients love the professional service.',
+      textKey: 'testimonial1.text',
     },
     {
       avatar: '/api/placeholder/60/60',
-      name: 'Michael Chen',
-      company: 'Elite Home Services',
+      nameKey: 'testimonial2.name',
+      companyKey: 'testimonial2.company',
       rating: 5,
-      text: 'Our booking rate increased by 40% since using the service. The ROI is incredible.',
+      textKey: 'testimonial2.text',
     },
     {
       avatar: '/api/placeholder/60/60',
-      name: 'Emma Rodriguez',
-      company: 'Bella Spa & Wellness',
+      nameKey: 'testimonial3.name',
+      companyKey: 'testimonial3.company',
       rating: 5,
-      text: 'Professional, reliable, and cost-effective. Our clients love the consistent, high-quality service.',
+      textKey: 'testimonial3.text',
     },
   ];
 
@@ -36,7 +39,7 @@ export default function TestimonialsSection() {
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-black dark:text-white mb-6">
-            What our customers say
+            {t('title')}
           </h2>
         </div>
 
@@ -49,15 +52,15 @@ export default function TestimonialsSection() {
               <div className="flex items-center mb-6">
                 <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center mr-4">
                   <span className="text-white font-semibold">
-                    {testimonial.name.charAt(0)}
+                    {t(testimonial.nameKey).charAt(0)}
                   </span>
                 </div>
                 <div>
                   <h4 className="font-semibold text-black dark:text-white">
-                    {testimonial.name}
+                    {t(testimonial.nameKey)}
                   </h4>
                   <p className="text-gray-600 dark:text-gray-400 text-sm">
-                    {testimonial.company}
+                    {t(testimonial.companyKey)}
                   </p>
                 </div>
               </div>
@@ -73,7 +76,7 @@ export default function TestimonialsSection() {
                 ))}
               </div>
               <p className="text-black dark:text-gray-300 italic">
-                {testimonial.text}
+                {t(testimonial.textKey)}
               </p>
             </div>
           ))}

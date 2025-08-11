@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   Card,
   CardContent,
@@ -63,6 +64,7 @@ export function BusinessInformationForm({
   agent,
   onSave,
 }: BusinessInformationFormProps) {
+  const t = useTranslations('businessInformation');
   const [formData, setFormData] = useState<AgentConfig>({
     agent_name: agent?.agent_name || '',
     business_name: agent?.business_name || '',
@@ -283,7 +285,7 @@ export function BusinessInformationForm({
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Business Type *
+                {t('form.businessType')}
               </label>
               <Select
                 value={formData.business_type}
@@ -292,7 +294,9 @@ export function BusinessInformationForm({
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select business type" />
+                  <SelectValue
+                    placeholder={t('form.businessTypePlaceholder')}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="clinic">Medical Clinic</SelectItem>
@@ -323,42 +327,39 @@ export function BusinessInformationForm({
       {/* Business Information */}
       <Card>
         <CardHeader>
-          <CardTitle>Business Information</CardTitle>
-          <CardDescription>
-            Information about your business that the AI agent will use when
-            talking to callers
-          </CardDescription>
+          <CardTitle>{t('form.title')}</CardTitle>
+          <CardDescription>{t('form.description')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Business Name *
+              {t('form.businessName')}
             </label>
             <Input
               value={formData.business_name}
               onChange={e => handleInputChange('business_name', e.target.value)}
-              placeholder="e.g., Sunshine Medical Clinic"
+              placeholder={t('form.businessNamePlaceholder')}
               required
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Business Address
+              {t('form.businessAddress')}
             </label>
             <Input
               value={formData.business_address}
               onChange={e =>
                 handleInputChange('business_address', e.target.value)
               }
-              placeholder="123 Main St, City, State 12345"
+              placeholder={t('form.addressPlaceholder')}
             />
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Business Phone *
+                {t('form.businessPhone')}
               </label>
               <Input
                 type="tel"
@@ -366,13 +367,13 @@ export function BusinessInformationForm({
                 onChange={e =>
                   handleInputChange('business_phone', e.target.value)
                 }
-                placeholder="+1 (555) 123-4567"
+                placeholder={t('form.phonePlaceholder')}
                 required
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Business Email
+                {t('form.businessEmail')}
               </label>
               <Input
                 type="email"
@@ -380,7 +381,7 @@ export function BusinessInformationForm({
                 onChange={e =>
                   handleInputChange('business_email', e.target.value)
                 }
-                placeholder="info@business.com"
+                placeholder={t('form.emailPlaceholder')}
               />
             </div>
           </div>
@@ -430,9 +431,9 @@ export function BusinessInformationForm({
       {/* Contact Person */}
       <Card>
         <CardHeader>
-          <CardTitle>Primary Contact Person</CardTitle>
+          <CardTitle>{t('form.primaryContactTitle')}</CardTitle>
           <CardDescription>
-            The main contact person for this business location
+            {t('form.primaryContactDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -446,7 +447,7 @@ export function BusinessInformationForm({
                 onChange={e =>
                   handleInputChange('contact_person_name', e.target.value)
                 }
-                placeholder="Dr. Jane Smith"
+                placeholder={t('form.contactNamePlaceholder')}
               />
             </div>
             <div>
@@ -458,7 +459,7 @@ export function BusinessInformationForm({
                 onChange={e =>
                   handleInputChange('contact_person_role', e.target.value)
                 }
-                placeholder="Practice Manager"
+                placeholder={t('form.contactRolePlaceholder')}
               />
             </div>
           </div>
@@ -474,7 +475,7 @@ export function BusinessInformationForm({
                 onChange={e =>
                   handleInputChange('contact_person_phone', e.target.value)
                 }
-                placeholder="+1 (555) 123-4567"
+                placeholder={t('form.phonePlaceholder')}
               />
             </div>
             <div>
@@ -487,7 +488,7 @@ export function BusinessInformationForm({
                 onChange={e =>
                   handleInputChange('contact_person_email', e.target.value)
                 }
-                placeholder="contact@business.com"
+                placeholder={t('form.contactEmailPlaceholder')}
               />
             </div>
           </div>
@@ -497,10 +498,9 @@ export function BusinessInformationForm({
       {/* Business Knowledge Upload */}
       <Card>
         <CardHeader>
-          <CardTitle>Business Knowledge</CardTitle>
+          <CardTitle>{t('form.businessKnowledgeTitle')}</CardTitle>
           <CardDescription>
-            Upload documents or provide your website URL to help the AI
-            understand your business better
+            {t('form.businessKnowledgeDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -508,14 +508,14 @@ export function BusinessInformationForm({
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               <Globe className="h-4 w-4 inline mr-2" />
-              Website URL (Alternative to document upload)
+              {t('form.websiteUrl')}
             </label>
             <div className="flex space-x-2">
               <Input
                 type="url"
                 value={formData.website_url}
                 onChange={e => handleInputChange('website_url', e.target.value)}
-                placeholder="https://www.yourbusiness.com"
+                placeholder={t('form.websitePlaceholder')}
                 className="flex-1"
               />
               <Button
@@ -549,8 +549,8 @@ export function BusinessInformationForm({
             {[
               {
                 type: 'pricing' as const,
-                label: 'Pricing Documents',
-                description: 'Service prices, packages, insurance information',
+                label: t('form.pricingDocuments'),
+                description: t('form.pricingDocumentsDesc'),
               },
               {
                 type: 'policy' as const,
@@ -640,12 +640,12 @@ export function BusinessInformationForm({
                         {isUploading ? (
                           <div className="flex items-center space-x-2">
                             <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
-                            <span>Uploading...</span>
+                            <span>{t('form.uploading')}</span>
                           </div>
                         ) : (
                           <>
                             <Upload className="h-4 w-4 mr-2" />
-                            Upload {label}
+                            {t('form.uploadLabel', { label })}
                           </>
                         )}
                       </Button>
@@ -727,10 +727,10 @@ export function BusinessInformationForm({
           {saving ? (
             <div className="flex items-center space-x-2">
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span>Saving...</span>
+              <span>{t('form.saving')}</span>
             </div>
           ) : (
-            'Save Configuration'
+            t('form.saveConfiguration')
           )}
         </Button>
       </div>

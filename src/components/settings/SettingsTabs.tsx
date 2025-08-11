@@ -1,6 +1,7 @@
 'use client';
 
 import { User, CreditCard, Settings, SlidersHorizontal } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 export type SettingsTab = 'business' | 'account' | 'payment' | 'preferences';
 
@@ -16,30 +17,30 @@ interface TabItem {
   description: string;
 }
 
-const tabs: TabItem[] = [
+const getTabsConfig = (t: any): TabItem[] => [
   {
     id: 'preferences',
-    label: 'Preferences',
+    label: t('preferences.label'),
     icon: SlidersHorizontal,
-    description: 'Language, notifications, and app preferences',
+    description: t('preferences.description'),
   },
   {
     id: 'account',
-    label: 'Account',
+    label: t('account.label'),
     icon: User,
-    description: 'Profile, security, and preferences',
+    description: t('account.description'),
   },
   {
     id: 'payment',
-    label: 'Payment',
+    label: t('payment.label'),
     icon: CreditCard,
-    description: 'Billing, subscriptions, and payment methods',
+    description: t('payment.description'),
   },
   {
     id: 'business',
-    label: 'Business',
+    label: t('business.label'),
     icon: Settings,
-    description: 'Business configuration and AI agent setup',
+    description: t('business.description'),
   },
 ];
 
@@ -47,6 +48,9 @@ export default function SettingsTabs({
   activeTab,
   onTabChange,
 }: SettingsTabsProps) {
+  const t = useTranslations('settingsTabs');
+  const tabs = getTabsConfig(t);
+
   return (
     <div className="bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4">

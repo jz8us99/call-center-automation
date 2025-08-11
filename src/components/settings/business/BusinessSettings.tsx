@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { useUserProfile } from '@/hooks/useUserProfile';
+import { useTranslations } from 'next-intl';
 
 // Import existing configuration components
 import { LoadingScreen } from '@/components/configuration/ConfigurationPage/LoadingScreen';
@@ -28,6 +29,7 @@ interface BusinessSettingsProps {
 export default function BusinessSettings({ user }: BusinessSettingsProps) {
   const [mounted, setMounted] = useState(false);
   const [activeStep, setActiveStep] = useState<Step['id']>('business');
+  const t = useTranslations('businessSettings');
 
   const { loading: profileLoading } = useUserProfile(user);
 
@@ -102,54 +104,49 @@ export default function BusinessSettings({ user }: BusinessSettingsProps) {
   const steps: readonly Step[] = [
     {
       id: 'business',
-      label: 'Business Information',
+      label: t('steps.business.label'),
       icon: BuildingIcon,
-      description:
-        'Train your AI to understand your business as much as it can',
+      description: t('steps.business.description'),
       step: 1,
       status: workflowState.businessInfo,
     },
     {
       id: 'products',
-      label: 'Products',
+      label: t('steps.products.label'),
       icon: SettingsIcon,
-      description: 'Manage your product inventory and pricing',
+      description: t('steps.products.description'),
       step: 2,
       status: workflowState.products,
     },
     {
       id: 'services',
-      label: 'Services',
+      label: t('steps.services.label'),
       icon: ClockIcon,
-      description:
-        'Configure appointment-based services with duration and pricing',
+      description: t('steps.services.description'),
       step: 3,
       status: workflowState.services,
     },
     {
       id: 'appointments',
-      label: 'Appointment System',
+      label: t('steps.appointments.label'),
       icon: CalendarIcon,
-      description:
-        'Configure appointment types, business hours, and booking settings',
+      description: t('steps.appointments.description'),
       step: 4,
       status: workflowState.appointmentSystem,
     },
     {
       id: 'staff',
-      label: 'Staff Management',
+      label: t('steps.staff.label'),
       icon: UsersIcon,
-      description:
-        'Add staff members and manage their schedules based on business hours',
+      description: t('steps.staff.description'),
       step: 5,
       status: workflowState.staffManagement,
     },
     {
       id: 'agent',
-      label: 'AI Agents Setup',
+      label: t('steps.agent.label'),
       icon: SettingsIcon,
-      description:
-        'Create and manage multiple AI agents with different capabilities',
+      description: t('steps.agent.description'),
       step: 6,
       status: workflowState.aiAgentSetup,
     },

@@ -18,6 +18,7 @@ import {
   PhoneIcon,
   PlusIcon,
 } from '@/components/icons';
+import { useTranslations } from 'next-intl';
 
 interface HelpDialogProps {
   currentPage?: 'home' | 'dashboard' | 'configuration' | 'auth' | 'signup';
@@ -25,142 +26,114 @@ interface HelpDialogProps {
 
 export function HelpDialog({ currentPage = 'home' }: HelpDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const t = useTranslations('modals.help');
+
+  // Helper function to get array content from numbered keys
+  const getArrayContent = (baseKey: string, count: number = 3): string[] => {
+    const result: string[] = [];
+    for (let i = 1; i <= count; i++) {
+      try {
+        const value = t(`${baseKey}${i}`);
+        if (value) result.push(value);
+      } catch {
+        break;
+      }
+    }
+    return result;
+  };
 
   const navigationGuides = {
     home: {
-      title: 'Home Page Navigation',
-      description: 'Welcome to ReceptionPro - Your AI Call Center Assistant',
+      title: t('pages.home.title'),
+      description: t('pages.home.description'),
       sections: [
         {
-          title: 'Getting Started',
-          content: [
-            '• Click "Sign In" to access your dashboard with existing account',
-            '• Click "Sign Up" to create a new account',
-            '• Use Google Sign-In for quick authentication',
-          ],
+          title: t('pages.home.gettingStarted'),
+          content: getArrayContent('pages.home.gettingStartedContent', 3),
         },
         {
-          title: 'Available Features',
-          content: [
-            '• Dashboard - View call logs and statistics',
-            '• Configuration - Set up AI agents and business settings',
-            '• Call Management - Handle incoming calls and voicemails',
-          ],
+          title: t('pages.home.availableFeatures'),
+          content: getArrayContent('pages.home.availableFeaturesContent', 3),
         },
       ],
     },
     auth: {
-      title: 'Authentication Page',
-      description: 'Sign in to access your call center management system',
+      title: t('pages.auth.title'),
+      description: t('pages.auth.description'),
       sections: [
         {
-          title: 'Sign In Options',
-          content: [
-            '• Enter your email and password',
-            '• Use "Sign in with Google" for quick access',
-            '• Click "Forgot Password?" if you need to reset',
-          ],
+          title: t('pages.auth.signInOptions'),
+          content: getArrayContent('pages.auth.signInOptionsContent', 3),
         },
         {
-          title: 'New Users',
-          content: [
-            '• Click "Sign up" to create a new account',
-            '• Admin users can invite team members',
-          ],
+          title: t('pages.auth.newUsers'),
+          content: getArrayContent('pages.auth.newUsersContent', 3),
         },
       ],
     },
     dashboard: {
-      title: 'Dashboard Navigation',
-      description: 'Your main control center for call management and analytics',
+      title: t('pages.dashboard.title'),
+      description: t('pages.dashboard.description'),
       sections: [
         {
-          title: 'Main Navigation',
-          content: [
-            '• Home button (🏠) - Return to main page',
-            '• Sign out - Log out of your account',
-            '• User profile shows in top right corner',
-          ],
+          title: t('pages.dashboard.mainNavigation'),
+          content: getArrayContent('pages.dashboard.mainNavigationContent', 3),
         },
         {
-          title: 'Dashboard Features',
-          content: [
-            "• Call Statistics - View total calls, today's calls, unique numbers",
-            '• Call Logs Table - Browse all call records with search and filters',
-            '• Audio Player - Listen to call recordings',
-            '• Transcript Modal - Read call transcripts and summaries',
-          ],
+          title: t('pages.dashboard.dashboardFeatures'),
+          content: getArrayContent(
+            'pages.dashboard.dashboardFeaturesContent',
+            3
+          ),
         },
         {
-          title: 'Quick Actions',
-          content: [
-            '• Use search filters to find specific calls',
-            '• Click on call rows to view details',
-            '• Export call data for reporting',
-            '• Access AI Agent Configuration from here',
-          ],
+          title: t('pages.dashboard.quickActions'),
+          content: getArrayContent('pages.dashboard.quickActionsContent', 3),
         },
       ],
     },
     configuration: {
-      title: 'Configuration Dashboard',
-      description: 'Set up and customize your AI voice agents',
+      title: t('pages.configuration.title'),
+      description: t('pages.configuration.description'),
       sections: [
         {
-          title: 'Navigation Tabs',
-          content: [
-            '• Overview - Quick setup guide and statistics',
-            '• AI Agent - Configure voice agents and business info',
-            '• Staff - Manage team members and schedules',
-            '• Appointments - Set up booking system',
-          ],
+          title: t('pages.configuration.navigationTabs'),
+          content: getArrayContent(
+            'pages.configuration.navigationTabsContent',
+            6
+          ),
         },
         {
-          title: 'AI Agent Setup',
-          content: [
-            '• Business Info - Enter your practice details',
-            '• Call Scripts - Customize conversation templates',
-            '• Voice Settings - Choose and tune AI voice characteristics',
-            '• Call Routing - Set up forwarding and voicemail',
-          ],
+          title: t('pages.configuration.aiAgentSetup'),
+          content: getArrayContent(
+            'pages.configuration.aiAgentSetupContent',
+            3
+          ),
         },
         {
-          title: 'Staff Management',
-          content: [
-            '• Add staff members with roles and contact info',
-            '• Set weekly availability schedules',
-            '• Manage time-off and holidays',
-            '• Configure appointment booking preferences',
-          ],
+          title: t('pages.configuration.staffManagement'),
+          content: getArrayContent(
+            'pages.configuration.staffManagementContent',
+            3
+          ),
         },
       ],
     },
     signup: {
-      title: 'Sign Up Page',
-      description: 'Create your new ReceptionPro account',
+      title: t('pages.signup.title'),
+      description: t('pages.signup.description'),
       sections: [
         {
-          title: 'Account Creation',
-          content: [
-            '• Enter your email address and create a secure password',
-            '• Use "Sign up with Google" for quick registration',
-            '• Verify your email address after registration',
-          ],
+          title: t('pages.signup.accountCreation'),
+          content: getArrayContent('pages.signup.accountCreationContent', 3),
         },
         {
-          title: 'Getting Started',
-          content: [
-            '• Complete your profile information',
-            '• Set up your first AI agent in Configuration',
-            '• Explore the Dashboard to view call analytics',
-          ],
+          title: t('pages.signup.gettingStarted'),
+          content: getArrayContent('pages.signup.gettingStartedContent', 3),
         },
         {
-          title: 'Existing Users',
-          content: [
-            '• Click "Sign in" if you already have an account',
-            '• Use "Forgot Password?" to reset your password',
-          ],
+          title: t('pages.signup.existingUsers'),
+          content: getArrayContent('pages.signup.existingUsersContent', 3),
         },
       ],
     },
@@ -170,40 +143,40 @@ export function HelpDialog({ currentPage = 'home' }: HelpDialogProps) {
 
   const allPages = [
     {
-      name: 'Home Page',
+      name: t('allPages.pages.homePage'),
       path: '/',
       icon: HomeIcon,
-      description: 'Main landing page with sign in/up options',
+      description: t('allPages.descriptions.homePage'),
     },
     {
-      name: 'Sign In',
+      name: t('allPages.pages.signIn'),
       path: '/auth',
       icon: UsersIcon,
-      description: 'Authentication page for existing users',
+      description: t('allPages.descriptions.signIn'),
     },
     {
-      name: 'Sign Up',
+      name: t('allPages.pages.signUp'),
       path: '/signup',
       icon: PlusIcon,
-      description: 'Registration page for new users',
+      description: t('allPages.descriptions.signUp'),
     },
     {
-      name: 'Dashboard',
+      name: t('allPages.pages.dashboard'),
       path: '/dashboard',
       icon: PhoneIcon,
-      description: 'Main dashboard with call logs and statistics',
+      description: t('allPages.descriptions.dashboard'),
     },
     {
-      name: 'Configuration',
+      name: t('allPages.pages.configuration'),
       path: '/configuration',
       icon: SettingsIcon,
-      description: 'AI agent setup and business configuration',
+      description: t('allPages.descriptions.configuration'),
     },
     {
-      name: 'Admin Dashboard',
+      name: t('allPages.pages.adminDashboard'),
       path: '/admin/dashboard',
       icon: UsersIcon,
-      description: 'Admin-only features and user management',
+      description: t('allPages.descriptions.adminDashboard'),
     },
   ];
 
@@ -216,7 +189,7 @@ export function HelpDialog({ currentPage = 'home' }: HelpDialogProps) {
         className="fixed bottom-4 right-4 z-50 shadow-lg bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700"
       >
         <HelpIcon className="h-4 w-4 mr-2" />
-        Help
+        {t('helpButton')}
       </Button>
     );
   }
@@ -228,7 +201,7 @@ export function HelpDialog({ currentPage = 'home' }: HelpDialogProps) {
           <div className="flex items-center space-x-3">
             <HelpIcon className="h-6 w-6 text-orange-600" />
             <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-              Navigation Help
+              {t('title')}
             </h2>
           </div>
           <Button variant="ghost" size="sm" onClick={() => setIsOpen(false)}>
@@ -274,10 +247,10 @@ export function HelpDialog({ currentPage = 'home' }: HelpDialogProps) {
             <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
               <CardHeader>
                 <CardTitle className="text-gray-900 dark:text-gray-100">
-                  All Available Pages
+                  {t('allPages.title')}
                 </CardTitle>
                 <CardDescription className="text-gray-600 dark:text-gray-400">
-                  Quick reference to navigate anywhere in the application
+                  {t('allPages.description')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -311,54 +284,84 @@ export function HelpDialog({ currentPage = 'home' }: HelpDialogProps) {
             <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
               <CardHeader>
                 <CardTitle className="text-gray-900 dark:text-gray-100">
-                  Navigation Tips
+                  {t('navigationTips.title')}
                 </CardTitle>
                 <CardDescription className="text-gray-600 dark:text-gray-400">
-                  General tips for using the application efficiently
+                  {t('navigationTips.description')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="grid md:grid-cols-2 gap-4 text-sm">
                   <div>
                     <h4 className="font-semibold mb-2 text-gray-900 dark:text-gray-100">
-                      🏠 Home Navigation
+                      {t('navigationTips.homeNavigation')}
                     </h4>
                     <ul className="space-y-1 text-gray-600 dark:text-gray-300">
-                      <li>
-                        • Home button available on all authenticated pages
-                      </li>
-                      <li>• Click the ReceptionPro logo to return home</li>
-                      <li>• Use browser back button for previous page</li>
+                      {getArrayContent(
+                        'navigationTips.homeNavigationContent',
+                        3
+                      ).map((item, index) => (
+                        <li
+                          key={index}
+                          className="text-sm text-gray-600 dark:text-gray-300"
+                        >
+                          {item}
+                        </li>
+                      ))}
                     </ul>
                   </div>
                   <div>
                     <h4 className="font-semibold mb-2 text-gray-900 dark:text-gray-100">
-                      🔍 Finding Features
+                      {t('navigationTips.findingFeatures')}
                     </h4>
                     <ul className="space-y-1 text-gray-600 dark:text-gray-300">
-                      <li>• Use search filters in call logs</li>
-                      <li>• Check tab navigation in configuration</li>
-                      <li>• Look for help buttons on complex pages</li>
+                      {getArrayContent(
+                        'navigationTips.findingFeaturesContent',
+                        3
+                      ).map((item, index) => (
+                        <li
+                          key={index}
+                          className="text-sm text-gray-600 dark:text-gray-300"
+                        >
+                          {item}
+                        </li>
+                      ))}
                     </ul>
                   </div>
                   <div>
                     <h4 className="font-semibold mb-2 text-gray-900 dark:text-gray-100">
-                      👤 Account Management
+                      {t('navigationTips.accountManagement')}
                     </h4>
                     <ul className="space-y-1 text-gray-600 dark:text-gray-300">
-                      <li>• Profile info shown in top right</li>
-                      <li>• Sign out button available everywhere</li>
-                      <li>• Admin features require admin role</li>
+                      {getArrayContent(
+                        'navigationTips.accountManagementContent',
+                        3
+                      ).map((item, index) => (
+                        <li
+                          key={index}
+                          className="text-sm text-gray-600 dark:text-gray-300"
+                        >
+                          {item}
+                        </li>
+                      ))}
                     </ul>
                   </div>
                   <div>
                     <h4 className="font-semibold mb-2 text-gray-900 dark:text-gray-100">
-                      ⚙️ Configuration
+                      {t('navigationTips.configuration')}
                     </h4>
                     <ul className="space-y-1 text-gray-600 dark:text-gray-300">
-                      <li>• Start with Overview tab for guidance</li>
-                      <li>• Complete AI Agent setup first</li>
-                      <li>• Add staff before setting up appointments</li>
+                      {getArrayContent(
+                        'navigationTips.configurationContent',
+                        3
+                      ).map((item, index) => (
+                        <li
+                          key={index}
+                          className="text-sm text-gray-600 dark:text-gray-300"
+                        >
+                          {item}
+                        </li>
+                      ))}
                     </ul>
                   </div>
                 </div>
@@ -369,17 +372,17 @@ export function HelpDialog({ currentPage = 'home' }: HelpDialogProps) {
             <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
               <CardHeader>
                 <CardTitle className="text-gray-900 dark:text-gray-100">
-                  Keyboard Shortcuts
+                  {t('keyboardShortcuts.title')}
                 </CardTitle>
                 <CardDescription className="text-gray-600 dark:text-gray-400">
-                  Speed up your workflow with these shortcuts
+                  {t('keyboardShortcuts.description')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid md:grid-cols-2 gap-4 text-sm">
                   <div>
                     <h4 className="font-semibold mb-2 text-gray-900 dark:text-gray-100">
-                      General
+                      {t('keyboardShortcuts.general')}
                     </h4>
                     <ul className="space-y-1 text-gray-600 dark:text-gray-300">
                       <li>
@@ -387,27 +390,27 @@ export function HelpDialog({ currentPage = 'home' }: HelpDialogProps) {
                         <kbd className="px-1 py-0.5 bg-gray-100 dark:bg-gray-600 text-gray-900 dark:text-gray-100 rounded text-xs">
                           ?
                         </kbd>{' '}
-                        - Open this help dialog
+                        {t('keyboardShortcuts.generalShortcuts.help')}
                       </li>
                       <li>
                         •{' '}
                         <kbd className="px-1 py-0.5 bg-gray-100 dark:bg-gray-600 text-gray-900 dark:text-gray-100 rounded text-xs">
                           Esc
                         </kbd>{' '}
-                        - Close modals/dialogs
+                        {t('keyboardShortcuts.generalShortcuts.escape')}
                       </li>
                       <li>
                         •{' '}
                         <kbd className="px-1 py-0.5 bg-gray-100 dark:bg-gray-600 text-gray-900 dark:text-gray-100 rounded text-xs">
                           Tab
                         </kbd>{' '}
-                        - Navigate between form fields
+                        {t('keyboardShortcuts.generalShortcuts.tab')}
                       </li>
                     </ul>
                   </div>
                   <div>
                     <h4 className="font-semibold mb-2 text-gray-900 dark:text-gray-100">
-                      Dashboard
+                      {t('keyboardShortcuts.dashboard')}
                     </h4>
                     <ul className="space-y-1 text-gray-600 dark:text-gray-300">
                       <li>
@@ -415,21 +418,21 @@ export function HelpDialog({ currentPage = 'home' }: HelpDialogProps) {
                         <kbd className="px-1 py-0.5 bg-gray-100 dark:bg-gray-600 text-gray-900 dark:text-gray-100 rounded text-xs">
                           Ctrl+F
                         </kbd>{' '}
-                        - Focus search
+                        {t('keyboardShortcuts.dashboardShortcuts.search')}
                       </li>
                       <li>
                         •{' '}
                         <kbd className="px-1 py-0.5 bg-gray-100 dark:bg-gray-600 text-gray-900 dark:text-gray-100 rounded text-xs">
                           Space
                         </kbd>{' '}
-                        - Play/pause audio
+                        {t('keyboardShortcuts.dashboardShortcuts.playPause')}
                       </li>
                       <li>
                         •{' '}
                         <kbd className="px-1 py-0.5 bg-gray-100 dark:bg-gray-600 text-gray-900 dark:text-gray-100 rounded text-xs">
                           Enter
                         </kbd>{' '}
-                        - Open call details
+                        {t('keyboardShortcuts.dashboardShortcuts.openDetails')}
                       </li>
                     </ul>
                   </div>
@@ -442,9 +445,9 @@ export function HelpDialog({ currentPage = 'home' }: HelpDialogProps) {
         <div className="border-t border-gray-200 dark:border-gray-600 p-4 bg-gray-50 dark:bg-gray-300">
           <div className="flex items-center justify-between">
             <p className="text-sm text-gray-600 dark:text-gray-300">
-              Need more help? Contact support or check the documentation.
+              {t('needMoreHelp')}
             </p>
-            <Button onClick={() => setIsOpen(false)}>Got it!</Button>
+            <Button onClick={() => setIsOpen(false)}>{t('gotIt')}</Button>
           </div>
         </div>
       </div>

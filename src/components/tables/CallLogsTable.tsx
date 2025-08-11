@@ -17,6 +17,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useTranslations } from 'next-intl';
 
 // Column type definitions
 export type CallLogColumn =
@@ -32,7 +33,7 @@ export type CallLogColumn =
 // Column configuration mapping
 interface ColumnConfig {
   key: CallLogColumn;
-  header: string;
+  headerKey: string;
   width: string;
   className?: string;
 }
@@ -40,43 +41,43 @@ interface ColumnConfig {
 const COLUMN_CONFIGS: Record<CallLogColumn, ColumnConfig> = {
   startTime: {
     key: 'startTime',
-    header: 'Start Time',
+    headerKey: 'startTime',
     width: 'w-[10%]',
   },
   endTime: {
     key: 'endTime',
-    header: 'End Time',
+    headerKey: 'endTime',
     width: 'w-[10%]',
   },
   duration: {
     key: 'duration',
-    header: 'Duration',
+    headerKey: 'duration',
     width: 'w-[10%]',
   },
   type: {
     key: 'type',
-    header: 'Type',
+    headerKey: 'type',
     width: 'w-[10%]',
   },
   phoneNumber: {
     key: 'phoneNumber',
-    header: 'Phone Number',
+    headerKey: 'phoneNumber',
     width: 'w-[10%]',
     className: 'whitespace-nowrap',
   },
   cost: {
     key: 'cost',
-    header: 'Cost',
+    headerKey: 'cost',
     width: 'w-[10%]',
   },
   summary: {
     key: 'summary',
-    header: 'Summary',
+    headerKey: 'summary',
     width: 'w-[35%]',
   },
   audio: {
     key: 'audio',
-    header: 'Audio',
+    headerKey: 'audio',
     width: 'w-[5%]',
   },
 };
@@ -136,6 +137,8 @@ export const CallLogsTable: React.FC<CallLogsTableProps> = ({
   showUserSelector = false,
   visibleColumns,
 }) => {
+  const t = useTranslations('callLogs');
+
   // Get visible column configurations
   const visibleColumnConfigs = visibleColumns.map(col => COLUMN_CONFIGS[col]);
 
@@ -183,7 +186,7 @@ export const CallLogsTable: React.FC<CallLogsTableProps> = ({
         return (
           <TableCell className="px-4 py-2 w-[10%]">
             <div className="text-[11px] font-medium text-gray-900 dark:text-gray-100">
-              {log.direction || log.call_type || 'Unknown'}
+              {log.direction || log.call_type || t('unknown')}
             </div>
           </TableCell>
         );
@@ -437,7 +440,7 @@ export const CallLogsTable: React.FC<CallLogsTableProps> = ({
     <Card className="shadow-sm bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
       <CardHeader>
         <CardTitle className="text-xl text-gray-900 dark:text-gray-100">
-          Call Records
+          {t('title')}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -453,7 +456,7 @@ export const CallLogsTable: React.FC<CallLogsTableProps> = ({
           <div className="flex items-center justify-center py-8">
             <div className="w-8 h-8 border-2 border-orange-300 border-t-transparent rounded-full animate-spin"></div>
             <span className="ml-3 text-gray-600 dark:text-gray-300">
-              Loading call records...
+              {t('loading')}
             </span>
           </div>
         )}
@@ -477,10 +480,10 @@ export const CallLogsTable: React.FC<CallLogsTableProps> = ({
               <div className="text-center py-8">
                 <Phone className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
                 <p className="text-gray-600 dark:text-gray-300 mb-2">
-                  No call records yet
+                  {t('noRecords')}
                 </p>
                 <p className="text-gray-500 dark:text-gray-400 text-sm">
-                  Call records will appear here once calls are made.
+                  {t('noRecordsDesc')}
                 </p>
               </div>
             ) : (
@@ -493,7 +496,7 @@ export const CallLogsTable: React.FC<CallLogsTableProps> = ({
                           key={config.key}
                           className={`${config.width} text-xs text-gray-700 dark:text-gray-300 font-normal px-4 py-3 ${config.className || ''}`}
                         >
-                          {config.header}
+                          {t(`columns.${config.headerKey}`)}
                         </TableHead>
                       ))}
                     </TableRow>

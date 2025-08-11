@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -7,6 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Mail, Globe, Moon } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import { useTranslations, useLocale } from 'next-intl';
+import { locales, type Locale } from '@/i18n/config';
+import { setUserLocale } from '@/services/locale';
+import { useTransition } from 'react';
 
 interface PreferencesSettingsProps {
   user: User;
@@ -16,6 +21,21 @@ export default function PreferencesSettings({
   user: _user,
 }: PreferencesSettingsProps) {
   const { theme, setTheme } = useTheme();
+  const locale = useLocale();
+  const [isPending, startTransition] = useTransition();
+  const [selectedLanguage, setSelectedLanguage] = useState(locale);
+
+  const t = useTranslations('settings.preferences');
+  const tLanguages = useTranslations('languages');
+  const tTimezones = useTranslations('timezones');
+
+  const handleLanguageChange = (newLocale: string) => {
+    const newLocaleTyped = newLocale as Locale;
+    setSelectedLanguage(newLocaleTyped);
+    startTransition(() => {
+      setUserLocale(newLocaleTyped);
+    });
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -26,11 +46,11 @@ export default function PreferencesSettings({
             <div className="flex items-center space-x-3 mb-2">
               <Moon className="h-5 w-5 text-orange-500" />
               <h2 className="text-base font-semibold text-gray-900 dark:text-white">
-                Appearance
+                {t('appearance')}
               </h2>
             </div>
             <p className="text-xs text-gray-600 dark:text-gray-400">
-              Customize the appearance of the application
+              {t('appearanceDesc')}
             </p>
           </div>
 
@@ -41,10 +61,10 @@ export default function PreferencesSettings({
                   htmlFor="dark-mode"
                   className="text-xs font-medium text-gray-900 dark:text-white"
                 >
-                  Dark Mode
+                  {t('darkMode')}
                 </Label>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Switch between light and dark themes
+                  {t('darkModeDesc')}
                 </p>
               </div>
               <Switch
@@ -65,11 +85,11 @@ export default function PreferencesSettings({
             <div className="flex items-center space-x-3 mb-2">
               <Globe className="h-5 w-5 text-orange-500" />
               <h2 className="text-base font-semibold text-gray-900 dark:text-white">
-                Language & Region
+                {t('language')}
               </h2>
             </div>
             <p className="text-xs text-gray-600 dark:text-gray-400">
-              Choose your preferred language and regional settings
+              {t('languageDesc')}
             </p>
           </div>
 
@@ -79,23 +99,23 @@ export default function PreferencesSettings({
                 htmlFor="language-select"
                 className="text-xs font-medium text-gray-900 dark:text-white"
               >
-                Interface Language
+                {t('interfaceLanguage')}
               </Label>
               <select
                 id="language-select"
-                className="w-full mt-2 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 text-xs"
-                defaultValue="en"
+                value={selectedLanguage}
+                onChange={e => handleLanguageChange(e.target.value)}
+                disabled={isPending}
+                className="w-full mt-2 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 text-xs disabled:opacity-50"
               >
-                <option value="en">English</option>
-                <option value="zh">中文 (Chinese)</option>
-                <option value="es">Español (Spanish)</option>
-                <option value="fr">Français (French)</option>
-                <option value="de">Deutsch (German)</option>
-                <option value="ja">日本語 (Japanese)</option>
-                <option value="ko">한국어 (Korean)</option>
+                {locales.map(lang => (
+                  <option key={lang} value={lang}>
+                    {tLanguages(lang)}
+                  </option>
+                ))}
               </select>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Changes will take effect after refreshing the page
+                {t('languageChangeNote')}
               </p>
             </div>
 
@@ -104,35 +124,43 @@ export default function PreferencesSettings({
                 htmlFor="timezone-select"
                 className="text-xs font-medium text-gray-900 dark:text-white"
               >
-                Timezone
+                {t('timezone')}
               </Label>
               <select
                 id="timezone-select"
                 className="w-full mt-2 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 text-xs"
                 defaultValue="UTC"
               >
-                <option value="UTC">UTC (Coordinated Universal Time)</option>
+                <option value="UTC">{tTimezones('UTC')}</option>
                 <option value="America/New_York">
-                  Eastern Time (US & Canada)
+                  {tTimezones('America/New_York')}
                 </option>
                 <option value="America/Chicago">
-                  Central Time (US & Canada)
+                  {tTimezones('America/Chicago')}
                 </option>
                 <option value="America/Denver">
-                  Mountain Time (US & Canada)
+                  {tTimezones('America/Denver')}
                 </option>
                 <option value="America/Los_Angeles">
-                  Pacific Time (US & Canada)
+                  {tTimezones('America/Los_Angeles')}
                 </option>
-                <option value="Europe/London">London</option>
-                <option value="Europe/Paris">Paris</option>
-                <option value="Europe/Berlin">Berlin</option>
-                <option value="Asia/Tokyo">Tokyo</option>
-                <option value="Asia/Shanghai">Shanghai</option>
-                <option value="Asia/Seoul">Seoul</option>
+                <option value="Europe/London">
+                  {tTimezones('Europe/London')}
+                </option>
+                <option value="Europe/Paris">
+                  {tTimezones('Europe/Paris')}
+                </option>
+                <option value="Europe/Berlin">
+                  {tTimezones('Europe/Berlin')}
+                </option>
+                <option value="Asia/Tokyo">{tTimezones('Asia/Tokyo')}</option>
+                <option value="Asia/Shanghai">
+                  {tTimezones('Asia/Shanghai')}
+                </option>
+                <option value="Asia/Seoul">{tTimezones('Asia/Seoul')}</option>
               </select>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Used for displaying dates and scheduling appointments
+                {t('timezoneDesc')}
               </p>
             </div>
           </div>
@@ -144,11 +172,11 @@ export default function PreferencesSettings({
             <div className="flex items-center space-x-3 mb-2">
               <Mail className="h-5 w-5 text-orange-500" />
               <h2 className="text-base font-semibold text-gray-900 dark:text-white">
-                Email Notifications
+                {t('emailNotifications')}
               </h2>
             </div>
             <p className="text-xs text-gray-600 dark:text-gray-400">
-              Manage your email notification preferences
+              {t('emailNotificationsDesc')}
             </p>
           </div>
 
@@ -159,10 +187,10 @@ export default function PreferencesSettings({
                   htmlFor="email-calls"
                   className="text-xs font-medium text-gray-900 dark:text-white"
                 >
-                  Call Notifications
+                  {t('callNotifications')}
                 </Label>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Receive email alerts for incoming and outgoing calls
+                  {t('callNotificationsDesc')}
                 </p>
               </div>
               <Switch
@@ -178,10 +206,10 @@ export default function PreferencesSettings({
                   htmlFor="email-appointments"
                   className="text-xs font-medium text-gray-900 dark:text-white"
                 >
-                  Appointment Notifications
+                  {t('appointmentNotifications')}
                 </Label>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Get notified about appointment bookings and cancellations
+                  {t('appointmentNotificationsDesc')}
                 </p>
               </div>
               <Switch
@@ -197,10 +225,10 @@ export default function PreferencesSettings({
                   htmlFor="email-system"
                   className="text-xs font-medium text-gray-900 dark:text-white"
                 >
-                  System Updates
+                  {t('systemUpdates')}
                 </Label>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Important system notifications and maintenance alerts
+                  {t('systemUpdatesDesc')}
                 </p>
               </div>
               <Switch
@@ -216,11 +244,10 @@ export default function PreferencesSettings({
                   htmlFor="email-billing"
                   className="text-xs font-medium text-gray-900 dark:text-white"
                 >
-                  Billing & Payments
+                  {t('billingPayments')}
                 </Label>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Payment confirmations, invoice notifications, and billing
-                  updates
+                  {t('billingPaymentsDesc')}
                 </p>
               </div>
               <Switch
@@ -236,11 +263,10 @@ export default function PreferencesSettings({
                   htmlFor="email-marketing"
                   className="text-xs font-medium text-gray-900 dark:text-white"
                 >
-                  Marketing & Promotions
+                  {t('marketingPromotions')}
                 </Label>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Product updates, feature announcements, and promotional
-                  content
+                  {t('marketingPromotionsDesc')}
                 </p>
               </div>
               <Switch
@@ -255,7 +281,7 @@ export default function PreferencesSettings({
         {/* Save Button */}
         <div className="flex justify-end">
           <Button className="bg-orange-500 hover:bg-orange-600 text-white">
-            Save Preferences
+            {t('savePreferences')}
           </Button>
         </div>
       </div>

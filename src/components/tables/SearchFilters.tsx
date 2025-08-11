@@ -13,6 +13,7 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import { DateTimePicker } from '@/components/ui/date-time-picker';
 import { UserSelector } from '@/components/tables/UserSelector';
+import { useTranslations } from 'next-intl';
 
 export interface SearchFilters {
   startTimeFrom?: string;
@@ -41,6 +42,8 @@ export const SearchFiltersComponent: React.FC<SearchFiltersProps> = ({
   loading = false,
   showUserSelector = false,
 }) => {
+  const t = useTranslations('searchFilters');
+
   // Internal search filters state
   const [searchFilters, setSearchFilters] = useState<InternalSearchFilters>({
     startTimeFromDate: undefined,
@@ -119,12 +122,12 @@ export const SearchFiltersComponent: React.FC<SearchFiltersProps> = ({
           {/* Start Time From Filter */}
           <div className="space-y-1">
             <Label className="text-xs text-gray-700 dark:text-gray-300">
-              Start Time From
+              {t('startTimeFrom')}
             </Label>
             <DateTimePicker
               value={searchFilters.startTimeFromDate}
               onChange={date => handleDateChange('startTimeFromDate', date)}
-              placeholder="Select start time"
+              placeholder={t('selectStartTime')}
               disabled={loading}
               className="h-8 text-xs"
             />
@@ -133,12 +136,12 @@ export const SearchFiltersComponent: React.FC<SearchFiltersProps> = ({
           {/* Start Time To Filter */}
           <div className="space-y-1">
             <Label className="text-xs text-gray-700 dark:text-gray-300">
-              Start Time To
+              {t('startTimeTo')}
             </Label>
             <DateTimePicker
               value={searchFilters.startTimeToDate}
               onChange={date => handleDateChange('startTimeToDate', date)}
-              placeholder="Select end time"
+              placeholder={t('selectEndTime')}
               disabled={loading}
               className="h-8 text-xs"
             />
@@ -147,7 +150,7 @@ export const SearchFiltersComponent: React.FC<SearchFiltersProps> = ({
           {/* Type Filter */}
           <div className="space-y-1">
             <Label className="text-xs text-gray-700 dark:text-gray-300">
-              Type
+              {t('type')}
             </Label>
             <Select
               value={searchFilters.type}
@@ -155,12 +158,12 @@ export const SearchFiltersComponent: React.FC<SearchFiltersProps> = ({
               disabled={loading}
             >
               <SelectTrigger className="h-8 text-xs">
-                <SelectValue placeholder="All Types" />
+                <SelectValue placeholder={t('allTypes')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="inbound">Inbound</SelectItem>
-                <SelectItem value="outbound">Outbound</SelectItem>
+                <SelectItem value="all">{t('allTypes')}</SelectItem>
+                <SelectItem value="inbound">{t('inbound')}</SelectItem>
+                <SelectItem value="outbound">{t('outbound')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -171,12 +174,12 @@ export const SearchFiltersComponent: React.FC<SearchFiltersProps> = ({
               htmlFor="phone-number"
               className="text-xs text-gray-700 dark:text-gray-300"
             >
-              Phone Number
+              {t('phoneNumber')}
             </Label>
             <Input
               id="phone-number"
               type="text"
-              placeholder="Enter phone number"
+              placeholder={t('enterPhoneNumber')}
               value={searchFilters.phoneNumber}
               onChange={e => handleFilterChange('phoneNumber', e.target.value)}
               className="h-8 text-xs"
@@ -202,7 +205,7 @@ export const SearchFiltersComponent: React.FC<SearchFiltersProps> = ({
               disabled={loading}
             >
               <Search className="h-3 w-3" />
-              Search
+              {t('search')}
             </Button>
             <Button
               onClick={handleClearFilters}
@@ -212,7 +215,7 @@ export const SearchFiltersComponent: React.FC<SearchFiltersProps> = ({
               disabled={loading}
             >
               <X className="h-3 w-3" />
-              Clear
+              {t('clear')}
             </Button>
           </div>
         </div>
