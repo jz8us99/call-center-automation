@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase-admin';
+import { withAuth, isAuthError } from '@/lib/api-auth-helper';
 
 // Function to sync staff availability with office hours changes
 async function syncStaffAvailabilityWithOfficeHours(
@@ -10,10 +10,9 @@ async function syncStaffAvailabilityWithOfficeHours(
     start_time?: string;
     end_time?: string;
     is_active: boolean;
-  }>
+  }>,
+  supabase: any
 ) {
-  const supabase = supabaseAdmin;
-
   // Get all staff members for this business
   const { data: staff, error: staffError } = await supabase
     .from('staff')
@@ -123,7 +122,11 @@ async function syncStaffAvailabilityWithOfficeHours(
 // GET - Fetch office hours for a business
 export async function GET(request: NextRequest) {
   try {
-    const supabase = supabaseAdmin;
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+    const { supabaseWithAuth: supabase } = authResult;
     const { searchParams } = new URL(request.url);
 
     const user_id = searchParams.get('user_id');
@@ -165,7 +168,11 @@ export async function GET(request: NextRequest) {
 // POST - Create or update office hours
 export async function POST(request: NextRequest) {
   try {
-    const supabase = supabaseAdmin;
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+    const { supabaseWithAuth: supabase } = authResult;
     const body = await request.json();
 
     const { user_id, business_id, office_hours } = body;
@@ -259,7 +266,8 @@ export async function POST(request: NextRequest) {
       await syncStaffAvailabilityWithOfficeHours(
         user_id,
         business_id,
-        office_hours
+        office_hours,
+        supabase
       );
     } catch (syncError) {
       console.warn(
@@ -282,7 +290,11 @@ export async function POST(request: NextRequest) {
 // PUT - Update specific office hours
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = supabaseAdmin;
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+    const { supabaseWithAuth: supabase } = authResult;
     const body = await request.json();
 
     const { id, user_id, day_of_week, start_time, end_time, is_active } = body;
@@ -334,7 +346,11 @@ export async function PUT(request: NextRequest) {
 // DELETE - Delete office hours
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = supabaseAdmin;
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+    const { supabaseWithAuth: supabase } = authResult;
     const { searchParams } = new URL(request.url);
 
     const id = searchParams.get('id');

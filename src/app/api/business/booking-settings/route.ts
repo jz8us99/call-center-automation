@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase-admin';
+import { withAuth, isAuthError } from '@/lib/api-auth-helper';
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = supabaseAdmin;
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+    const { supabaseWithAuth } = authResult;
+
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('user_id');
     const businessId = searchParams.get('business_id');
@@ -15,7 +20,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { data: settings, error } = await supabase
+    const { data: settings, error } = await supabaseWithAuth
       .rpc('get_booking_settings', {
         p_user_id: userId,
         p_business_id: businessId,
@@ -45,7 +50,11 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = supabaseAdmin;
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+    const { supabaseWithAuth } = authResult;
     const body = await request.json();
 
     const {
@@ -92,7 +101,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if settings already exist
-    const { data: existingSettings } = await supabase
+    const { data: existingSettings } = await supabaseWithAuth
       .from('booking_settings')
       .select('id')
       .eq('user_id', user_id)
@@ -103,7 +112,7 @@ export async function POST(request: NextRequest) {
 
     if (existingSettings) {
       // Update existing settings
-      result = await supabase
+      result = await supabaseWithAuth
         .from('booking_settings')
         .update({
           advance_booking_days,
@@ -145,7 +154,7 @@ export async function POST(request: NextRequest) {
         .single();
     } else {
       // Create new settings
-      result = await supabase
+      result = await supabaseWithAuth
         .from('booking_settings')
         .insert({
           user_id,

@@ -1,14 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase-utils';
+import { withAuth, isAuthError } from '@/lib/api-auth-helper';
 
 // GET - Fetch insurance providers
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createServerSupabaseClient();
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+
+    const { supabaseWithAuth } = authResult;
     const { searchParams } = new URL(request.url);
     const providerType = searchParams.get('type'); // medical, dental, vision, mental_health
 
-    let query = supabase
+    let query = supabaseWithAuth
       .from('insurance_providers')
       .select('*')
       .eq('is_active', true)
@@ -41,7 +46,12 @@ export async function GET(request: NextRequest) {
 // POST - Create new insurance provider (admin only)
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createServerSupabaseClient();
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+
+    const { supabaseWithAuth } = authResult;
     const body = await request.json();
 
     const { provider_name, provider_code, provider_type, website, phone } =
@@ -54,7 +64,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { data: provider, error } = await supabase
+    const { data: provider, error } = await supabaseWithAuth
       .from('insurance_providers')
       .insert({
         provider_name,

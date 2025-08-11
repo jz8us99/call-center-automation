@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase-utils';
+import { withAuth, isAuthError } from '@/lib/api-auth-helper';
 
 // GET - Fetch business accepted insurance
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createServerSupabaseClient();
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+    const { supabaseWithAuth: supabase } = authResult;
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('user_id');
     const businessId = searchParams.get('business_id');
@@ -66,7 +70,11 @@ export async function GET(request: NextRequest) {
 // POST - Add accepted insurance to business
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createServerSupabaseClient();
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+    const { supabaseWithAuth: supabase } = authResult;
     const body = await request.json();
 
     const {
@@ -143,7 +151,11 @@ export async function POST(request: NextRequest) {
 // PUT - Update business accepted insurance
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = createServerSupabaseClient();
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+    const { supabaseWithAuth: supabase } = authResult;
     const body = await request.json();
 
     const {
@@ -218,7 +230,11 @@ export async function PUT(request: NextRequest) {
 // DELETE - Remove accepted insurance from business
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = createServerSupabaseClient();
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+    const { supabaseWithAuth: supabase } = authResult;
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     const userId = searchParams.get('user_id');

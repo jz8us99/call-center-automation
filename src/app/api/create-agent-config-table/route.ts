@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+// Note: This is a system initialization endpoint - using service role client
 import { createServerSupabaseClient } from '@/lib/supabase-utils';
 
 export async function POST() {

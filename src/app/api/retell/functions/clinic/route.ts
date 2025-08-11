@@ -5,6 +5,7 @@ import {
 } from '@/lib/retell-webhook-utils';
 import { PatientService } from '@/lib/services/patient-service';
 import { MetaDataService } from '@/lib/services/metadata-service';
+import { withAuth, isAuthError } from '@/lib/api-auth-helper';
 import {
   PatientSearchParams,
   ErrorResponse,
@@ -47,8 +48,15 @@ async function handlePOST(
       );
     }
 
-    // Create services
-    const patientService = new PatientService(user_id);
+    // Authenticate and get Supabase client
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult as NextResponse<RetellFunctionResponse | ErrorResponse>;
+    }
+    const { supabaseWithAuth } = authResult;
+
+    // Create services with authenticated Supabase client
+    const patientService = new PatientService(user_id, supabaseWithAuth);
     const metaDataService = new MetaDataService(user_id, agent_id);
 
     // Route function call to appropriate handler

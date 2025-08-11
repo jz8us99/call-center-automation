@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { authenticateRequest } from '@/lib/supabase';
-import { supabase } from '@/lib/supabase-admin';
+import { withAuth, isAuthError } from '@/lib/api-auth-helper';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { clientId: string } }
 ) {
   try {
-    const user = await authenticateRequest(request);
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
     }
+    const { user, supabaseWithAuth: supabase } = authResult;
 
     const clientId = params.clientId;
 

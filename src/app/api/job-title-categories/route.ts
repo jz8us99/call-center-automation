@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase-utils';
+import { withAuth, isAuthError } from '@/lib/api-auth-helper';
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createServerSupabaseClient();
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+
+    const { supabaseWithAuth } = authResult;
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('user_id');
     const jobTitleId = searchParams.get('job_title_id');
@@ -15,7 +20,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    let query = supabase
+    let query = supabaseWithAuth
       .from('job_title_categories')
       .select(
         `
@@ -66,7 +71,12 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createServerSupabaseClient();
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+
+    const { supabaseWithAuth } = authResult;
     const body = await request.json();
 
     const {
@@ -84,7 +94,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create or update mapping
-    const { data: mapping, error } = await supabase
+    const { data: mapping, error } = await supabaseWithAuth
       .from('job_title_categories')
       .upsert({
         user_id,
@@ -137,7 +147,12 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = createServerSupabaseClient();
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+
+    const { supabaseWithAuth } = authResult;
     const body = await request.json();
 
     const { id, selected_job_types } = body;
@@ -150,7 +165,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update selected job types for this mapping
-    const { data: mapping, error } = await supabase
+    const { data: mapping, error } = await supabaseWithAuth
       .from('job_title_categories')
       .update({
         selected_job_types: selected_job_types || [],
@@ -205,7 +220,12 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = createServerSupabaseClient();
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+
+    const { supabaseWithAuth } = authResult;
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
@@ -216,7 +236,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const { error } = await supabase
+    const { error } = await supabaseWithAuth
       .from('job_title_categories')
       .delete()
       .eq('id', id);

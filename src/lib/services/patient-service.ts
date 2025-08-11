@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase-admin';
+import { SupabaseClient } from '@supabase/supabase-js';
 import {
   PatientSearchParams,
   PatientResponse,
@@ -14,9 +14,11 @@ import {
  */
 export class PatientService {
   private userId: string;
+  private supabase: SupabaseClient;
 
-  constructor(userId: string) {
+  constructor(userId: string, supabase: SupabaseClient) {
     this.userId = userId;
+    this.supabase = supabase;
   }
 
   /**
@@ -33,7 +35,7 @@ export class PatientService {
       );
     }
 
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await this.supabase
       .schema('clinic')
       .from('patients')
       .select()
@@ -86,7 +88,7 @@ export class PatientService {
   ): Promise<NextResponse<RetellFunctionResponse | ErrorResponse>> {
     const { id, ...updateData } = args;
 
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await this.supabase
       .schema('clinic')
       .from('patients')
       .update({
@@ -127,7 +129,7 @@ export class PatientService {
       created_at: new Date().toISOString(),
     };
 
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await this.supabase
       .schema('clinic')
       .from('patients')
       .insert(patientData)

@@ -1,23 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { authenticateRequest, createAuthenticatedClient } from '@/lib/supabase';
+import { withAuth, isAuthError } from '@/lib/api-auth-helper';
 
 export async function POST(request: NextRequest) {
   try {
-    // Authenticate user first
-    const user = await authenticateRequest(request);
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized. Please log in to upload files.' },
-        { status: 401 }
-      );
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
     }
-
-    // Get authorization token for Supabase client
-    const authorization = request.headers.get('authorization');
-    const token = authorization?.replace('Bearer ', '') || '';
-
-    // Create a client with user authentication
-    const supabaseWithAuth = await createAuthenticatedClient(token);
+    const { user, supabaseWithAuth } = authResult;
 
     const formData = await request.formData();
     const file = formData.get('file') as File;

@@ -2,7 +2,7 @@
 // CRUD operations for AI agents with RLS support
 
 import { NextRequest, NextResponse } from 'next/server';
-import { authenticateRequest, createAuthenticatedClient } from '@/lib/supabase';
+import { withAuth, isAuthError } from '@/lib/api-auth-helper';
 import {
   CreateAgentRequest,
   UpdateAgentRequest,
@@ -15,21 +15,11 @@ import {
 // GET /api/ai-agents - List all agents for the authenticated user
 export async function GET(request: NextRequest) {
   try {
-    // Verify user authentication
-    const user = await authenticateRequest(request);
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Please provide a valid JWT token' },
-        { status: 401 }
-      );
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
     }
-
-    // Get JWT token
-    const authorization = request.headers.get('authorization');
-    const token = authorization?.replace('Bearer ', '') || '';
-
-    // Create a client with user authentication
-    const supabaseWithAuth = await createAuthenticatedClient(token);
+    const { supabaseWithAuth } = authResult;
 
     const url = new URL(request.url);
     const agentType = url.searchParams.get('agent_type') as AgentType;
@@ -89,21 +79,11 @@ export async function GET(request: NextRequest) {
 // POST /api/ai-agents - Create new agent
 export async function POST(request: NextRequest) {
   try {
-    // Verify user authentication
-    const user = await authenticateRequest(request);
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Please provide a valid JWT token' },
-        { status: 401 }
-      );
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
     }
-
-    // Get JWT token
-    const authorization = request.headers.get('authorization');
-    const token = authorization?.replace('Bearer ', '') || '';
-
-    // Create a client with user authentication
-    const supabaseWithAuth = await createAuthenticatedClient(token);
+    const { user, supabaseWithAuth } = authResult;
 
     const createRequest: CreateAgentRequest = await request.json();
 

@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase-utils';
+import { withAuth, isAuthError } from '@/lib/api-auth-helper';
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createServerSupabaseClient();
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+
+    const { supabaseWithAuth } = authResult;
     const { searchParams } = new URL(request.url);
     const businessTypeId = searchParams.get('business_type_id');
     const agentTypeId = searchParams.get('agent_type_id');
@@ -16,7 +21,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get template for business type + agent type combination
-    const { data: templateMap, error: mapError } = await supabase
+    const { data: templateMap, error: mapError } = await supabaseWithAuth
       .from('business_type_agent_template_map')
       .select(
         `
@@ -47,7 +52,7 @@ export async function GET(request: NextRequest) {
 
     if (!templateMap) {
       // No specific template found, return default template for agent type
-      const { data: agentType, error: agentTypeError } = await supabase
+      const { data: agentType, error: agentTypeError } = await supabaseWithAuth
         .from('agent_types')
         .select('*')
         .eq('id', agentTypeId)

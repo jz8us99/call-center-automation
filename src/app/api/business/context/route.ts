@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase-admin';
+import { withAuth, isAuthError } from '@/lib/api-auth-helper';
 
 // GET - Fetch comprehensive business context for AI prompt generation
 export async function GET(request: NextRequest) {
   try {
-    const supabase = supabaseAdmin;
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+    const { supabaseWithAuth: supabase } = authResult;
     const { searchParams } = new URL(request.url);
 
     const user_id = searchParams.get('user_id');

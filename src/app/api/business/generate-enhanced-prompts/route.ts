@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase-utils';
 
 interface EnhancedPromptRequest {
   agent_type: string;

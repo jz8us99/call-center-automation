@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation';
+import { authenticatedFetch } from '@/lib/api-client';
 import {
   Card,
   CardContent,
@@ -122,7 +123,7 @@ export function StaffCalendarListing({
   const loadBusinessHours = async () => {
     try {
       // Load business profile to get default hours
-      const response = await fetch(`/api/business/profile?user_id=${user.id}`);
+      const response = await authenticatedFetch(`/api/business/profile?user_id=${user.id}`);
       if (response.ok) {
         const data = await response.json();
         if (data.profile?.business_hours) {

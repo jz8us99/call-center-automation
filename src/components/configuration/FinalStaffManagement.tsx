@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
+import { authenticatedFetch } from '@/lib/api-client';
 import {
   Card,
   CardContent,
@@ -161,7 +162,7 @@ export function FinalStaffManagement({
 
   const loadBusinessLocations = async () => {
     try {
-      const response = await fetch(
+      const response = await authenticatedFetch(
         `/api/business/locations?user_id=${user.id}`
       );
       if (response.ok) {
@@ -185,7 +186,7 @@ export function FinalStaffManagement({
 
   const loadJobCategories = async () => {
     try {
-      const response = await fetch(
+      const response = await authenticatedFetch(
         `/api/business/job-categories?service_type_code=${serviceTypeCode}`
       );
       if (response.ok) {
@@ -199,7 +200,7 @@ export function FinalStaffManagement({
 
   const loadJobTypes = async () => {
     try {
-      const response = await fetch(
+      const response = await authenticatedFetch(
         `/api/business/job-types?service_type_code=${serviceTypeCode}&user_id=${user.id}`
       );
       if (response.ok) {
@@ -213,7 +214,7 @@ export function FinalStaffManagement({
 
   const loadStaff = async () => {
     try {
-      const response = await fetch(`/api/business/staff?user_id=${user.id}`);
+      const response = await authenticatedFetch(`/api/business/staff?user_id=${user.id}`);
       if (response.ok) {
         const data = await response.json();
         setStaff(data.staff || []);
@@ -231,7 +232,7 @@ export function FinalStaffManagement({
 
     setSaving(true);
     try {
-      const response = await fetch('/api/business/staff?', {
+      const response = await authenticatedFetch('/api/business/staff?', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -278,7 +279,7 @@ export function FinalStaffManagement({
 
     setSaving(true);
     try {
-      const response = await fetch('/api/business/staff?', {
+      const response = await authenticatedFetch('/api/business/staff?', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -326,7 +327,7 @@ export function FinalStaffManagement({
     }
 
     try {
-      const response = await fetch(
+      const response = await authenticatedFetch(
         `/api/business/staff?id=${id}&user_id=${user.id}`,
         {
           method: 'DELETE',

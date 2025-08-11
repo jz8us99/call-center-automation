@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { User } from '@supabase/supabase-js';
+import { authenticatedFetch } from '@/lib/api-client';
 import {
   Card,
   CardContent,
@@ -129,7 +130,7 @@ export function BusinessServices({
     setLoading(true);
     try {
       // First load business profile to get business type
-      const profileResponse = await fetch(
+      const profileResponse = await authenticatedFetch(
         `/api/business/profile?user_id=${user.id}`
       );
       if (profileResponse.ok) {
@@ -153,7 +154,7 @@ export function BusinessServices({
 
   const loadJobCategories = async (serviceTypeCode: string) => {
     try {
-      const response = await fetch(
+      const response = await authenticatedFetch(
         `/api/business/job-categories?service_type_code=${serviceTypeCode}`
       );
       if (response.ok) {
@@ -167,7 +168,7 @@ export function BusinessServices({
 
   const loadJobTypes = async (serviceTypeCode: string) => {
     try {
-      const response = await fetch(
+      const response = await authenticatedFetch(
         `/api/business/job-types?service_type_code=${serviceTypeCode}&user_id=${user.id}`
       );
       if (response.ok) {
@@ -187,7 +188,7 @@ export function BusinessServices({
 
     setSaving(true);
     try {
-      const response = await fetch('/api/business/job-categories', {
+      const response = await authenticatedFetch('/api/business/job-categories', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -225,7 +226,7 @@ export function BusinessServices({
 
     setSaving(true);
     try {
-      const response = await fetch('/api/business/job-categories', {
+      const response = await authenticatedFetch('/api/business/job-categories', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -268,7 +269,7 @@ export function BusinessServices({
     }
 
     try {
-      const response = await fetch(`/api/business/job-categories?id=${id}`, {
+      const response = await authenticatedFetch(`/api/business/job-categories?id=${id}`, {
         method: 'DELETE',
       });
 
@@ -332,7 +333,7 @@ export function BusinessServices({
 
     setSaving(true);
     try {
-      const response = await fetch('/api/business/job-types', {
+      const response = await authenticatedFetch('/api/business/job-types', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -411,7 +412,7 @@ export function BusinessServices({
 
     setSaving(true);
     try {
-      const response = await fetch('/api/business/job-types', {
+      const response = await authenticatedFetch('/api/business/job-types', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -458,7 +459,7 @@ export function BusinessServices({
     }
 
     try {
-      const response = await fetch(`/api/business/job-types?id=${id}`, {
+      const response = await authenticatedFetch(`/api/business/job-types?id=${id}`, {
         method: 'DELETE',
       });
 
@@ -510,7 +511,7 @@ export function BusinessServices({
 
     setInlineSaving(true);
     try {
-      const response = await fetch('/api/business/job-types', {
+      const response = await authenticatedFetch('/api/business/job-types', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

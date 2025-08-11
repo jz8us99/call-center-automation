@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase-utils';
+import { withAuth, isAuthError } from '@/lib/api-auth-helper';
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createServerSupabaseClient();
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+
+    const { supabaseWithAuth } = authResult;
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('user_id');
 
@@ -15,7 +20,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user-specific job titles
-    const { data: jobTitles, error } = await supabase
+    const { data: jobTitles, error } = await supabaseWithAuth
       .from('job_titles')
       .select('*')
       .eq('user_id', userId)
@@ -44,7 +49,12 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createServerSupabaseClient();
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+
+    const { supabaseWithAuth } = authResult;
     const body = await request.json();
 
     const { user_id, title_name, description } = body;
@@ -57,7 +67,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create new job title
-    const { data: jobTitle, error } = await supabase
+    const { data: jobTitle, error } = await supabaseWithAuth
       .from('job_titles')
       .insert({
         user_id,
@@ -101,7 +111,12 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = createServerSupabaseClient();
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+
+    const { supabaseWithAuth } = authResult;
     const body = await request.json();
 
     const { id, title_name, description, required_qualifications, is_active } =
@@ -115,7 +130,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update job title
-    const { data: jobTitle, error } = await supabase
+    const { data: jobTitle, error } = await supabaseWithAuth
       .from('job_titles')
       .update({
         title_name: title_name?.trim(),
@@ -161,7 +176,12 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = createServerSupabaseClient();
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+
+    const { supabaseWithAuth } = authResult;
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
@@ -173,7 +193,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Soft delete (set is_active to false)
-    const { data: jobTitle, error } = await supabase
+    const { data: jobTitle, error } = await supabaseWithAuth
       .from('job_titles')
       .update({
         is_active: false,

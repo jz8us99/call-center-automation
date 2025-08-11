@@ -2,8 +2,7 @@
 // GET, PUT, DELETE operations for specific agents
 
 import { NextRequest, NextResponse } from 'next/server';
-import { authenticateRequest } from '@/lib/supabase';
-import { supabase } from '@/lib/supabase-admin';
+import { withAuth, isAuthError } from '@/lib/api-auth-helper';
 import {
   TranslationManager,
   MockTranslationService,
@@ -24,10 +23,11 @@ export async function GET(
   { params }: { params: Promise<{ agentId: string }> }
 ) {
   try {
-    const user = await authenticateRequest(request);
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
     }
+    const { user, supabaseWithAuth: supabase } = authResult;
 
     const { agentId } = await params;
 
@@ -125,10 +125,11 @@ export async function PUT(
   { params }: { params: Promise<{ agentId: string }> }
 ) {
   try {
-    const user = await authenticateRequest(request);
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
     }
+    const { user, supabaseWithAuth: supabase } = authResult;
 
     const { agentId } = await params;
     const updateRequest: UpdateAgentRequest = await request.json();
@@ -272,10 +273,11 @@ export async function DELETE(
   { params }: { params: Promise<{ agentId: string }> }
 ) {
   try {
-    const user = await authenticateRequest(request);
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
     }
+    const { user, supabaseWithAuth: supabase } = authResult;
 
     const { agentId } = await params;
 

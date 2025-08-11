@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { User } from '@supabase/supabase-js';
+import { authenticatedFetch } from '@/lib/api-client';
 import {
   Card,
   CardContent,
@@ -31,7 +32,7 @@ export function StaffManagement({ user, onStaffUpdate }: StaffManagementProps) {
   const loadBusinessProfile = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/business/profile?user_id=${user.id}`);
+      const response = await authenticatedFetch(`/api/business/profile?user_id=${user.id}`);
       if (response.ok) {
         const data = await response.json();
         if (data.profile?.business_type) {

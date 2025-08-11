@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { User } from '@supabase/supabase-js';
+import { authenticatedFetch } from '@/lib/api-client';
 import {
   Card,
   CardContent,
@@ -128,7 +129,7 @@ export function BusinessProducts({
     setLoading(true);
     try {
       // First load business profile to get business type
-      const profileResponse = await fetch(
+      const profileResponse = await authenticatedFetch(
         `/api/business/profile?user_id=${user.id}`
       );
       if (profileResponse.ok) {
@@ -152,7 +153,7 @@ export function BusinessProducts({
 
   const loadProductCategories = async (businessType: string) => {
     try {
-      const response = await fetch(
+      const response = await authenticatedFetch(
         `/api/business/product-categories?business_type=${businessType}`
       );
       if (response.ok) {
@@ -166,7 +167,7 @@ export function BusinessProducts({
 
   const loadProducts = async (businessType: string) => {
     try {
-      const response = await fetch(
+      const response = await authenticatedFetch(
         `/api/business/products?business_type=${businessType}&user_id=${user.id}`
       );
       if (response.ok) {
@@ -186,7 +187,7 @@ export function BusinessProducts({
 
     setSaving(true);
     try {
-      const response = await fetch('/api/business/product-categories', {
+      const response = await authenticatedFetch('/api/business/product-categories', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -224,7 +225,7 @@ export function BusinessProducts({
 
     setSaving(true);
     try {
-      const response = await fetch('/api/business/product-categories', {
+      const response = await authenticatedFetch('/api/business/product-categories', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -267,7 +268,7 @@ export function BusinessProducts({
     }
 
     try {
-      const response = await fetch(
+      const response = await authenticatedFetch(
         `/api/business/product-categories?id=${id}`,
         {
           method: 'DELETE',
@@ -334,7 +335,7 @@ export function BusinessProducts({
 
     setSaving(true);
     try {
-      const response = await fetch('/api/business/products', {
+      const response = await authenticatedFetch('/api/business/products', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -410,7 +411,7 @@ export function BusinessProducts({
 
     setSaving(true);
     try {
-      const response = await fetch('/api/business/products', {
+      const response = await authenticatedFetch('/api/business/products', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -455,7 +456,7 @@ export function BusinessProducts({
     }
 
     try {
-      const response = await fetch(`/api/business/products?id=${id}`, {
+      const response = await authenticatedFetch(`/api/business/products?id=${id}`, {
         method: 'DELETE',
       });
 
@@ -507,7 +508,7 @@ export function BusinessProducts({
 
     setInlineSaving(true);
     try {
-      const response = await fetch('/api/business/products', {
+      const response = await authenticatedFetch('/api/business/products', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '@/lib/supabase-utils';
+import { withAuth, isAuthError } from '@/lib/api-auth-helper';
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createServerSupabaseClient();
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+    const { supabaseWithAuth: supabase } = authResult;
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('user_id');
     const agentType = searchParams.get('agent_type');

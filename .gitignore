@@ -16,6 +16,7 @@ dist-ssr
 
 # Editor directories and files
 .claude
+.db_ops
 start-dev.sh
 coverage
 .vscode/*

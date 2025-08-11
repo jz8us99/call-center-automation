@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { User } from '@supabase/supabase-js';
+import { authenticatedFetch } from '@/lib/api-client';
 import {
   Card,
   CardContent,
@@ -163,7 +164,7 @@ export function AIAgentsStep({
 
   const loadBusinessInfo = async () => {
     try {
-      const response = await fetch(`/api/business/profile?user_id=${user.id}`);
+      const response = await authenticatedFetch(`/api/business/profile?user_id=${user.id}`);
       if (response.ok) {
         const data = await response.json();
         setBusinessInfo(data.profile);
@@ -186,7 +187,7 @@ export function AIAgentsStep({
       setLoading(true);
 
       // Fetch agent configurations from API
-      const response = await fetch(
+      const response = await authenticatedFetch(
         `/api/business/agent-configurations?user_id=${user.id}`
       );
 
@@ -296,10 +297,10 @@ export function AIAgentsStep({
 
       // Generate both regular prompts and basic info prompt in parallel
       const [promptResponse, basicPromptResponse] = await Promise.all([
-        fetch(
+        authenticatedFetch(
           `/api/business/generate-agent-prompt?user_id=${user.id}&agent_type=${formData.agent_type}&personality=${formData.agent_personality}`
         ),
-        fetch(
+        authenticatedFetch(
           `/api/business/generate-basic-prompt?user_id=${user.id}&agent_type=${formData.agent_type}`
         ),
       ]);
@@ -417,7 +418,7 @@ export function AIAgentsStep({
       setSaveStatus(prev => ({ ...prev, [section]: null }));
 
       // Get business profile to get client_id
-      const businessProfileResponse = await fetch(
+      const businessProfileResponse = await authenticatedFetch(
         `/api/business/profile?user_id=${user.id}`
       );
 
@@ -438,7 +439,7 @@ export function AIAgentsStep({
       }
 
       // Get agent type ID
-      const agentTypesResponse = await fetch('/api/agent-types');
+      const agentTypesResponse = await authenticatedFetch('/api/agent-types');
       const agentTypesData = await agentTypesResponse.json();
 
       const agentTypeObj = agentTypesData.agent_types?.find(
@@ -490,7 +491,7 @@ export function AIAgentsStep({
 
       console.log('Saving agent configuration:', saveData);
 
-      const response = await fetch('/api/business/agent-configurations', {
+      const response = await authenticatedFetch('/api/business/agent-configurations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -538,7 +539,7 @@ export function AIAgentsStep({
   const handleDeployAgent = async (agent: AIAgent) => {
     try {
       // TODO: Deploy agent to Retell AI
-      const response = await fetch('/api/create-retell-agent', {
+      const response = await authenticatedFetch('/api/create-retell-agent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { User } from '@supabase/supabase-js';
+import { authenticatedFetch } from '@/lib/api-client';
 
 // Components
 import { Button } from '@/components/ui/button';
@@ -80,7 +81,7 @@ export default function AdminUserAgentConfig() {
       try {
         setTargetUserLoading(true);
 
-        const response = await fetch(`/api/admin/users/${userId}`, {
+        const response = await authenticatedFetch(`/api/admin/users/${userId}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -126,7 +127,7 @@ export default function AdminUserAgentConfig() {
 
   const handleUpgrade = async (newTier: 'basic' | 'premium' | 'enterprise') => {
     try {
-      const response = await fetch(`/api/admin/users/${userId}/upgrade`, {
+      const response = await authenticatedFetch(`/api/admin/users/${userId}/upgrade`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

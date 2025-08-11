@@ -26,10 +26,6 @@ export default function ProfilePage() {
           data: { user },
         } = await supabase.auth.getUser();
         setUser(user);
-
-        if (user && profile?.full_name) {
-          setFullName(profile.full_name);
-        }
       } catch (error) {
         console.error('Error fetching user:', error);
       } finally {
@@ -38,7 +34,14 @@ export default function ProfilePage() {
     };
 
     getUser();
-  }, [profile]);
+  }, []); // 只在组件挂载时运行一次
+
+  // 单独的 useEffect 来更新 fullName，当 profile 加载完成时
+  useEffect(() => {
+    if (profile?.full_name) {
+      setFullName(profile.full_name);
+    }
+  }, [profile?.full_name]); // 只依赖 full_name 字段，而不是整个 profile 对象
 
   const getUserDisplayName = () => {
     if (profile?.full_name) {

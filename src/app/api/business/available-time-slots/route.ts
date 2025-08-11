@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase-admin';
+import { withAuth, isAuthError } from '@/lib/api-auth-helper';
 
 // GET - Get available time slots for booking
 export async function GET(request: NextRequest) {
   try {
-    const supabase = supabaseAdmin;
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+    const { supabaseWithAuth: supabase } = authResult;
     const { searchParams } = new URL(request.url);
 
     const business_id = searchParams.get('business_id');
@@ -34,7 +38,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get appointment type details if provided
-    let appointmentType = null;
+    let appointmentType: any = null;
     let serviceDuration = parseInt(duration_minutes || '30');
     let bufferTime = 15;
 
@@ -71,7 +75,7 @@ export async function GET(request: NextRequest) {
     };
 
     // Determine which staff to check
-    let staffToCheck = [];
+    let staffToCheck: string[] = [];
 
     if (staff_id) {
       staffToCheck = [staff_id];
@@ -96,7 +100,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Prepare date range
-    const datesToCheck = [];
+    const datesToCheck: string[] = [];
     if (date) {
       datesToCheck.push(date);
     } else {
@@ -112,7 +116,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const allAvailableSlots = [];
+    const allAvailableSlots: any[] = [];
 
     // Check each date and staff combination
     for (const checkDate of datesToCheck) {
@@ -250,7 +254,11 @@ export async function GET(request: NextRequest) {
 // POST - Check specific time slot availability (for booking validation)
 export async function POST(request: NextRequest) {
   try {
-    const supabase = supabaseAdmin;
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+    const { supabaseWithAuth: supabase } = authResult;
     const body = await request.json();
 
     const {
@@ -293,7 +301,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let unavailabilityReason = null;
+    let unavailabilityReason: string | null = null;
 
     if (!isAvailable) {
       // Get more details about why it's not available
@@ -350,7 +358,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get appointment type details for additional validation
-    let appointmentType = null;
+    let appointmentType: any = null;
     if (appointment_type_id) {
       const { data: typeData } = await supabase
         .from('appointment_types')

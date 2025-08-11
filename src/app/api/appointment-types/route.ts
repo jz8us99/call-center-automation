@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase-admin';
+import { withAuth, isAuthError } from '@/lib/api-auth-helper';
 
 // GET - Fetch appointment types
 export async function GET(request: NextRequest) {
   try {
-    const supabase = supabaseAdmin;
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+    const { supabaseWithAuth: supabase } = authResult;
     const { searchParams } = new URL(request.url);
 
     const user_id = searchParams.get('user_id');
@@ -68,7 +72,11 @@ export async function GET(request: NextRequest) {
 // POST - Create appointment type
 export async function POST(request: NextRequest) {
   try {
-    const supabase = supabaseAdmin;
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+    const { supabaseWithAuth: supabase } = authResult;
     const body = await request.json();
 
     const {
@@ -172,7 +180,11 @@ export async function POST(request: NextRequest) {
 // PUT - Update appointment type
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = supabaseAdmin;
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+    const { supabaseWithAuth: supabase } = authResult;
     const body = await request.json();
 
     const {
@@ -306,7 +318,11 @@ export async function PUT(request: NextRequest) {
 // DELETE - Delete appointment type
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = supabaseAdmin;
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+    const { supabaseWithAuth: supabase } = authResult;
     const { searchParams } = new URL(request.url);
 
     const id = searchParams.get('id');

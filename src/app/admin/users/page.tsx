@@ -20,6 +20,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { PlusIcon, UsersIcon, SettingsIcon } from '@/components/icons';
+import { authenticatedFetch } from '@/lib/api-client';
 
 interface UserProfile {
   id: string;
@@ -82,7 +83,7 @@ export default function AdminUserManagement() {
     try {
       setUsersLoading(true);
 
-      const response = await fetch('/api/admin/users', {
+      const response = await authenticatedFetch('/api/admin/users', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -133,7 +134,7 @@ export default function AdminUserManagement() {
     }
 
     try {
-      const response = await fetch(`/api/admin/users/${userId}`, {
+      const response = await authenticatedFetch(`/api/admin/users/${userId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -178,7 +179,7 @@ export default function AdminUserManagement() {
         : '/api/admin/users';
       const method = isEditing ? 'PUT' : 'POST';
 
-      const response = await fetch(url, {
+      const response = await authenticatedFetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',

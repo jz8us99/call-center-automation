@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase-admin';
+import { withAuth, isAuthError } from '@/lib/api-auth-helper';
 
 // POST - Manually sync all staff availability with current office hours
 export async function POST(request: NextRequest) {
   try {
-    const supabase = supabaseAdmin;
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+    const { supabaseWithAuth: supabase } = authResult;
     const body = await request.json();
 
     const { user_id, business_id } = body;
@@ -78,7 +82,8 @@ export async function POST(request: NextRequest) {
       try {
         const result = await syncStaffMemberAvailability(
           staffMember.id,
-          officeHours
+          officeHours,
+          supabase
         );
 
         staffResults.push({
@@ -124,10 +129,9 @@ async function syncStaffMemberAvailability(
     start_time: string;
     end_time: string;
     is_active: boolean;
-  }>
+  }>,
+  supabase: any
 ) {
-  const supabase = supabaseAdmin;
-
   // Get current date range (current year + next year)
   const currentYear = new Date().getFullYear();
   const startDate = `${currentYear}-01-01`;

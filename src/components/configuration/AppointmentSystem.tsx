@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { User } from '@supabase/supabase-js';
+import { authenticatedFetch } from '@/lib/api-client';
 import {
   Card,
   CardContent,
@@ -185,7 +186,7 @@ export function AppointmentSystem({
   const loadOfficeHours = async () => {
     try {
       setLoading(true);
-      const response = await fetch(
+      const response = await authenticatedFetch(
         `/api/business/office-hours?user_id=${user.id}&business_id=${user.id}`
       );
 
@@ -219,7 +220,7 @@ export function AppointmentSystem({
 
   const loadHolidays = async () => {
     try {
-      const response = await fetch(
+      const response = await authenticatedFetch(
         `/api/business/holidays?user_id=${user.id}&business_id=${user.id}&year=${selectedYear}`
       );
 
@@ -271,7 +272,7 @@ export function AppointmentSystem({
 
       console.log('Sending office hours data:', allHours);
 
-      const response = await fetch('/api/business/office-hours', {
+      const response = await authenticatedFetch('/api/business/office-hours', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -414,7 +415,7 @@ export function AppointmentSystem({
         const exists = holidays.some(h => h.holiday_date === holiday.date);
         if (exists) continue;
 
-        const response = await fetch('/api/business/holidays', {
+        const response = await authenticatedFetch('/api/business/holidays', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -456,7 +457,7 @@ export function AppointmentSystem({
     }
 
     try {
-      const response = await fetch(
+      const response = await authenticatedFetch(
         `/api/business/holidays?id=${holiday.id}&user_id=${user.id}`,
         {
           method: 'DELETE',

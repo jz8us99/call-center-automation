@@ -1,27 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  authenticateRequest,
-  createAuthenticatedClient,
-  checkPermission,
-} from '@/lib/supabase';
+import { withAuth, isAuthError } from '@/lib/api-auth-helper';
+import { checkPermission } from '@/lib/supabase';
 
 export async function GET(request: NextRequest) {
   try {
-    // Verify user authentication
-    const user = await authenticateRequest(request);
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Please provide a valid JWT token' },
-        { status: 401 }
-      );
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
     }
-
-    // Get JWT token
-    const authorization = request.headers.get('authorization');
-    const token = authorization?.replace('Bearer ', '') || '';
-
-    // Create a client with user authentication
-    const supabaseWithAuth = await createAuthenticatedClient(token);
+    const { user, supabaseWithAuth } = authResult;
 
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
@@ -108,21 +95,11 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Verify user authentication
-    const user = await authenticateRequest(request);
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Please provide a valid JWT token' },
-        { status: 401 }
-      );
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
     }
-
-    // Get JWT token
-    const authorization = request.headers.get('authorization');
-    const token = authorization?.replace('Bearer ', '') || '';
-
-    // Create a client with user authentication
-    const supabaseWithAuth = await createAuthenticatedClient(token);
+    const { user, supabaseWithAuth } = authResult;
 
     const body = await request.json();
     const { user_id, customer_id } = body;
@@ -177,21 +154,11 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    // Verify user authentication
-    const user = await authenticateRequest(request);
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Please provide a valid JWT token' },
-        { status: 401 }
-      );
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
     }
-
-    // Get JWT token
-    const authorization = request.headers.get('authorization');
-    const token = authorization?.replace('Bearer ', '') || '';
-
-    // Create a client with user authentication
-    const supabaseWithAuth = await createAuthenticatedClient(token);
+    const { user, supabaseWithAuth } = authResult;
 
     // Get record ID
     const { searchParams } = new URL(request.url);
@@ -260,21 +227,11 @@ export async function PUT(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    // Verify user authentication
-    const user = await authenticateRequest(request);
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Please provide a valid JWT token' },
-        { status: 401 }
-      );
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
     }
-
-    // Get JWT token
-    const authorization = request.headers.get('authorization');
-    const token = authorization?.replace('Bearer ', '') || '';
-
-    // Create a client with user authentication
-    const supabaseWithAuth = await createAuthenticatedClient(token);
+    const { user, supabaseWithAuth } = authResult;
 
     // Get record ID
     const { searchParams } = new URL(request.url);

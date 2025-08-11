@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
+import { authenticatedFetch } from '@/lib/api-client';
 import {
   Card,
   CardContent,
@@ -223,7 +224,7 @@ export function BusinessInformationStep({
 
       setLoading(true);
       try {
-        const response = await fetch(
+        const response = await authenticatedFetch(
           `/api/business/profile?user_id=${user.id}`
         );
         if (response.ok) {
@@ -286,7 +287,7 @@ export function BusinessInformationStep({
 
     const loadBusinessLocations = async (businessId: string) => {
       try {
-        const response = await fetch(
+        const response = await authenticatedFetch(
           `/api/business/locations?business_id=${businessId}`
         );
         if (response.ok) {
@@ -355,11 +356,8 @@ export function BusinessInformationStep({
         );
         formDataObj.append('clientId', user.id);
 
-        const response = await fetch('/api/business/upload-business-files', {
+        const response = await authenticatedFetch('/api/business/upload-business-files', {
           method: 'POST',
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-          },
           body: formDataObj,
         });
 
@@ -477,11 +475,8 @@ export function BusinessInformationStep({
         );
         formDataObj.append('clientId', user.id);
 
-        const response = await fetch('/api/business/upload-business-files', {
+        const response = await authenticatedFetch('/api/business/upload-business-files', {
           method: 'POST',
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-          },
           body: formDataObj,
         });
 
@@ -655,7 +650,7 @@ export function BusinessInformationStep({
     try {
       if (location.id && !location.id.startsWith('temp-')) {
         // Delete from API if it's a real location
-        const response = await fetch(
+        const response = await authenticatedFetch(
           `/api/business/locations?id=${location.id}&user_id=${user.id}`,
           {
             method: 'DELETE',
@@ -693,7 +688,7 @@ export function BusinessInformationStep({
         };
         delete locationData.id; // Remove temporary ID
 
-        const response = await fetch('/api/business/locations', {
+        const response = await authenticatedFetch('/api/business/locations', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(locationData),
@@ -736,11 +731,8 @@ export function BusinessInformationStep({
 
     try {
       // Save business profile to database
-      const response = await fetch('/api/business/profile', {
+      const response = await authenticatedFetch('/api/business/profile', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           user_id: user.id,
           business_name: formData.business_name,
