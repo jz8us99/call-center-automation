@@ -68,7 +68,7 @@ export function BusinessInformationHeader({
 
   const loadBusinessTypes = async () => {
     try {
-      const response = await fetch('/api/business-types');
+      const response = await fetch('/api/business/types');
       const result = await response.json();
       setBusinessTypes(result.business_types || []);
     } catch (error) {
@@ -79,7 +79,7 @@ export function BusinessInformationHeader({
   const loadBusinessProfile = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/business-profile?user_id=${user.id}`);
+      const response = await fetch(`/api/business/profile?user_id=${user.id}`);
       const result = await response.json();
 
       if (result.profile) {
@@ -142,7 +142,7 @@ export function BusinessInformationHeader({
       setSaving(true);
 
       const method = businessProfile?.id ? 'PUT' : 'POST';
-      const response = await fetch('/api/business-profile', {
+      const response = await fetch('/api/business/profile', {
         method,
         headers: {
           'Content-Type': 'application/json',

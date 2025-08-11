@@ -131,7 +131,7 @@ export function ConsolidatedStaffManagement({
   const loadJobCategories = async () => {
     try {
       const response = await fetch(
-        `/api/job-categories?service_type_code=${serviceTypeCode}`
+        `/api/business/job-categories?service_type_code=${serviceTypeCode}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -145,7 +145,7 @@ export function ConsolidatedStaffManagement({
   const loadJobTypes = async () => {
     try {
       const response = await fetch(
-        `/api/job-types?service_type_code=${serviceTypeCode}&user_id=${user.id}`
+        `/api/business/job-types?service_type_code=${serviceTypeCode}&user_id=${user.id}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -158,7 +158,7 @@ export function ConsolidatedStaffManagement({
 
   const loadStaff = async () => {
     try {
-      const response = await fetch(`/api/staff?user_id=${user.id}`);
+      const response = await fetch(`/api/business/staff?user_id=${user.id}`);
       if (response.ok) {
         const data = await response.json();
         setStaff(data.staff || []);
@@ -176,7 +176,7 @@ export function ConsolidatedStaffManagement({
 
     setSaving(true);
     try {
-      const response = await fetch('/api/staff', {
+      const response = await fetch('/api/business/staff?', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -222,7 +222,7 @@ export function ConsolidatedStaffManagement({
 
     setSaving(true);
     try {
-      const response = await fetch('/api/staff', {
+      const response = await fetch('/api/business/staff?', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -269,9 +269,12 @@ export function ConsolidatedStaffManagement({
     }
 
     try {
-      const response = await fetch(`/api/staff?id=${id}&user_id=${user.id}`, {
-        method: 'DELETE',
-      });
+      const response = await fetch(
+        `/api/business/staff?id=${id}&user_id=${user.id}`,
+        {
+          method: 'DELETE',
+        }
+      );
 
       if (response.ok) {
         setStaff(prev => prev.filter(s => s.id !== id));

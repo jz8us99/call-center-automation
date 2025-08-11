@@ -56,7 +56,7 @@ export function OfficeHoursSetup({
     try {
       setLoading(true);
       const response = await fetch(
-        `/api/office-hours?user_id=${user.id}&business_id=${businessId}`
+        `/api/business/office-hours?user_id=${user.id}&business_id=${businessId}`
       );
 
       if (response.ok) {
@@ -130,7 +130,7 @@ export function OfficeHoursSetup({
           is_active: day.is_active,
         }));
 
-      const response = await fetch('/api/office-hours', {
+      const response = await fetch('/api/business/office-hours', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

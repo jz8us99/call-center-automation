@@ -597,5 +597,106 @@
     "noCategories": "Sin Categorías de Productos",
     "editCategory": "Editar Categoría de Productos",
     "categoryName": "Nombre de Categoría *"
+  },
+  "businessServices": {
+    "loading": "Cargando perfil del negocio y servicios...",
+    "businessTypeRequired": "Tipo de Negocio Requerido",
+    "businessTypeRequiredDesc": "Por favor complete primero el paso de Información del Negocio para configurar su tipo de negocio.",
+    "currentBusinessProfile": "Perfil actual del negocio: {status}",
+    "found": "Encontrado",
+    "notFound": "No encontrado",
+    "title": "Servicios del Negocio",
+    "description": "Configure servicios basados en citas para su negocio {businessType}{businessName}. Los servicios requieren duración y pueden programarse con citas.",
+    "categoryForm": {
+      "editTitle": "Editar Categoría de Servicio",
+      "addTitle": "Agregar Categoría de Servicio",
+      "editDescription": "Actualice los detalles de la categoría de servicio a continuación.",
+      "addDescription": "Cree una nueva categoría de servicio para sus servicios basados en citas de {businessType}.",
+      "categoryName": "Nombre de Categoría *",
+      "categoryNamePlaceholder": "ej., Atención Preventiva, Servicios de Diagnóstico",
+      "description": "Descripción",
+      "descriptionPlaceholder": "Describa qué servicios cubre esta categoría...",
+      "updating": "Actualizando...",
+      "adding": "Agregando...",
+      "updateCategory": "Actualizar Categoría",
+      "addCategory": "Agregar Categoría",
+      "cancel": "Cancelar"
+    },
+    "categories": {
+      "title": "Categorías de Servicio y Servicios",
+      "description": "Organice sus servicios basados en citas en categorías y gestione ofertas de servicios individuales con duración, precios y requisitos de programación.",
+      "addCategory": "Agregar Categoría",
+      "noCategories": "Sin Categorías de Servicio",
+      "noCategoriesDesc": "Cree su primera categoría de servicio para organizar sus ofertas de citas de {businessType}.",
+      "addFirstCategory": "Agregar Primera Categoría",
+      "servicesCount": "{count} servicios",
+      "tableHeaders": {
+        "serviceName": "Nombre del Servicio",
+        "description": "Descripción",
+        "duration": "Duración",
+        "price": "Precio",
+        "actions": "Acciones"
+      },
+      "noServicesYet": "No hay servicios en esta categoría aún.",
+      "addServiceTip": "Haga clic en el ícono + en el encabezado para agregar un servicio",
+      "uncategorizedServices": "Servicios Sin Categorizar"
+    },
+    "serviceForm": {
+      "editTitle": "Editar Servicio",
+      "addTitle": "Agregar Servicio",
+      "editDescription": "Actualice los detalles del servicio a continuación.",
+      "addDescription": "Defina un servicio específico basado en citas con información de duración y precios.",
+      "serviceName": "Nombre del Servicio *",
+      "serviceNamePlaceholder": "ej., Limpieza Dental, Consulta",
+      "category": "Categoría",
+      "categoryPlaceholder": "Seleccionar categoría (opcional)",
+      "noCategory": "Sin Categoría",
+      "description": "Descripción",
+      "descriptionPlaceholder": "Describa qué incluye este servicio...",
+      "duration": "Duración (minutos) *",
+      "servicePrice": "Precio del Servicio",
+      "pricePlaceholder": "0.00",
+      "currency": "Moneda",
+      "updating": "Actualizando...",
+      "adding": "Agregando...",
+      "updateService": "Actualizar Servicio",
+      "addService": "Agregar Servicio",
+      "cancel": "Cancelar"
+    },
+    "inlineEdit": {
+      "serviceName": "Nombre del servicio",
+      "description": "Descripción",
+      "duration": "Duración",
+      "price": "Precio"
+    },
+    "alerts": {
+      "categoryNameRequired": "El nombre de la categoría es requerido y debe configurarse el tipo de negocio",
+      "categoryNameRequiredSimple": "El nombre de la categoría es requerido",
+      "serviceNameRequired": "El nombre del servicio es requerido y debe configurarse el tipo de negocio",
+      "serviceNameRequiredSimple": "El nombre del servicio es requerido",
+      "confirmDeleteCategory": "¿Está seguro de que desea eliminar esta categoría? Esto también afectará cualquier servicio asociado.",
+      "confirmDeleteService": "¿Está seguro de que desea eliminar este servicio?",
+      "failedToAddCategory": "Error al agregar categoría",
+      "failedToUpdateCategory": "Error al actualizar categoría",
+      "failedToDeleteCategory": "Error al eliminar categoría",
+      "failedToAddService": "Error al agregar servicio",
+      "failedToUpdateService": "Error al actualizar servicio",
+      "failedToDeleteService": "Error al eliminar servicio",
+      "tryAgain": "Por favor intente nuevamente."
+    },
+    "saveChanges": {
+      "unsavedChanges": "Tiene cambios no guardados en las categorías de servicio",
+      "changesSaved": "¡Cambios guardados exitosamente!",
+      "failedToSave": "Error al guardar cambios",
+      "saving": "Guardando...",
+      "saveChanges": "Guardar Cambios"
+    },
+    "status": {
+      "title": "Estado de Servicios",
+      "businessType": "Tipo de Negocio: {businessType}",
+      "categories": "Categorías: {count}",
+      "services": "Servicios: {count}",
+      "readyMessage": "✅ ¡Listo para asignación de personal y programación de citas!"
+    }
   }
 }

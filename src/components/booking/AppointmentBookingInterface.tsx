@@ -137,7 +137,7 @@ export function AppointmentBookingInterface({
     setLoading(true);
     try {
       const response = await fetch(
-        `/api/available-time-slots?business_id=${businessId}&date=${selectedDate}&appointment_type_id=${selectedType.id}`
+        `/api/business/available-time-slots?business_id=${businessId}&date=${selectedDate}&appointment_type_id=${selectedType.id}`
       );
       if (response.ok) {
         const data = await response.json();

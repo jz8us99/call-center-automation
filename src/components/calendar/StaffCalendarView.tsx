@@ -127,7 +127,7 @@ export function StaffCalendarView({
   const loadStaffData = async () => {
     try {
       const response = await fetch(
-        `/api/staff?user_id=${user.id}&staff_id=${staffId}`
+        `/api/business/staff?user_id=${user.id}&staff_id=${staffId}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -159,7 +159,7 @@ export function StaffCalendarView({
   const loadOfficeHours = async () => {
     try {
       const response = await fetch(
-        `/api/office-hours?user_id=${user.id}&business_id=${businessId}`
+        `/api/business/office-hours?user_id=${user.id}&business_id=${businessId}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -173,7 +173,7 @@ export function StaffCalendarView({
   const loadHolidays = async () => {
     try {
       const response = await fetch(
-        `/api/holidays?user_id=${user.id}&business_id=${businessId}&year=${currentYear}`
+        `/api/business/holidays?user_id=${user.id}&business_id=${businessId}&year=${currentYear}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -190,7 +190,7 @@ export function StaffCalendarView({
       const endDate = `${currentYear}-12-31`;
 
       const response = await fetch(
-        `/api/staff-availability?staff_id=${staffId}&user_id=${user.id}&start_date=${startDate}&end_date=${endDate}`
+        `/api/business/staff-availability?staff_id=${staffId}&user_id=${user.id}&start_date=${startDate}&end_date=${endDate}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -237,7 +237,7 @@ export function StaffCalendarView({
         body.id = editingAvailability.id;
       }
 
-      const response = await fetch('/api/staff-availability', {
+      const response = await fetch('/api/business/staff-availability', {
         method,
         headers: {
           'Content-Type': 'application/json',

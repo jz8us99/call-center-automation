@@ -129,7 +129,7 @@ export function BusinessProducts({
     try {
       // First load business profile to get business type
       const profileResponse = await fetch(
-        `/api/business-profile?user_id=${user.id}`
+        `/api/business/profile?user_id=${user.id}`
       );
       if (profileResponse.ok) {
         const profileData = await profileResponse.json();
@@ -153,7 +153,7 @@ export function BusinessProducts({
   const loadProductCategories = async (businessType: string) => {
     try {
       const response = await fetch(
-        `/api/product-categories?business_type=${businessType}`
+        `/api/business/product-categories?business_type=${businessType}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -167,7 +167,7 @@ export function BusinessProducts({
   const loadProducts = async (businessType: string) => {
     try {
       const response = await fetch(
-        `/api/business-products?business_type=${businessType}&user_id=${user.id}`
+        `/api/business/products?business_type=${businessType}&user_id=${user.id}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -186,7 +186,7 @@ export function BusinessProducts({
 
     setSaving(true);
     try {
-      const response = await fetch('/api/product-categories', {
+      const response = await fetch('/api/business/product-categories', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -224,7 +224,7 @@ export function BusinessProducts({
 
     setSaving(true);
     try {
-      const response = await fetch('/api/product-categories', {
+      const response = await fetch('/api/business/product-categories', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -267,9 +267,12 @@ export function BusinessProducts({
     }
 
     try {
-      const response = await fetch(`/api/product-categories?id=${id}`, {
-        method: 'DELETE',
-      });
+      const response = await fetch(
+        `/api/business/product-categories?id=${id}`,
+        {
+          method: 'DELETE',
+        }
+      );
 
       if (response.ok) {
         setProductCategories(prev => prev.filter(c => c.id !== id));
@@ -331,7 +334,7 @@ export function BusinessProducts({
 
     setSaving(true);
     try {
-      const response = await fetch('/api/business-products', {
+      const response = await fetch('/api/business/products', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -407,7 +410,7 @@ export function BusinessProducts({
 
     setSaving(true);
     try {
-      const response = await fetch('/api/business-products', {
+      const response = await fetch('/api/business/products', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -452,7 +455,7 @@ export function BusinessProducts({
     }
 
     try {
-      const response = await fetch(`/api/business-products?id=${id}`, {
+      const response = await fetch(`/api/business/products?id=${id}`, {
         method: 'DELETE',
       });
 
@@ -504,7 +507,7 @@ export function BusinessProducts({
 
     setInlineSaving(true);
     try {
-      const response = await fetch('/api/business-products', {
+      const response = await fetch('/api/business/products', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

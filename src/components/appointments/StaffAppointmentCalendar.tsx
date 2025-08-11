@@ -158,7 +158,7 @@ export function StaffAppointmentCalendar({
   const loadStaffData = async () => {
     try {
       const response = await fetch(
-        `/api/staff?user_id=${businessId}&staff_id=${staffId}`
+        `/api/business/staff?user_id=${businessId}&staff_id=${staffId}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -210,7 +210,7 @@ export function StaffAppointmentCalendar({
       const endDate = `${currentYear}-12-31`;
 
       const response = await fetch(
-        `/api/staff-availability?staff_id=${staffId}&start_date=${startDate}&end_date=${endDate}`
+        `/api/business/staff-availability?staff_id=${staffId}&start_date=${startDate}&end_date=${endDate}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -228,7 +228,7 @@ export function StaffAppointmentCalendar({
   const loadHolidays = async () => {
     try {
       const response = await fetch(
-        `/api/business-holidays?user_id=${businessId}&year=${currentYear}`
+        `/api/business/holidays?user_id=${businessId}&year=${currentYear}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -242,7 +242,7 @@ export function StaffAppointmentCalendar({
   const loadCalendarConfig = async () => {
     try {
       const response = await fetch(
-        `/api/staff-calendar-configs?user_id=${businessId}&staff_id=${staffId}`
+        `/api/business/staff-calendar-configs?user_id=${businessId}&staff_id=${staffId}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -271,7 +271,7 @@ export function StaffAppointmentCalendar({
 
   const generateDefaultCalendar = async () => {
     try {
-      const response = await fetch('/api/staff-calendars', {
+      const response = await fetch('/api/business/staff-calendars', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -311,7 +311,7 @@ export function StaffAppointmentCalendar({
         body.id = calendarConfig.id;
       }
 
-      const response = await fetch('/api/staff-calendar-configs', {
+      const response = await fetch('/api/business/staff-calendar-configs', {
         method,
         headers: {
           'Content-Type': 'application/json',
@@ -337,7 +337,7 @@ export function StaffAppointmentCalendar({
     availabilityData: Partial<AvailabilitySlot>
   ) => {
     try {
-      const response = await fetch('/api/staff-availability', {
+      const response = await fetch('/api/business/staff-availability', {
         method: editingAvailability?.id ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',

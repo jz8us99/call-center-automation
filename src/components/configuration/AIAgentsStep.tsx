@@ -163,7 +163,7 @@ export function AIAgentsStep({
 
   const loadBusinessInfo = async () => {
     try {
-      const response = await fetch(`/api/business-profile?user_id=${user.id}`);
+      const response = await fetch(`/api/business/profile?user_id=${user.id}`);
       if (response.ok) {
         const data = await response.json();
         setBusinessInfo(data.profile);
@@ -187,7 +187,7 @@ export function AIAgentsStep({
 
       // Fetch agent configurations from API
       const response = await fetch(
-        `/api/agent-configurations?user_id=${user.id}`
+        `/api/business/agent-configurations?user_id=${user.id}`
       );
 
       if (response.ok) {
@@ -297,10 +297,10 @@ export function AIAgentsStep({
       // Generate both regular prompts and basic info prompt in parallel
       const [promptResponse, basicPromptResponse] = await Promise.all([
         fetch(
-          `/api/generate-agent-prompt?user_id=${user.id}&agent_type=${formData.agent_type}&personality=${formData.agent_personality}`
+          `/api/business/generate-agent-prompt?user_id=${user.id}&agent_type=${formData.agent_type}&personality=${formData.agent_personality}`
         ),
         fetch(
-          `/api/generate-basic-prompt?user_id=${user.id}&agent_type=${formData.agent_type}`
+          `/api/business/generate-basic-prompt?user_id=${user.id}&agent_type=${formData.agent_type}`
         ),
       ]);
 
@@ -418,7 +418,7 @@ export function AIAgentsStep({
 
       // Get business profile to get client_id
       const businessProfileResponse = await fetch(
-        `/api/business-profile?user_id=${user.id}`
+        `/api/business/profile?user_id=${user.id}`
       );
 
       if (!businessProfileResponse.ok) {
@@ -490,7 +490,7 @@ export function AIAgentsStep({
 
       console.log('Saving agent configuration:', saveData);
 
-      const response = await fetch('/api/agent-configurations', {
+      const response = await fetch('/api/business/agent-configurations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

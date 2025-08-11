@@ -31,7 +31,7 @@ export function StaffManagement({ user, onStaffUpdate }: StaffManagementProps) {
   const loadBusinessProfile = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/business-profile?user_id=${user.id}`);
+      const response = await fetch(`/api/business/profile?user_id=${user.id}`);
       if (response.ok) {
         const data = await response.json();
         if (data.profile?.business_type) {

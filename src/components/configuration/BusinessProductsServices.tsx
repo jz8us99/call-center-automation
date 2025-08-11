@@ -131,7 +131,7 @@ export function BusinessProductsServices({
     try {
       console.log('Loading job categories for:', serviceTypeCode);
       const response = await fetch(
-        `/api/job-categories?service_type_code=${serviceTypeCode}`
+        `/api/business/job-categories?service_type_code=${serviceTypeCode}`
       );
       console.log('Job categories response status:', response.status);
       if (response.ok) {
@@ -154,7 +154,7 @@ export function BusinessProductsServices({
     try {
       console.log('Loading job types for:', serviceTypeCode, user.id);
       const response = await fetch(
-        `/api/job-types?service_type_code=${serviceTypeCode}&user_id=${user.id}`
+        `/api/business/job-types?service_type_code=${serviceTypeCode}&user_id=${user.id}`
       );
       console.log('Job types response status:', response.status);
       if (response.ok) {
@@ -181,7 +181,7 @@ export function BusinessProductsServices({
 
     setSaving(true);
     try {
-      const response = await fetch('/api/job-categories', {
+      const response = await fetch('/api/business/job-categories', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -219,7 +219,7 @@ export function BusinessProductsServices({
 
     setSaving(true);
     try {
-      const response = await fetch('/api/job-categories', {
+      const response = await fetch('/api/business/job-categories', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -262,7 +262,7 @@ export function BusinessProductsServices({
     }
 
     try {
-      const response = await fetch(`/api/job-categories?id=${id}`, {
+      const response = await fetch(`/api/business/job-categories?id=${id}`, {
         method: 'DELETE',
       });
 
@@ -288,7 +288,7 @@ export function BusinessProductsServices({
 
     setSaving(true);
     try {
-      const response = await fetch('/api/job-types', {
+      const response = await fetch('/api/business/job-types', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -334,7 +334,7 @@ export function BusinessProductsServices({
 
     setSaving(true);
     try {
-      const response = await fetch('/api/job-types', {
+      const response = await fetch('/api/business/job-types', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -379,7 +379,7 @@ export function BusinessProductsServices({
     }
 
     try {
-      const response = await fetch(`/api/job-types?id=${id}`, {
+      const response = await fetch(`/api/business/job-types?id=${id}`, {
         method: 'DELETE',
       });
 

@@ -159,7 +159,7 @@ export function NewJobTitleManagement({
   const loadJobCategories = async () => {
     try {
       const response = await fetch(
-        `/api/job-categories?service_type_code=${serviceTypeCode}`
+        `/api/business/job-categories?service_type_code=${serviceTypeCode}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -173,7 +173,7 @@ export function NewJobTitleManagement({
   const loadJobTypes = async () => {
     try {
       const response = await fetch(
-        `/api/job-types?service_type_code=${serviceTypeCode}&user_id=${user.id}`
+        `/api/business/job-types?service_type_code=${serviceTypeCode}&user_id=${user.id}`
       );
       if (response.ok) {
         const data = await response.json();

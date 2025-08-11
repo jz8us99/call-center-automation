@@ -97,7 +97,7 @@ export function JobTypeManagement({
   const loadJobTypes = async () => {
     try {
       const response = await fetch(
-        `/api/job-types?service_type_code=${serviceTypeCode}&user_id=${user.id}`
+        `/api/business/job-types?service_type_code=${serviceTypeCode}&user_id=${user.id}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -113,7 +113,7 @@ export function JobTypeManagement({
   const loadCategories = async () => {
     try {
       const response = await fetch(
-        `/api/job-categories?service_type_code=${serviceTypeCode}`
+        `/api/business/job-categories?service_type_code=${serviceTypeCode}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -132,7 +132,7 @@ export function JobTypeManagement({
 
     setSaving(true);
     try {
-      const response = await fetch('/api/job-types', {
+      const response = await fetch('/api/business/job-types', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -178,7 +178,7 @@ export function JobTypeManagement({
 
     setSaving(true);
     try {
-      const response = await fetch('/api/job-types', {
+      const response = await fetch('/api/business/job-types', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -229,7 +229,7 @@ export function JobTypeManagement({
     }
 
     try {
-      const response = await fetch(`/api/job-types?id=${jobType.id}`, {
+      const response = await fetch(`/api/business/job-types?id=${jobType.id}`, {
         method: 'DELETE',
       });
 

@@ -272,7 +272,7 @@ export function StaffCalendarConfiguration({
   const loadBusinessProfile = async () => {
     try {
       console.log('Loading business profile for user:', user.id);
-      const response = await fetch(`/api/business-profile?user_id=${user.id}`);
+      const response = await fetch(`/api/business/profile?user_id=${user.id}`);
       if (response.ok) {
         const data = await response.json();
         console.log('Business profile data:', data);
@@ -298,7 +298,9 @@ export function StaffCalendarConfiguration({
 
   const loadOfficeHours = async () => {
     try {
-      const response = await fetch(`/api/office-hours?user_id=${user.id}`);
+      const response = await fetch(
+        `/api/business/office-hours?user_id=${user.id}`
+      );
       if (response.ok) {
         const data = await response.json();
         setOfficeHours(data.office_hours || []);
@@ -330,7 +332,7 @@ export function StaffCalendarConfiguration({
       user.id
     );
     try {
-      const url = `/api/job-types?service_type_code=${serviceTypeCode}&user_id=${user.id}`;
+      const url = `/api/business/job-types?service_type_code=${serviceTypeCode}&user_id=${user.id}`;
       console.log('Making request to:', url);
       const response = await fetch(url);
       console.log('Response status:', response.status);
@@ -414,7 +416,7 @@ export function StaffCalendarConfiguration({
   const loadStaffCalendars = async () => {
     try {
       const response = await fetch(
-        `/api/staff-calendars?user_id=${user.id}&staff_id=${staffMember.id}&year=${currentYear}`
+        `/api/business/staff-calendars?user_id=${user.id}&staff_id=${staffMember.id}&year=${currentYear}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -428,7 +430,7 @@ export function StaffCalendarConfiguration({
   const loadHolidays = async () => {
     try {
       const response = await fetch(
-        `/api/business-holidays?user_id=${user.id}&year=${currentYear}`
+        `/api/business/holidays?user_id=${user.id}&year=${currentYear}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -442,7 +444,7 @@ export function StaffCalendarConfiguration({
   const loadConfig = async () => {
     try {
       const response = await fetch(
-        `/api/staff-calendar-configs?user_id=${user.id}&staff_id=${staffMember.id}`
+        `/api/business/staff-calendar-configs?user_id=${user.id}&staff_id=${staffMember.id}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -527,7 +529,7 @@ export function StaffCalendarConfiguration({
   const loadDayAvailability = async (dateString: string) => {
     try {
       const response = await fetch(
-        `/api/staff-availability?staff_id=${staffMember.id}&user_id=${user.id}&start_date=${dateString}&end_date=${dateString}`
+        `/api/business/staff-availability?staff_id=${staffMember.id}&user_id=${user.id}&start_date=${dateString}&end_date=${dateString}`
       );
 
       if (response.ok) {
@@ -555,7 +557,7 @@ export function StaffCalendarConfiguration({
     try {
       setSaving(true);
       const method = availability.id ? 'PUT' : 'POST';
-      const response = await fetch('/api/staff-availability', {
+      const response = await fetch('/api/business/staff-availability', {
         method,
         headers: {
           'Content-Type': 'application/json',
@@ -742,7 +744,7 @@ export function StaffCalendarConfiguration({
   const generateDefaultCalendar = async () => {
     setSaving(true);
     try {
-      const response = await fetch('/api/staff-calendars', {
+      const response = await fetch('/api/business/staff-calendars', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -802,7 +804,7 @@ export function StaffCalendarConfiguration({
         body.id = config.id;
       }
 
-      const response = await fetch('/api/staff-calendar-configs', {
+      const response = await fetch('/api/business/staff-calendar-configs', {
         method,
         headers: {
           'Content-Type': 'application/json',
@@ -833,7 +835,7 @@ export function StaffCalendarConfiguration({
 
     setSaving(true);
     try {
-      const response = await fetch('/api/business-holidays', {
+      const response = await fetch('/api/business/holidays', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

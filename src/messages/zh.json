@@ -701,5 +701,106 @@
     "addFirstCategory": "添加您的第一个类别",
     "editCategory": "编辑产品类别",
     "categoryName": "类别名称 *"
+  },
+  "businessServices": {
+    "loading": "正在加载企业概况和服务...",
+    "businessTypeRequired": "需要企业类型",
+    "businessTypeRequiredDesc": "请先完成企业信息步骤以配置您的企业类型。",
+    "currentBusinessProfile": "当前企业概况：{status}",
+    "found": "已找到",
+    "notFound": "未找到",
+    "title": "企业服务",
+    "description": "为您的{businessType}企业配置基于预约的服务{businessName}。服务需要持续时间，可以安排预约。",
+    "categoryForm": {
+      "editTitle": "编辑服务类别",
+      "addTitle": "添加服务类别",
+      "editDescription": "更新下面的服务类别详细信息。",
+      "addDescription": "为您的{businessType}基于预约的服务创建新的服务类别。",
+      "categoryName": "类别名称 *",
+      "categoryNamePlaceholder": "例如：预防保健、诊断服务",
+      "description": "描述",
+      "descriptionPlaceholder": "描述此类别涵盖的服务...",
+      "updating": "更新中...",
+      "adding": "添加中...",
+      "updateCategory": "更新类别",
+      "addCategory": "添加类别",
+      "cancel": "取消"
+    },
+    "categories": {
+      "title": "服务类别和服务",
+      "description": "将您的基于预约的服务组织到类别中，并管理具有持续时间、定价和安排要求的单个服务产品。",
+      "addCategory": "添加类别",
+      "noCategories": "无服务类别",
+      "noCategoriesDesc": "创建您的第一个服务类别来组织您的{businessType}预约产品。",
+      "addFirstCategory": "添加第一个类别",
+      "servicesCount": "{count}项服务",
+      "tableHeaders": {
+        "serviceName": "服务名称",
+        "description": "描述",
+        "duration": "持续时间",
+        "price": "价格",
+        "actions": "操作"
+      },
+      "noServicesYet": "此类别中尚无服务。",
+      "addServiceTip": "点击标题中的+图标添加服务",
+      "uncategorizedServices": "未分类服务"
+    },
+    "serviceForm": {
+      "editTitle": "编辑服务",
+      "addTitle": "添加服务",
+      "editDescription": "更新下面的服务详细信息。",
+      "addDescription": "定义具有持续时间和定价信息的特定基于预约的服务。",
+      "serviceName": "服务名称 *",
+      "serviceNamePlaceholder": "例如：洗牙、咨询",
+      "category": "类别",
+      "categoryPlaceholder": "选择类别（可选）",
+      "noCategory": "无类别",
+      "description": "描述",
+      "descriptionPlaceholder": "描述此服务包含的内容...",
+      "duration": "持续时间（分钟）*",
+      "servicePrice": "服务价格",
+      "pricePlaceholder": "0.00",
+      "currency": "货币",
+      "updating": "更新中...",
+      "adding": "添加中...",
+      "updateService": "更新服务",
+      "addService": "添加服务",
+      "cancel": "取消"
+    },
+    "inlineEdit": {
+      "serviceName": "服务名称",
+      "description": "描述",
+      "duration": "持续时间",
+      "price": "价格"
+    },
+    "alerts": {
+      "categoryNameRequired": "类别名称是必需的，必须配置企业类型",
+      "categoryNameRequiredSimple": "类别名称是必需的",
+      "serviceNameRequired": "服务名称是必需的，必须配置企业类型",
+      "serviceNameRequiredSimple": "服务名称是必需的",
+      "confirmDeleteCategory": "确定要删除此类别吗？这也会影响任何相关的服务。",
+      "confirmDeleteService": "确定要删除此服务吗？",
+      "failedToAddCategory": "添加类别失败",
+      "failedToUpdateCategory": "更新类别失败",
+      "failedToDeleteCategory": "删除类别失败",
+      "failedToAddService": "添加服务失败",
+      "failedToUpdateService": "更新服务失败",
+      "failedToDeleteService": "删除服务失败",
+      "tryAgain": "请重试。"
+    },
+    "saveChanges": {
+      "unsavedChanges": "您有未保存的服务类别更改",
+      "changesSaved": "更改保存成功！",
+      "failedToSave": "保存更改失败",
+      "saving": "保存中...",
+      "saveChanges": "保存更改"
+    },
+    "status": {
+      "title": "服务状态",
+      "businessType": "企业类型：{businessType}",
+      "categories": "类别：{count}",
+      "services": "服务：{count}",
+      "readyMessage": "✅ 准备好进行员工分配和预约安排！"
+    }
   }
 }

@@ -107,7 +107,7 @@ export function BusinessInformationForm({
           formDataObj.append('type', doc.type);
           formDataObj.append('clientId', 'current-user-id'); // You'd get this from auth context
 
-          await fetch('/api/upload-documents', {
+          await fetch('/api/business/upload-documents', {
             method: 'POST',
             body: formDataObj,
           });

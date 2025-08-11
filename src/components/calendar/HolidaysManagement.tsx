@@ -72,7 +72,7 @@ export function HolidaysManagement({
     try {
       setLoading(true);
       const response = await fetch(
-        `/api/holidays?user_id=${user.id}&business_id=${businessId}&year=${selectedYear}`
+        `/api/business/holidays?user_id=${user.id}&business_id=${businessId}&year=${selectedYear}`
       );
 
       if (response.ok) {
@@ -135,7 +135,7 @@ export function HolidaysManagement({
         body.id = editingHoliday.id;
       }
 
-      const response = await fetch('/api/holidays', {
+      const response = await fetch('/api/business/holidays', {
         method,
         headers: {
           'Content-Type': 'application/json',
@@ -170,7 +170,7 @@ export function HolidaysManagement({
 
     try {
       const response = await fetch(
-        `/api/holidays?id=${holiday.id}&user_id=${user.id}`,
+        `/api/business/holidays?id=${holiday.id}&user_id=${user.id}`,
         {
           method: 'DELETE',
         }
@@ -316,7 +316,7 @@ export function HolidaysManagement({
         const exists = holidays.some(h => h.holiday_date === holiday.date);
         if (exists) continue;
 
-        const response = await fetch('/api/holidays', {
+        const response = await fetch('/api/business/holidays', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -380,7 +380,7 @@ export function HolidaysManagement({
         const exists = holidays.some(h => h.holiday_date === holiday.date);
         if (exists) continue;
 
-        const response = await fetch('/api/holidays', {
+        const response = await fetch('/api/business/holidays', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

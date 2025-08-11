@@ -137,7 +137,9 @@ export function CalendarConfigurationDashboard({
     setLoading(true);
     try {
       // Load staff members
-      const staffResponse = await fetch(`/api/staff?user_id=${user.id}`);
+      const staffResponse = await fetch(
+        `/api/business/staff?user_id=${user.id}`
+      );
       if (staffResponse.ok) {
         const staffData = await staffResponse.json();
         const staffMembers = staffData.staff || [];
@@ -161,7 +163,7 @@ export function CalendarConfigurationDashboard({
     for (const member of staffMembers) {
       try {
         const response = await fetch(
-          `/api/staff-availability?staff_id=${member.id}&user_id=${user.id}&start_date=${currentYear}-01-01&end_date=${nextYear}-12-31`
+          `/api/business/staff-availability?staff_id=${member.id}&user_id=${user.id}&start_date=${currentYear}-01-01&end_date=${nextYear}-12-31`
         );
 
         if (response.ok) {
@@ -378,7 +380,7 @@ export function CalendarConfigurationDashboard({
 
     setSyncingStaffAvailability(true);
     try {
-      const response = await fetch('/api/sync-staff-availability', {
+      const response = await fetch('/api/business/sync-staff-availability', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

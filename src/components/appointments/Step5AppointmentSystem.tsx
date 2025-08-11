@@ -95,7 +95,7 @@ export function Step5AppointmentSystem({
     try {
       setLoading(true);
       const response = await fetch(
-        `/api/office-hours?user_id=${user.id}&business_id=${businessId}`
+        `/api/business/office-hours?user_id=${user.id}&business_id=${businessId}`
       );
 
       if (response.ok) {
@@ -129,7 +129,7 @@ export function Step5AppointmentSystem({
   const loadHolidays = async () => {
     try {
       const response = await fetch(
-        `/api/holidays?user_id=${user.id}&business_id=${businessId}&year=${selectedYear}`
+        `/api/business/holidays?user_id=${user.id}&business_id=${businessId}&year=${selectedYear}`
       );
 
       if (response.ok) {
@@ -178,7 +178,7 @@ export function Step5AppointmentSystem({
         is_active: day.is_active,
       }));
 
-      const response = await fetch('/api/office-hours', {
+      const response = await fetch('/api/business/office-hours', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -321,7 +321,7 @@ export function Step5AppointmentSystem({
         const exists = holidays.some(h => h.holiday_date === holiday.date);
         if (exists) continue;
 
-        const response = await fetch('/api/holidays', {
+        const response = await fetch('/api/business/holidays', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -364,7 +364,7 @@ export function Step5AppointmentSystem({
 
     try {
       const response = await fetch(
-        `/api/holidays?id=${holiday.id}&user_id=${user.id}`,
+        `/api/business/holidays?id=${holiday.id}&user_id=${user.id}`,
         {
           method: 'DELETE',
         }

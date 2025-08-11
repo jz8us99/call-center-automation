@@ -59,7 +59,7 @@ export default function CalendarSetupPage() {
 
   const loadBusinessProfile = async (userId: string) => {
     try {
-      const response = await fetch(`/api/business-profile?user_id=${userId}`);
+      const response = await fetch(`/api/business/profile?user_id=${userId}`);
       if (response.ok) {
         const data = await response.json();
         setBusinessProfile(data.profile);

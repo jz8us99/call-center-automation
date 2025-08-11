@@ -186,7 +186,7 @@ export function AppointmentSystem({
     try {
       setLoading(true);
       const response = await fetch(
-        `/api/office-hours?user_id=${user.id}&business_id=${user.id}`
+        `/api/business/office-hours?user_id=${user.id}&business_id=${user.id}`
       );
 
       if (response.ok) {
@@ -220,7 +220,7 @@ export function AppointmentSystem({
   const loadHolidays = async () => {
     try {
       const response = await fetch(
-        `/api/holidays?user_id=${user.id}&business_id=${user.id}&year=${selectedYear}`
+        `/api/business/holidays?user_id=${user.id}&business_id=${user.id}&year=${selectedYear}`
       );
 
       if (response.ok) {
@@ -271,7 +271,7 @@ export function AppointmentSystem({
 
       console.log('Sending office hours data:', allHours);
 
-      const response = await fetch('/api/office-hours', {
+      const response = await fetch('/api/business/office-hours', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -414,7 +414,7 @@ export function AppointmentSystem({
         const exists = holidays.some(h => h.holiday_date === holiday.date);
         if (exists) continue;
 
-        const response = await fetch('/api/holidays', {
+        const response = await fetch('/api/business/holidays', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -457,7 +457,7 @@ export function AppointmentSystem({
 
     try {
       const response = await fetch(
-        `/api/holidays?id=${holiday.id}&user_id=${user.id}`,
+        `/api/business/holidays?id=${holiday.id}&user_id=${user.id}`,
         {
           method: 'DELETE',
         }

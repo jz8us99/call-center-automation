@@ -177,7 +177,7 @@ export function AppointmentManagementDashboard({
 
   const loadStaff = async () => {
     try {
-      const response = await fetch(`/api/staff?user_id=${user.id}`);
+      const response = await fetch(`/api/business/staff?user_id=${user.id}`);
       if (response.ok) {
         const data = await response.json();
         setStaff(data.staff || []);

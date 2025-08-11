@@ -114,7 +114,7 @@ export function BookingSettingsManagement({
     try {
       setLoading(true);
       const response = await fetch(
-        `/api/booking-settings?user_id=${user.id}&business_id=${businessId}`
+        `/api/business/booking-settings?user_id=${user.id}&business_id=${businessId}`
       );
 
       if (response.ok) {
@@ -136,7 +136,7 @@ export function BookingSettingsManagement({
     try {
       setSaving(true);
 
-      const response = await fetch('/api/booking-settings', {
+      const response = await fetch('/api/business/booking-settings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

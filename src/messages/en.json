@@ -701,5 +701,106 @@
     "addFirstCategory": "Add Your First Category",
     "editCategory": "Edit Product Category",
     "categoryName": "Category Name *"
+  },
+  "businessServices": {
+    "loading": "Loading business profile and services...",
+    "businessTypeRequired": "Business Type Required",
+    "businessTypeRequiredDesc": "Please complete the Business Information step first to configure your business type.",
+    "currentBusinessProfile": "Current business profile: {status}",
+    "found": "Found",
+    "notFound": "Not found",
+    "title": "Business Services",
+    "description": "Configure appointment-based services for your {businessType} business{businessName}. Services require duration and can be scheduled with appointments.",
+    "categoryForm": {
+      "editTitle": "Edit Service Category",
+      "addTitle": "Add Service Category",
+      "editDescription": "Update the service category details below.",
+      "addDescription": "Create a new service category for your {businessType} appointment-based services.",
+      "categoryName": "Category Name *",
+      "categoryNamePlaceholder": "e.g., Preventive Care, Diagnostic Services",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe what services this category covers...",
+      "updating": "Updating...",
+      "adding": "Adding...",
+      "updateCategory": "Update Category",
+      "addCategory": "Add Category",
+      "cancel": "Cancel"
+    },
+    "categories": {
+      "title": "Service Categories & Services",
+      "description": "Organize your appointment-based services into categories and manage individual service offerings with duration, pricing, and scheduling requirements.",
+      "addCategory": "Add Category",
+      "noCategories": "No Service Categories",
+      "noCategoriesDesc": "Create your first service category to organize your {businessType} appointment offerings.",
+      "addFirstCategory": "Add First Category",
+      "servicesCount": "{count} services",
+      "tableHeaders": {
+        "serviceName": "Service Name",
+        "description": "Description",
+        "duration": "Duration",
+        "price": "Price",
+        "actions": "Actions"
+      },
+      "noServicesYet": "No services in this category yet.",
+      "addServiceTip": "Click the + icon in the header to add a service",
+      "uncategorizedServices": "Uncategorized Services"
+    },
+    "serviceForm": {
+      "editTitle": "Edit Service",
+      "addTitle": "Add Service",
+      "editDescription": "Update the service details below.",
+      "addDescription": "Define a specific appointment-based service with duration and pricing information.",
+      "serviceName": "Service Name *",
+      "serviceNamePlaceholder": "e.g., Teeth Cleaning, Consultation",
+      "category": "Category",
+      "categoryPlaceholder": "Select category (optional)",
+      "noCategory": "No Category",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe what this service includes...",
+      "duration": "Duration (minutes) *",
+      "servicePrice": "Service Price",
+      "pricePlaceholder": "0.00",
+      "currency": "Currency",
+      "updating": "Updating...",
+      "adding": "Adding...",
+      "updateService": "Update Service",
+      "addService": "Add Service",
+      "cancel": "Cancel"
+    },
+    "inlineEdit": {
+      "serviceName": "Service name",
+      "description": "Description",
+      "duration": "Duration",
+      "price": "Price"
+    },
+    "alerts": {
+      "categoryNameRequired": "Category name is required and business type must be configured",
+      "categoryNameRequiredSimple": "Category name is required",
+      "serviceNameRequired": "Service name is required and business type must be configured",
+      "serviceNameRequiredSimple": "Service name is required",
+      "confirmDeleteCategory": "Are you sure you want to delete this category? This will also affect any associated services.",
+      "confirmDeleteService": "Are you sure you want to delete this service?",
+      "failedToAddCategory": "Failed to add category",
+      "failedToUpdateCategory": "Failed to update category",
+      "failedToDeleteCategory": "Failed to delete category",
+      "failedToAddService": "Failed to add service",
+      "failedToUpdateService": "Failed to update service",
+      "failedToDeleteService": "Failed to delete service",
+      "tryAgain": "Please try again."
+    },
+    "saveChanges": {
+      "unsavedChanges": "You have unsaved changes to service categories",
+      "changesSaved": "Changes saved successfully!",
+      "failedToSave": "Failed to save changes",
+      "saving": "Saving...",
+      "saveChanges": "Save Changes"
+    },
+    "status": {
+      "title": "Services Status",
+      "businessType": "Business Type: {businessType}",
+      "categories": "Categories: {count}",
+      "services": "Services: {count}",
+      "readyMessage": "✅ Ready for staff assignment and appointment scheduling!"
+    }
   }
 }

@@ -67,7 +67,7 @@ export function AgentConfigurationDashboard({
     try {
       setLoading(true);
       // TODO: Replace with actual API call
-      // const response = await fetch('/api/agent-configurations', {
+      // const response = await fetch('/api/business/agent-configurations', {
       //   headers: { Authorization: `Bearer ${token}` }
       // });
       // const result = await response.json();
