@@ -506,15 +506,15 @@ export function AgentTypeCallScripts({
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
+      <Card className="dark:bg-gray-800">
+        <CardHeader className="dark:bg-gray-800">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="flex items-center space-x-2">
+              <CardTitle className="flex items-center space-x-2 dark:text-gray-100">
                 <span>{agentConfig?.icon}</span>
                 <span>Call Scripts - {agentConfig?.name}</span>
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="dark:text-gray-300">
                 Customize conversation flows and responses for your{' '}
                 {agentType.replace(/_/g, ' ').toLowerCase()} agent
               </CardDescription>
@@ -553,10 +553,12 @@ export function AgentTypeCallScripts({
       {selectedScript && (
         <div className="grid gap-6">
           {/* Greeting Script */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Opening Greeting</CardTitle>
-              <CardDescription>
+          <Card className="dark:bg-gray-800">
+            <CardHeader className="dark:bg-gray-800">
+              <CardTitle className="text-lg dark:text-gray-100">
+                Opening Greeting
+              </CardTitle>
+              <CardDescription className="dark:text-gray-300">
                 First message when the call starts
               </CardDescription>
             </CardHeader>
@@ -572,8 +574,8 @@ export function AgentTypeCallScripts({
                   className="w-full dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-400"
                 />
               ) : (
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-800">
+                <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <p className="text-sm text-gray-800 dark:text-gray-200">
                     {selectedScript.greeting_script}
                   </p>
                 </div>
@@ -582,12 +584,12 @@ export function AgentTypeCallScripts({
           </Card>
 
           {/* Main Script */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">
+          <Card className="dark:bg-gray-800">
+            <CardHeader className="dark:bg-gray-800">
+              <CardTitle className="text-lg dark:text-gray-100">
                 Main Conversation Script
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="dark:text-gray-300">
                 Primary conversation flow and responses
               </CardDescription>
             </CardHeader>
@@ -601,8 +603,8 @@ export function AgentTypeCallScripts({
                   className="w-full dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-400"
                 />
               ) : (
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-800">
+                <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <p className="text-sm text-gray-800 dark:text-gray-200">
                     {selectedScript.main_script}
                   </p>
                 </div>
@@ -611,10 +613,12 @@ export function AgentTypeCallScripts({
           </Card>
 
           {/* Closing Script */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Call Closing</CardTitle>
-              <CardDescription>
+          <Card className="dark:bg-gray-800">
+            <CardHeader className="dark:bg-gray-800">
+              <CardTitle className="text-lg dark:text-gray-100">
+                Call Closing
+              </CardTitle>
+              <CardDescription className="dark:text-gray-300">
                 How the agent ends the conversation
               </CardDescription>
             </CardHeader>
@@ -628,8 +632,8 @@ export function AgentTypeCallScripts({
                   className="w-full dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-400"
                 />
               ) : (
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-800">
+                <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <p className="text-sm text-gray-800 dark:text-gray-200">
                     {selectedScript.closing_script}
                   </p>
                 </div>
@@ -638,10 +642,12 @@ export function AgentTypeCallScripts({
           </Card>
 
           {/* Escalation Script */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Escalation & Transfer</CardTitle>
-              <CardDescription>
+          <Card className="dark:bg-gray-800">
+            <CardHeader className="dark:bg-gray-800">
+              <CardTitle className="text-lg dark:text-gray-100">
+                Escalation & Transfer
+              </CardTitle>
+              <CardDescription className="dark:text-gray-300">
                 When transferring to human agents
               </CardDescription>
             </CardHeader>
@@ -657,8 +663,8 @@ export function AgentTypeCallScripts({
                   className="w-full dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-400"
                 />
               ) : (
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-800">
+                <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <p className="text-sm text-gray-800 dark:text-gray-200">
                     {selectedScript.escalation_script}
                   </p>
                 </div>
@@ -667,10 +673,12 @@ export function AgentTypeCallScripts({
           </Card>
 
           {/* Fallback Responses */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Fallback Responses</CardTitle>
-              <CardDescription>
+          <Card className="dark:bg-gray-800">
+            <CardHeader className="dark:bg-gray-800">
+              <CardTitle className="text-lg dark:text-gray-100">
+                Fallback Responses
+              </CardTitle>
+              <CardDescription className="dark:text-gray-300">
                 When the agent doesn't understand or needs clarification
               </CardDescription>
             </CardHeader>
@@ -695,8 +703,10 @@ export function AgentTypeCallScripts({
                         className="flex-1"
                       />
                     ) : (
-                      <div className="flex-1 p-3 bg-gray-50 rounded-lg">
-                        <p className="text-sm text-gray-800">{response}</p>
+                      <div className="flex-1 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <p className="text-sm text-gray-800 dark:text-gray-200">
+                          {response}
+                        </p>
                       </div>
                     )}
                   </div>
@@ -722,7 +732,7 @@ export function AgentTypeCallScripts({
           </Card>
 
           {isEditing && (
-            <Card>
+            <Card className="dark:bg-gray-800">
               <CardContent className="pt-6 dark:bg-gray-800">
                 <div className="flex items-center justify-end space-x-3">
                   <Button

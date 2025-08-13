@@ -526,15 +526,15 @@ export function AgentTypeVoiceSettings({
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
+      <Card className="dark:bg-gray-800">
+        <CardHeader className="dark:bg-gray-800">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="flex items-center space-x-2">
+              <CardTitle className="flex items-center space-x-2 dark:text-gray-100">
                 <VolumeIcon className="h-5 w-5" />
                 <span>Voice Settings - {agentConfig?.name}</span>
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="dark:text-gray-300">
                 Configure voice characteristics for your{' '}
                 {agentType.replace(/_/g, ' ').toLowerCase()} agent
               </CardDescription>
@@ -575,25 +575,37 @@ export function AgentTypeVoiceSettings({
       </Card>
 
       {/* Voice Recommendations */}
-      <Card className="bg-blue-50 border-blue-200">
-        <CardHeader>
-          <CardTitle className="text-lg text-blue-900">
+      <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+        <CardHeader className="dark:bg-blue-900/20">
+          <CardTitle className="text-lg text-blue-900 dark:text-blue-100">
             Voice Recommendations for {agentConfig?.name}
           </CardTitle>
         </CardHeader>
         <CardContent className="dark:bg-gray-800">
           <div className="grid md:grid-cols-3 gap-4">
             <div>
-              <h4 className="font-medium text-blue-800 mb-1">Tone</h4>
-              <p className="text-sm text-blue-700">{recommendation.tone}</p>
+              <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-1">
+                Tone
+              </h4>
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                {recommendation.tone}
+              </p>
             </div>
             <div>
-              <h4 className="font-medium text-blue-800 mb-1">Speed</h4>
-              <p className="text-sm text-blue-700">{recommendation.speed}</p>
+              <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-1">
+                Speed
+              </h4>
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                {recommendation.speed}
+              </p>
             </div>
             <div>
-              <h4 className="font-medium text-blue-800 mb-1">Style</h4>
-              <p className="text-sm text-blue-700">{recommendation.style}</p>
+              <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-1">
+                Style
+              </h4>
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                {recommendation.style}
+              </p>
             </div>
           </div>
         </CardContent>
@@ -601,10 +613,12 @@ export function AgentTypeVoiceSettings({
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Voice Selection */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Voice Selection</CardTitle>
-            <CardDescription>
+        <Card className="dark:bg-gray-800">
+          <CardHeader className="dark:bg-gray-800">
+            <CardTitle className="dark:text-gray-100">
+              Voice Selection
+            </CardTitle>
+            <CardDescription className="dark:text-gray-300">
               Choose the base voice and characteristics
             </CardDescription>
           </CardHeader>
@@ -747,10 +761,12 @@ export function AgentTypeVoiceSettings({
         </Card>
 
         {/* Voice Parameters */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Voice Parameters</CardTitle>
-            <CardDescription>
+        <Card className="dark:bg-gray-800">
+          <CardHeader className="dark:bg-gray-800">
+            <CardTitle className="dark:text-gray-100">
+              Voice Parameters
+            </CardTitle>
+            <CardDescription className="dark:text-gray-300">
               Fine-tune speed and pitch settings
             </CardDescription>
           </CardHeader>
@@ -773,7 +789,7 @@ export function AgentTypeVoiceSettings({
                 disabled={!isEditing}
                 className="w-full"
               />
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
                 <span>Slow (0.5x)</span>
                 <span>Normal (1.0x)</span>
                 <span>Fast (2.0x)</span>
@@ -798,7 +814,7 @@ export function AgentTypeVoiceSettings({
                 disabled={!isEditing}
                 className="w-full"
               />
-              <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
                 <span>Low (0.5)</span>
                 <span>Normal (1.0)</span>
                 <span>High (2.0)</span>
@@ -816,7 +832,7 @@ export function AgentTypeVoiceSettings({
                 <label className="block text-xs font-medium text-gray-600 mb-1">
                   Test Message
                 </label>
-                <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm text-gray-700 dark:text-gray-300">
+                <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg text-sm text-gray-700 dark:text-gray-300">
                   Hello! Thank you for calling{' '}
                   {businessInfo?.business_name || '[Your Business]'}. I&apos;m
                   your AI assistant, and I&apos;m here to help you today. How
@@ -895,7 +911,7 @@ export function AgentTypeVoiceSettings({
                 )}
               </div>
 
-              <div className="mt-3 text-xs text-gray-500">
+              <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">
                 Voice previews use your current settings: Speed{' '}
                 {(voiceProfile.voice_settings.speed || 1.0).toFixed(1)}x, Pitch{' '}
                 {(voiceProfile.voice_settings.pitch || 1.0).toFixed(1)}
@@ -906,43 +922,55 @@ export function AgentTypeVoiceSettings({
       </div>
 
       {/* Current Settings Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Current Voice Configuration</CardTitle>
-          <CardDescription>Summary of active voice settings</CardDescription>
+      <Card className="dark:bg-gray-800">
+        <CardHeader className="dark:bg-gray-800">
+          <CardTitle className="dark:text-gray-100">
+            Current Voice Configuration
+          </CardTitle>
+          <CardDescription className="dark:text-gray-300">
+            Summary of active voice settings
+          </CardDescription>
         </CardHeader>
         <CardContent className="dark:bg-gray-800">
           <div className="grid md:grid-cols-4 gap-4">
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <div className="text-lg font-semibold text-gray-900">
+            <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 {voiceProfile.voice_settings.gender || 'Neutral'}
               </div>
-              <div className="text-sm text-gray-600">Gender</div>
+              <div className="text-sm text-gray-600 dark:text-gray-300">
+                Gender
+              </div>
             </div>
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <div className="text-lg font-semibold text-gray-900">
+            <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 {voiceProfile.voice_settings.accent || 'American'}
               </div>
-              <div className="text-sm text-gray-600">Accent</div>
+              <div className="text-sm text-gray-600 dark:text-gray-300">
+                Accent
+              </div>
             </div>
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <div className="text-lg font-semibold text-gray-900">
+            <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 {voiceProfile.voice_settings.speed}x
               </div>
-              <div className="text-sm text-gray-600">Speed</div>
+              <div className="text-sm text-gray-600 dark:text-gray-300">
+                Speed
+              </div>
             </div>
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <div className="text-lg font-semibold text-gray-900">
+            <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 {voiceProfile.voice_settings.pitch}
               </div>
-              <div className="text-sm text-gray-600">Pitch</div>
+              <div className="text-sm text-gray-600 dark:text-gray-300">
+                Pitch
+              </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
       {isEditing && (
-        <Card>
+        <Card className="dark:bg-gray-800">
           <CardContent className="pt-6 dark:bg-gray-800">
             <div className="flex items-center justify-end space-x-3">
               <Button

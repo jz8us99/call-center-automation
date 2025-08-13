@@ -272,15 +272,15 @@ export function AgentTypeCallRouting({
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
+      <Card className="dark:bg-gray-800">
+        <CardHeader className="dark:bg-gray-800">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="flex items-center space-x-2">
+              <CardTitle className="flex items-center space-x-2 dark:text-gray-100">
                 <PhoneIcon className="h-5 w-5" />
                 <span>Call Routing - {agentConfig?.name}</span>
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="dark:text-gray-300">
                 Configure call routing, transfers, and fallback options for your{' '}
                 {agentType.replace(/_/g, ' ').toLowerCase()} agent
               </CardDescription>
@@ -294,10 +294,12 @@ export function AgentTypeCallRouting({
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Primary Routing */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Primary Routing</CardTitle>
-            <CardDescription>
+        <Card className="dark:bg-gray-800">
+          <CardHeader className="dark:bg-gray-800">
+            <CardTitle className="dark:text-gray-100">
+              Primary Routing
+            </CardTitle>
+            <CardDescription className="dark:text-gray-300">
               Main phone numbers and basic routing settings
             </CardDescription>
           </CardHeader>
@@ -333,7 +335,7 @@ export function AgentTypeCallRouting({
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Enable Voicemail
                 </label>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   Allow callers to leave voicemail messages
                 </p>
               </div>
@@ -351,7 +353,7 @@ export function AgentTypeCallRouting({
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   Enable Callback Requests
                 </label>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   Allow callers to request callback
                 </p>
               </div>
@@ -382,10 +384,12 @@ export function AgentTypeCallRouting({
         </Card>
 
         {/* After Hours */}
-        <Card>
-          <CardHeader>
-            <CardTitle>After Hours Settings</CardTitle>
-            <CardDescription>
+        <Card className="dark:bg-gray-800">
+          <CardHeader className="dark:bg-gray-800">
+            <CardTitle className="dark:text-gray-100">
+              After Hours Settings
+            </CardTitle>
+            <CardDescription className="dark:text-gray-300">
               What happens when calling outside business hours
             </CardDescription>
           </CardHeader>
@@ -450,13 +454,13 @@ export function AgentTypeCallRouting({
       </div>
 
       {/* Business Hours */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
+      <Card className="dark:bg-gray-800">
+        <CardHeader className="dark:bg-gray-800">
+          <CardTitle className="flex items-center space-x-2 dark:text-gray-100">
             <ClockIcon className="h-5 w-5" />
             <span>Business Hours</span>
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="dark:text-gray-300">
             Set your business operating hours for each day
           </CardDescription>
         </CardHeader>
@@ -478,7 +482,7 @@ export function AgentTypeCallRouting({
                       }
                       disabled={!isEditing}
                     />
-                    <span className="ml-2 text-sm text-gray-600">
+                    <span className="ml-2 text-sm text-gray-600 dark:text-gray-300">
                       {hours.is_open ? 'Open' : 'Closed'}
                     </span>
                   </div>
@@ -498,7 +502,7 @@ export function AgentTypeCallRouting({
                           disabled={!isEditing}
                         />
                       </div>
-                      <div className="col-span-1 text-center text-gray-500">
+                      <div className="col-span-1 text-center text-gray-500 dark:text-gray-400">
                         to
                       </div>
                       <div className="col-span-3">
@@ -525,15 +529,15 @@ export function AgentTypeCallRouting({
       </Card>
 
       {/* Smart Routing Rules */}
-      <Card>
-        <CardHeader>
+      <Card className="dark:bg-gray-800">
+        <CardHeader className="dark:bg-gray-800">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="flex items-center space-x-2">
+              <CardTitle className="flex items-center space-x-2 dark:text-gray-100">
                 <AlertTriangleIcon className="h-5 w-5" />
                 <span>Smart Routing Rules</span>
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="dark:text-gray-300">
                 Automatic routing based on keywords, sentiment, or conditions
               </CardDescription>
             </div>
@@ -548,7 +552,10 @@ export function AgentTypeCallRouting({
         <CardContent className="dark:bg-gray-800">
           <div className="space-y-4">
             {routingConfig.routing_rules.map((rule, index) => (
-              <Card key={rule.id} className="border border-gray-200">
+              <Card
+                key={rule.id}
+                className="border border-gray-200 dark:border-gray-600 dark:bg-gray-700"
+              >
                 <CardContent className="p-4 dark:bg-gray-800">
                   <div className="grid gap-4">
                     <div className="flex items-center justify-between">
@@ -722,7 +729,7 @@ export function AgentTypeCallRouting({
             ))}
 
             {routingConfig.routing_rules.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                 <AlertTriangleIcon className="h-8 w-8 mx-auto mb-2 text-gray-400" />
                 <p>No routing rules configured</p>
                 {isEditing && (
@@ -738,7 +745,7 @@ export function AgentTypeCallRouting({
       </Card>
 
       {isEditing && (
-        <Card>
+        <Card className="dark:bg-gray-800">
           <CardContent className="pt-6 dark:bg-gray-800">
             <div className="flex items-center justify-end space-x-3">
               <Button
