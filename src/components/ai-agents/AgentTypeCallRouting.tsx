@@ -562,6 +562,11 @@ export function AgentTypeCallRouting({
                       <div className="flex items-center space-x-2">
                         <Badge
                           variant={rule.is_active ? 'default' : 'secondary'}
+                          className={
+                            rule.is_active
+                              ? 'bg-blue-600 text-white dark:bg-blue-500 dark:text-white'
+                              : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200'
+                          }
                         >
                           Rule {index + 1}
                         </Badge>

@@ -13,11 +13,11 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4"
       onClick={() => onOpenChange(false)}
     >
       <div
-        className="bg-white rounded-lg w-full max-h-[90vh] overflow-y-auto"
+        className="bg-white dark:bg-gray-800 rounded-lg max-h-[90vh] overflow-y-auto shadow-xl animate-in fade-in-0 zoom-in-95"
         onClick={e => e.stopPropagation()}
       >
         {children}
@@ -35,7 +35,7 @@ export function DialogContent({
   className = '',
   children,
 }: DialogContentProps) {
-  return <div className={`${className}`}>{children}</div>;
+  return <div className={`w-full ${className}`}>{children}</div>;
 }
 
 interface DialogHeaderProps {
@@ -43,7 +43,11 @@ interface DialogHeaderProps {
 }
 
 export function DialogHeader({ children }: DialogHeaderProps) {
-  return <div className="p-6 border-b border-gray-200">{children}</div>;
+  return (
+    <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+      {children}
+    </div>
+  );
 }
 
 interface DialogTitleProps {
@@ -64,5 +68,5 @@ interface DialogDescriptionProps {
 }
 
 export function DialogDescription({ children }: DialogDescriptionProps) {
-  return <p className="text-gray-600 mt-1">{children}</p>;
+  return <p className="text-gray-600 dark:text-gray-300 mt-1">{children}</p>;
 }

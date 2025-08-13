@@ -1718,7 +1718,7 @@ export function AppointmentSystemConfig({
         open={showBankHolidaysDialog}
         onOpenChange={setShowBankHolidaysDialog}
       >
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto dark:bg-gray-800">
+        <DialogContent className="sm:max-w-3xl max-h-[80vh] overflow-y-auto dark:bg-gray-800">
           <DialogHeader>
             <DialogTitle className="dark:text-gray-100">
               Select Bank Holidays for {selectedYear}

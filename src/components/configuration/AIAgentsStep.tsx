@@ -1330,7 +1330,7 @@ export function AIAgentsStep({
       )}
 
       {/* Completion Status */}
-      <Card className="bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-700">
+      <Card className="bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-700 rounded-lg overflow-hidden">
         <CardContent className="p-4 dark:bg-gray-800">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-purple-100 dark:bg-purple-800 rounded-full flex items-center justify-center">

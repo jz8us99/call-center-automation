@@ -21,7 +21,13 @@ import {
 import { useTranslations } from 'next-intl';
 
 interface HelpDialogProps {
-  currentPage?: 'home' | 'dashboard' | 'configuration' | 'auth' | 'signup';
+  currentPage?:
+    | 'home'
+    | 'dashboard'
+    | 'configuration'
+    | 'auth'
+    | 'signup'
+    | 'settings';
 }
 
 export function HelpDialog({ currentPage = 'home' }: HelpDialogProps) {

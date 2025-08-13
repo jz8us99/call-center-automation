@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { AgentType, AGENT_TYPE_CONFIGS } from '@/types/ai-agent-types';
+import { AgentType, AGENT_TYPE_CONFIGS } from '@/types/agent-types';
 import { CheckIcon, EditIcon, PlusIcon } from '@/components/icons';
 import { Wand2, RefreshCw } from 'lucide-react';
 

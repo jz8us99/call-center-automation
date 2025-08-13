@@ -174,7 +174,7 @@ export function AgentTypeVoiceSettings({
   };
 
   const createDefaultVoiceProfile = (): AgentVoiceProfile => {
-    const defaultSettings = agentConfig?.suggested_voice_settings || {};
+    const defaultSettings = agentConfig?.suggestedVoiceSettings || {};
 
     return {
       id: 'default',

@@ -5,6 +5,7 @@ import { User } from '@supabase/supabase-js';
 import { authenticatedFetch } from '@/lib/api-client';
 import { toast } from 'sonner';
 import { useConfirmDialog } from '@/components/ui/confirm-dialog';
+import { Dialog } from '@/components/ui/dialog';
 import {
   Card,
   CardContent,
@@ -1008,40 +1009,52 @@ export function FinalStaffManagement({
       )}
 
       {/* Calendar Configuration Modal */}
-      {configuringCalendar && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-[90vh] overflow-y-auto">
-            {/* Error Boundary for Calendar Configuration */}
-            {(() => {
-              try {
-                return (
-                  <StaffCalendarConfiguration
-                    user={user}
-                    staffMember={configuringCalendar}
-                    onBack={handleBackFromCalendar}
-                    onSaveAndContinue={handleSaveAndContinueCalendar}
-                    isStaffView={false}
-                  />
-                );
-              } catch (error) {
-                console.error('Error rendering calendar configuration:', error);
-                return (
-                  <div className="p-8 text-center">
-                    <h3 className="text-lg font-semibold text-red-600 dark:text-red-400 mb-4">
-                      Error Loading Calendar Configuration
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-400 mb-4">
-                      There was an error loading the calendar configuration.
-                      Please try again.
-                    </p>
-                    <Button onClick={handleBackFromCalendar}>Close</Button>
-                  </div>
-                );
-              }
-            })()}
-          </div>
+      <Dialog
+        open={!!configuringCalendar}
+        onOpenChange={open => {
+          if (!open) {
+            handleBackFromCalendar();
+          }
+        }}
+      >
+        <div className="w-[60vw] max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-600 p-4">
+          {/* Error Boundary for Calendar Configuration */}
+          {configuringCalendar && (
+            <>
+              {(() => {
+                try {
+                  return (
+                    <StaffCalendarConfiguration
+                      user={user}
+                      staffMember={configuringCalendar}
+                      onBack={handleBackFromCalendar}
+                      onSaveAndContinue={handleSaveAndContinueCalendar}
+                      isStaffView={false}
+                    />
+                  );
+                } catch (error) {
+                  console.error(
+                    'Error rendering calendar configuration:',
+                    error
+                  );
+                  return (
+                    <div className="p-8 text-center">
+                      <h3 className="text-lg font-semibold text-red-600 dark:text-red-400 mb-4">
+                        Error Loading Calendar Configuration
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-400 mb-4">
+                        There was an error loading the calendar configuration.
+                        Please try again.
+                      </p>
+                      <Button onClick={handleBackFromCalendar}>Close</Button>
+                    </div>
+                  );
+                }
+              })()}
+            </>
+          )}
         </div>
-      )}
+      </Dialog>
 
       {/* Status Summary */}
       <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">

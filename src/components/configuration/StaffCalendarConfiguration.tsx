@@ -2544,7 +2544,7 @@ export function StaffCalendarConfiguration({
   }
 
   return (
-    <div className="space-y-6 dark:bg-gray-900">
+    <div className="space-y-6">
       {/* Header */}
       <Card className="dark:bg-gray-800">
         <CardHeader>
@@ -3106,7 +3106,7 @@ export function StaffCalendarConfiguration({
       )}
 
       {/* Save & Continue */}
-      <Card className="bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800">
+      <Card className="bg-blue-50 border-blue-300 dark:bg-blue-900/20 dark:border-blue-700 rounded-lg overflow-hidden">
         <CardContent className="p-6 dark:bg-gray-800">
           <div className="flex items-center justify-between">
             <div>
