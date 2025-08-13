@@ -13,9 +13,9 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { OfficeHoursSetup } from '@/components/calendar/OfficeHoursSetup';
-import { HolidaysManagement } from '@/components/calendar/HolidaysManagement';
-import { BookingSettingsManagement } from '@/components/calendar/BookingSettingsManagement';
+import { OfficeHoursSetup } from '@/components/settings/business/steps/step5-staff/OfficeHoursSetup';
+import { HolidaysManagement } from '@/components/settings/business/steps/step5-staff/HolidaysManagement';
+import { BookingSettingsManagement } from '@/components/settings/business/steps/step5-staff/BookingSettingsManagement';
 import {
   CalendarIcon,
   ClockIcon,
@@ -59,7 +59,7 @@ export default function CalendarSetupPage() {
 
   const loadBusinessProfile = async (userId: string) => {
     try {
-      const response = await fetch(`/api/business-profile?user_id=${userId}`);
+      const response = await fetch(`/api/business/profile?user_id=${userId}`);
       if (response.ok) {
         const data = await response.json();
         setBusinessProfile(data.profile);

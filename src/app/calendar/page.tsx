@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 
 import { User } from '@supabase/supabase-js';
-import { CalendarConfigurationDashboard } from '@/components/calendar/CalendarConfigurationDashboard';
+import { CalendarConfigurationDashboard } from '@/components/settings/business/steps/step5-staff/CalendarConfigurationDashboard';
 import {
   Card,
   CardContent,
@@ -41,7 +41,7 @@ export default function CalendarDashboardPage() {
 
   const loadBusinessProfile = async (userId: string) => {
     try {
-      const response = await fetch(`/api/business-profile?user_id=${userId}`);
+      const response = await fetch(`/api/business/profile?user_id=${userId}`);
       if (response.ok) {
         const data = await response.json();
         setBusinessProfile(data.profile);
@@ -247,7 +247,9 @@ export default function CalendarDashboardPage() {
                     Set up your business-wide calendar preferences:
                   </p>
                   <ul className="text-sm text-blue-700 space-y-1">
-                    <li>• Click &quot;Office Setup&quot; to configure office hours</li>
+                    <li>
+                      • Click &quot;Office Setup&quot; to configure office hours
+                    </li>
                     <li>• Add business holidays and closure dates</li>
                     <li>• Set default working hours for staff</li>
                   </ul>
@@ -261,7 +263,10 @@ export default function CalendarDashboardPage() {
                     Configure individual staff availability:
                   </p>
                   <ul className="text-sm text-blue-700 space-y-1">
-                    <li>• Click &quot;Configure Calendar&quot; for each staff member</li>
+                    <li>
+                      • Click &quot;Configure Calendar&quot; for each staff
+                      member
+                    </li>
                     <li>• Set individual working hours and availability</li>
                     <li>• Add personal time-off and vacation days</li>
                   </ul>

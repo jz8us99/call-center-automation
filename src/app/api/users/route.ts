@@ -1,16 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { authenticateRequest, createAuthenticatedClient } from '@/lib/supabase';
+import { withAuth, isAuthError } from '@/lib/api-auth-helper';
 
 export async function GET(request: NextRequest) {
   try {
-    // Verify user authentication
-    const user = await authenticateRequest(request);
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized - Please provide a valid JWT token' },
-        { status: 401 }
-      );
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
     }
+    const { user, supabaseWithAuth } = authResult;
 
     // Only admins can fetch user list
     if (user.role !== 'admin' && !user.is_super_admin) {
@@ -19,13 +16,6 @@ export async function GET(request: NextRequest) {
         { status: 403 }
       );
     }
-
-    // Get JWT token
-    const authorization = request.headers.get('authorization');
-    const token = authorization?.replace('Bearer ', '') || '';
-
-    // Create a client with user authentication
-    const supabaseWithAuth = await createAuthenticatedClient(token);
 
     // Fetch all users from profiles table
     const { data, error } = await supabaseWithAuth

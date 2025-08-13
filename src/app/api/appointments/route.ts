@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase-admin';
+import { withAuth, isAuthError } from '@/lib/api-auth-helper';
 
 // GET - Fetch appointments with filtering options
 export async function GET(request: NextRequest) {
   try {
-    const supabase = supabaseAdmin;
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+    const { supabaseWithAuth: supabase } = authResult;
     const { searchParams } = new URL(request.url);
 
     const user_id = searchParams.get('user_id');
@@ -58,7 +62,10 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Error fetching appointments:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ appointments: data || [] });
@@ -74,7 +81,11 @@ export async function GET(request: NextRequest) {
 // POST - Create new appointment
 export async function POST(request: NextRequest) {
   try {
-    const supabase = supabaseAdmin;
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+    const { supabaseWithAuth: supabase } = authResult;
     const body = await request.json();
 
     console.log(
@@ -202,7 +213,10 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Error creating appointment:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     // Optional: Create appointment history record (skip if function doesn't exist)
@@ -239,7 +253,11 @@ export async function POST(request: NextRequest) {
 // PUT - Update appointment
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = supabaseAdmin;
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+    const { supabaseWithAuth: supabase } = authResult;
     const body = await request.json();
 
     const {
@@ -368,7 +386,10 @@ export async function PUT(request: NextRequest) {
 
     if (error) {
       console.error('Error updating appointment:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     // Optional: Create appointment history record (skip if function doesn't exist)
@@ -407,7 +428,11 @@ export async function PUT(request: NextRequest) {
 // DELETE - Cancel/Delete appointment
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = supabaseAdmin;
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+    const { supabaseWithAuth: supabase } = authResult;
     const { searchParams } = new URL(request.url);
 
     const id = searchParams.get('id');
@@ -435,7 +460,10 @@ export async function DELETE(request: NextRequest) {
 
       if (error) {
         console.error('Error deleting appointment:', error);
-        return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+        return NextResponse.json(
+          { error: (error as Error).message },
+          { status: 500 }
+        );
       }
 
       return NextResponse.json({
@@ -460,7 +488,10 @@ export async function DELETE(request: NextRequest) {
 
       if (error) {
         console.error('Error cancelling appointment:', error);
-        return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+        return NextResponse.json(
+          { error: (error as Error).message },
+          { status: 500 }
+        );
       }
 
       // Optional: Create appointment history record (skip if function doesn't exist)

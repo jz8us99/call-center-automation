@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+// Note: This is a data seeding endpoint - using service role client for admin operations
 import { createServerSupabaseClient } from '@/lib/supabase-utils';
 
 // This endpoint seeds the agent_types table with the new agent types

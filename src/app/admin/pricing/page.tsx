@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { User } from '@supabase/supabase-js';
+import { DashboardHeader } from '@/components/layout/DashboardHeader';
 
 // Components
 import { Button } from '@/components/ui/button';
@@ -18,14 +19,7 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import {
-  EditIcon,
-  CheckIcon,
-  XIcon,
-  DollarSignIcon,
-  HomeIcon,
-  SignOutIcon,
-} from '@/components/icons';
+import { EditIcon, CheckIcon, XIcon, DollarSignIcon } from '@/components/icons';
 
 interface PricingTier {
   id: string;
@@ -122,11 +116,6 @@ export default function AdminPricingConfig() {
     }
   };
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.push('/');
-  };
-
   const handleEditTier = (tier: PricingTier) => {
     setSelectedTier(tier);
     setShowTierForm(true);
@@ -210,7 +199,7 @@ export default function AdminPricingConfig() {
   if (!isDevelopment && (!user || !isAdmin)) {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
-        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-8 text-center shadow-lg">
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-2xl p-8 text-center shadow-lg">
           <h1 className="text-2xl font-bold text-black dark:text-white mb-4">
             Access Denied
           </h1>
@@ -232,7 +221,7 @@ export default function AdminPricingConfig() {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900">
         {/* Header */}
-        <header className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
+        <header className="border-b border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 shadow-sm">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
@@ -269,201 +258,217 @@ export default function AdminPricingConfig() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Basic Information */}
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-black dark:text-gray-300 mb-2">
-                      Tier Name
-                    </label>
-                    <Input
-                      name="name"
-                      defaultValue={selectedTier?.name || ''}
-                      placeholder="e.g., Basic, Premium, Enterprise"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-black dark:text-gray-300 mb-2">
-                      Price (USD)
-                    </label>
-                    <div className="relative">
-                      <DollarSignIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <form action={handleSaveTier}>
+                  {/* Basic Information */}
+                  <div className="grid md:grid-cols-2 gap-4 mb-6">
+                    <div>
+                      <label className="block text-sm font-medium text-black dark:text-gray-300 mb-2">
+                        Tier Name
+                      </label>
                       <Input
-                        name="price"
+                        name="name"
+                        defaultValue={selectedTier?.name || ''}
+                        placeholder="e.g., Basic, Premium, Enterprise"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-black dark:text-gray-300 mb-2">
+                        Price (USD)
+                      </label>
+                      <div className="relative">
+                        <DollarSignIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          name="price"
+                          type="number"
+                          defaultValue={selectedTier?.price || ''}
+                          placeholder="29"
+                          className="pl-10"
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Billing & Limits */}
+                  <div className="grid md:grid-cols-3 gap-4 mb-6">
+                    <div>
+                      <label className="block text-sm font-medium text-black dark:text-gray-300 mb-2">
+                        Billing Period
+                      </label>
+                      <select
+                        name="billing_period"
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        defaultValue={selectedTier?.billing_period || 'monthly'}
+                      >
+                        <option value="monthly">Monthly</option>
+                        <option value="yearly">Yearly</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-black dark:text-gray-300 mb-2">
+                        Max AI Agents
+                      </label>
+                      <Input
+                        name="max_agents"
                         type="number"
-                        defaultValue={selectedTier?.price || ''}
-                        placeholder="29"
-                        className="pl-10"
+                        defaultValue={
+                          selectedTier?.max_agents === -1
+                            ? ''
+                            : selectedTier?.max_agents || ''
+                        }
+                        placeholder="5 (leave empty for unlimited)"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-black dark:text-gray-300 mb-2">
+                        Max Calls/Month
+                      </label>
+                      <Input
+                        name="max_calls_per_month"
+                        type="number"
+                        defaultValue={selectedTier?.max_calls_per_month || ''}
+                        placeholder="1000"
                         required
                       />
                     </div>
                   </div>
-                </div>
 
-                {/* Billing & Limits */}
-                <div className="grid md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-black dark:text-gray-300 mb-2">
-                      Billing Period
+                  {/* Agent Types */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-black dark:text-gray-300 mb-3">
+                      Allowed Agent Types
                     </label>
-                    <select
-                      name="billing_period"
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                      defaultValue={selectedTier?.billing_period || 'monthly'}
-                    >
-                      <option value="monthly">Monthly</option>
-                      <option value="yearly">Yearly</option>
-                    </select>
+                    <div className="grid md:grid-cols-2 gap-3">
+                      {Object.entries(AGENT_TYPE_NAMES).map(([key, name]) => (
+                        <label
+                          key={key}
+                          className="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg"
+                        >
+                          <input
+                            type="checkbox"
+                            name="agent_types_allowed"
+                            value={key}
+                            defaultChecked={selectedTier?.agent_types_allowed.includes(
+                              key
+                            )}
+                            className="rounded border-gray-300 dark:border-gray-600"
+                          />
+                          <div className="flex-1">
+                            <span className="text-sm font-medium text-black dark:text-white">
+                              {name}
+                            </span>
+                            <div className="text-xs text-gray-500">
+                              {key === 'inbound_call' && 'Basic tier feature'}
+                              {key === 'outbound_appointment' &&
+                                'Premium tier feature'}
+                              {key === 'customer_support' &&
+                                'Premium tier feature'}
+                              {key === 'outbound_marketing' &&
+                                'Enterprise tier feature'}
+                            </div>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-black dark:text-gray-300 mb-2">
-                      Max AI Agents
-                    </label>
-                    <Input
-                      type="number"
-                      defaultValue={
-                        selectedTier?.max_agents === -1
-                          ? ''
-                          : selectedTier?.max_agents || ''
-                      }
-                      placeholder="5 (leave empty for unlimited)"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-black dark:text-gray-300 mb-2">
-                      Max Calls/Month
-                    </label>
-                    <Input
-                      type="number"
-                      defaultValue={selectedTier?.max_calls_per_month || ''}
-                      placeholder="1000"
-                    />
-                  </div>
-                </div>
 
-                {/* Agent Types */}
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-gray-300 mb-3">
-                    Allowed Agent Types
-                  </label>
-                  <div className="grid md:grid-cols-2 gap-3">
-                    {Object.entries(AGENT_TYPE_NAMES).map(([key, name]) => (
-                      <label
-                        key={key}
-                        className="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg"
-                      >
+                  {/* Features */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-black dark:text-gray-300 mb-3">
+                      Features
+                    </label>
+                    <div className="space-y-2">
+                      {selectedTier?.features.map((feature, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center space-x-2"
+                        >
+                          <Input
+                            name={`feature_${index}`}
+                            defaultValue={feature}
+                            placeholder="Enter feature description"
+                            className="flex-1"
+                          />
+                          <Button variant="outline" size="sm" type="button">
+                            <XIcon className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )) || (
+                        <>
+                          <div className="flex items-center space-x-2">
+                            <Input
+                              name="feature_0"
+                              placeholder="Enter feature description"
+                              className="flex-1"
+                            />
+                            <Button variant="outline" size="sm" type="button">
+                              <XIcon className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Input
+                              name="feature_1"
+                              placeholder="Enter feature description"
+                              className="flex-1"
+                            />
+                            <Button variant="outline" size="sm" type="button">
+                              <XIcon className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </>
+                      )}
+                      <Button variant="outline" size="sm" type="button">
+                        Add Feature
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Settings */}
+                  <div className="border-t pt-6 mb-6">
+                    <h3 className="text-lg font-semibold text-black dark:text-white mb-4">
+                      Tier Settings
+                    </h3>
+                    <div className="space-y-3">
+                      <label className="flex items-center space-x-3">
                         <input
                           type="checkbox"
-                          defaultChecked={selectedTier?.agent_types_allowed.includes(
-                            key
-                          )}
+                          name="is_active"
+                          defaultChecked={selectedTier?.is_active !== false}
                           className="rounded border-gray-300 dark:border-gray-600"
                         />
-                        <div className="flex-1">
-                          <span className="text-sm font-medium text-black dark:text-white">
-                            {name}
-                          </span>
-                          <div className="text-xs text-gray-500">
-                            {key === 'inbound_call' && 'Basic tier feature'}
-                            {key === 'outbound_appointment' &&
-                              'Premium tier feature'}
-                            {key === 'customer_support' &&
-                              'Premium tier feature'}
-                            {key === 'outbound_marketing' &&
-                              'Enterprise tier feature'}
-                          </div>
-                        </div>
+                        <span className="text-sm font-medium text-black dark:text-white">
+                          Tier Active
+                        </span>
                       </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Features */}
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-gray-300 mb-3">
-                    Features
-                  </label>
-                  <div className="space-y-2">
-                    {selectedTier?.features.map((feature, index) => (
-                      <div key={index} className="flex items-center space-x-2">
-                        <Input
-                          defaultValue={feature}
-                          placeholder="Enter feature description"
-                          className="flex-1"
+                      <label className="flex items-center space-x-3">
+                        <input
+                          type="checkbox"
+                          name="is_popular"
+                          defaultChecked={selectedTier?.is_popular}
+                          className="rounded border-gray-300 dark:border-gray-600"
                         />
-                        <Button variant="outline" size="sm">
-                          <XIcon className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    )) || (
-                      <>
-                        <div className="flex items-center space-x-2">
-                          <Input
-                            placeholder="Enter feature description"
-                            className="flex-1"
-                          />
-                          <Button variant="outline" size="sm">
-                            <XIcon className="h-4 w-4" />
-                          </Button>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Input
-                            placeholder="Enter feature description"
-                            className="flex-1"
-                          />
-                          <Button variant="outline" size="sm">
-                            <XIcon className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </>
-                    )}
-                    <Button variant="outline" size="sm">
-                      Add Feature
+                        <span className="text-sm font-medium text-black dark:text-white">
+                          Mark as Popular
+                        </span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center justify-between pt-6 border-t">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowTierForm(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button type="submit">
+                      {selectedTier ? 'Update Tier' : 'Create Tier'}
                     </Button>
                   </div>
-                </div>
-
-                {/* Settings */}
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-semibold text-black dark:text-white mb-4">
-                    Tier Settings
-                  </h3>
-                  <div className="space-y-3">
-                    <label className="flex items-center space-x-3">
-                      <input
-                        type="checkbox"
-                        defaultChecked={selectedTier?.is_active !== false}
-                        className="rounded border-gray-300 dark:border-gray-600"
-                      />
-                      <span className="text-sm font-medium text-black dark:text-white">
-                        Tier Active
-                      </span>
-                    </label>
-                    <label className="flex items-center space-x-3">
-                      <input
-                        type="checkbox"
-                        defaultChecked={selectedTier?.is_popular}
-                        className="rounded border-gray-300 dark:border-gray-600"
-                      />
-                      <span className="text-sm font-medium text-black dark:text-white">
-                        Mark as Popular
-                      </span>
-                    </label>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center justify-between pt-6 border-t">
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowTierForm(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit">
-                    {selectedTier ? 'Update Tier' : 'Create Tier'}
-                  </Button>
-                </div>
+                </form>
               </CardContent>
             </Card>
           </div>
@@ -474,85 +479,13 @@ export default function AdminPricingConfig() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
-      {/* Header */}
-      <header className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link
-              href="/admin/dashboard"
-              className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
-            >
-              <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
-                <span className="text-white text-xl font-bold">R</span>
-              </div>
-              <span className="text-xl font-bold text-black dark:text-white">
-                JSX-ReceptionAI
-              </span>
-              <span className="text-sm bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
-                Admin - Pricing
-              </span>
-            </Link>
-
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => router.back()}
-                className="flex items-center gap-2 text-black dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-400 transition-colors"
-              >
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
-                <span className="hidden sm:inline">Back</span>
-              </button>
-              <Link
-                href="/"
-                className="flex items-center gap-2 text-black dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-400 transition-colors"
-              >
-                <HomeIcon className="h-4 w-4" />
-                <span className="hidden sm:inline">Home</span>
-              </Link>
-              <Link
-                href="/admin/dashboard"
-                className="flex items-center gap-2 text-black dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-400 transition-colors"
-              >
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 00-2-2z"
-                  />
-                </svg>
-                <span className="hidden sm:inline">Dashboard</span>
-              </Link>
-              <span className="text-sm text-black dark:text-gray-300">
-                Welcome, {profile?.full_name || user?.email}
-              </span>
-              <button
-                onClick={handleSignOut}
-                className="flex items-center gap-2 text-black dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-400 transition-colors"
-              >
-                <SignOutIcon />
-                Sign out
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <DashboardHeader
+        user={user}
+        userDisplayName={
+          profile?.full_name || user?.email?.split('@')[0] || 'Admin'
+        }
+        pageType="admin"
+      />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">

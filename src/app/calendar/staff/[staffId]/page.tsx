@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase';
 
 import { User } from '@supabase/supabase-js';
 import { useParams, useRouter } from 'next/navigation';
-import { StaffCalendarView } from '@/components/calendar/StaffCalendarView';
+import { StaffCalendarView } from '@/components/settings/business/steps/step5-staff/StaffCalendarView';
 import {
   Card,
   CardContent,
@@ -52,7 +52,7 @@ export default function StaffCalendarPage() {
   const loadStaffMember = async (userId: string, staffId: string) => {
     try {
       const response = await fetch(
-        `/api/staff?user_id=${userId}&staff_id=${staffId}`
+        `/api/business/staff?user_id=${userId}&staff_id=${staffId}`
       );
 
       if (!response.ok) {
@@ -81,7 +81,7 @@ export default function StaffCalendarPage() {
 
   const loadBusinessProfile = async (userId: string) => {
     try {
-      const response = await fetch(`/api/business-profile?user_id=${userId}`);
+      const response = await fetch(`/api/business/profile?user_id=${userId}`);
 
       if (!response.ok) {
         const errorData = await response.text();

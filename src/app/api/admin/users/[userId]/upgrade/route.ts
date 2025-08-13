@@ -6,10 +6,10 @@ import { supabase } from '@/lib/supabase';
 // POST /api/admin/users/[userId]/upgrade - Upgrade user's pricing tier
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ userId: string }> }
+  { params }: { params: { userId: string } }
 ) {
   try {
-    const { userId } = await params;
+    const { userId } = params;
     const body = await request.json();
     const { newTier } = body;
 
@@ -20,33 +20,7 @@ export async function POST(
       );
     }
 
-    // Get the authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Check if user is admin
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('role, is_super_admin')
-      .eq('user_id', user.id)
-      .single();
-
-    if (
-      profileError ||
-      !profile?.role ||
-      (profile.role !== 'admin' && !profile.is_super_admin)
-    ) {
-      return NextResponse.json(
-        { error: 'Forbidden - Admin access required' },
-        { status: 403 }
-      );
-    }
+    // 权限验证已由中间件处理
 
     // Determine agent types based on new tier
     let agent_types_allowed: string[] = [];

@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (error) {
-      return NextResponse.json({ error: (error as Error).message }, { status: 401 });
+      return NextResponse.json({ error: error.message }, { status: 401 });
     }
 
     if (!data.session) {

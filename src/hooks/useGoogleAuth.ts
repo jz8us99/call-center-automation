@@ -50,6 +50,10 @@ declare global {
     };
     googleSignInResolve?: (value: GoogleSignInResult) => void;
     googleSignInReject?: (reason: Error) => void;
+    googleOAuthResolve?: (value: GoogleSignInResult) => void;
+    googleOAuthReject?: (reason: Error) => void;
+    googleOAuthCompleted?: boolean;
+    setLoading?: (loading: boolean) => void;
   }
 }
 
@@ -58,24 +62,86 @@ export function useGoogleAuth() {
   const [loading, setLoading] = useState(false);
 
   // Fallback to Supabase OAuth when Identity Services fails
-  const fallbackToSupabaseOAuth = async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
+  const fallbackToSupabaseOAuth = async (): Promise<GoogleSignInResult> => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        // Generate a unique state parameter for security
+        const state = Math.random().toString(36).substring(2);
 
-      if (error) {
-        throw error;
+        // Store the resolve/reject functions for the popup callback
+        window.googleOAuthResolve = resolve;
+        window.googleOAuthReject = reject;
+        window.setLoading = setLoading; // Expose setLoading for popup callback
+
+        // Manually construct the Supabase OAuth URL to avoid automatic redirect
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+        if (!supabaseUrl) {
+          throw new Error('Supabase URL未配置');
+        }
+
+        const redirectTo = encodeURIComponent(
+          `${window.location.origin}/auth/callback?popup=true&state=${state}`
+        );
+
+        // Construct the OAuth URL manually
+        const oauthUrl = `${supabaseUrl}/auth/v1/authorize?provider=google&redirect_to=${redirectTo}`;
+
+        console.log('Opening Google OAuth popup with URL:', oauthUrl);
+
+        // Open OAuth URL in a popup window
+        const popup = window.open(
+          oauthUrl,
+          'google-oauth',
+          'width=400,height=500,scrollbars=no,resizable=no,status=no,location=no,toolbar=no,menubar=no,left=' +
+            (screen.width - 420) +
+            ',top=20'
+        );
+
+        if (!popup) {
+          throw new Error('弹窗被阻止，请允许弹窗后重试');
+        }
+
+        // Reset completion flag
+        window.googleOAuthCompleted = false;
+
+        // Monitor the popup for completion
+        const checkClosed = setInterval(() => {
+          if (popup.closed) {
+            console.log('Popup closed, checking completion status');
+            clearInterval(checkClosed);
+            // Give a small delay to ensure the callback has time to set the flag
+            setTimeout(() => {
+              console.log(
+                'GoogleOAuth completed status:',
+                window.googleOAuthCompleted
+              );
+              if (!window.googleOAuthCompleted) {
+                console.log(
+                  'OAuth not completed, but not rejecting for debugging'
+                );
+                setLoading(false); // Reset loading state
+                // reject(new Error('Google登录已取消'));
+              }
+            }, 500);
+          }
+        }, 1000);
+
+        // Set timeout for popup
+        setTimeout(() => {
+          if (!popup.closed) {
+            popup.close();
+            clearInterval(checkClosed);
+            setLoading(false); // Reset loading state
+            reject(new Error('Google登录超时'));
+          }
+        }, 30000); // 30 second timeout
+      } catch (error) {
+        console.error('Supabase OAuth fallback failed:', error);
+        setLoading(false); // Reset loading state
+        reject(new Error('Google登录失败，请重试'));
       }
-    } catch (error) {
-      console.error('Supabase OAuth fallback failed:', error);
-      throw new Error(
-        'Google sign-in failed. Please try again or use email/password.'
-      );
-    }
+    });
   };
 
   const handleCredentialResponse = useCallback(
@@ -142,6 +208,8 @@ export function useGoogleAuth() {
         auto_select: false,
         cancel_on_tap_outside: true,
         use_fedcm_for_prompt: false, // Disable FedCM to avoid compatibility issues
+        // Note: Google determines popup theme based on user's system preferences
+        // We cannot directly control dark mode for Google's popup
       });
     } catch (error) {
       console.error('Failed to initialize Google Identity Services:', error);
@@ -216,8 +284,9 @@ export function useGoogleAuth() {
         console.log('Google sign-in timed out, falling back to Supabase OAuth');
         // Fallback to Supabase OAuth on timeout
         fallbackToSupabaseOAuth()
-          .then(() => {
-            console.log('Redirecting to Google OAuth after timeout...');
+          .then(result => {
+            console.log('Google OAuth popup completed after timeout');
+            resolve(result);
           })
           .catch(error => {
             setLoading(false);
@@ -238,11 +307,11 @@ export function useGoogleAuth() {
               console.log(
                 'Google prompt not displayed or skipped, falling back to Supabase OAuth'
               );
-              // Fallback to Supabase OAuth (redirect method)
+              // Fallback to Supabase OAuth (popup method)
               fallbackToSupabaseOAuth()
-                .then(() => {
-                  // This will redirect the user, so we don't need to resolve here
-                  console.log('Redirecting to Google OAuth...');
+                .then(result => {
+                  console.log('Google OAuth popup completed');
+                  resolve(result);
                 })
                 .catch(error => {
                   setLoading(false);
@@ -257,8 +326,9 @@ export function useGoogleAuth() {
         console.log('Google prompt failed, falling back to Supabase OAuth');
         // Fallback to Supabase OAuth when prompt fails
         fallbackToSupabaseOAuth()
-          .then(() => {
-            console.log('Redirecting to Google OAuth after prompt failure...');
+          .then(result => {
+            console.log('Google OAuth popup completed after prompt failure');
+            resolve(result);
           })
           .catch(error => {
             setLoading(false);

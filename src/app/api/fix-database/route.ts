@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+// Note: This is a database repair endpoint - using service role client for admin operations
 import { createServerSupabaseClient } from '@/lib/supabase-utils';
 
 export async function POST() {

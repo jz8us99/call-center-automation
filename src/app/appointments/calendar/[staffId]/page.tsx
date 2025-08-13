@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase';
 
 import { User } from '@supabase/supabase-js';
 import { useParams, useRouter } from 'next/navigation';
-import { StaffAppointmentCalendar } from '@/components/appointments/StaffAppointmentCalendar';
+import { StaffAppointmentCalendar } from '@/components/settings/business/steps/step4-appointments/StaffAppointmentCalendar';
 import {
   Card,
   CardContent,
@@ -51,7 +51,7 @@ export default function StaffCalendarPage() {
   const loadStaffMember = async (userId: string, staffId: string) => {
     try {
       const response = await fetch(
-        `/api/staff?user_id=${userId}&staff_id=${staffId}`
+        `/api/business/staff?user_id=${userId}&staff_id=${staffId}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -66,7 +66,7 @@ export default function StaffCalendarPage() {
 
   const loadBusinessProfile = async (userId: string) => {
     try {
-      const response = await fetch(`/api/business-profile?user_id=${userId}`);
+      const response = await fetch(`/api/business/profile?user_id=${userId}`);
       if (response.ok) {
         const data = await response.json();
         setBusinessProfile(data.profile);

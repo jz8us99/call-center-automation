@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+// Note: This is a debug endpoint - using service role client directly
 import { createServerSupabaseClient } from '@/lib/supabase-utils';
 
 export async function GET() {

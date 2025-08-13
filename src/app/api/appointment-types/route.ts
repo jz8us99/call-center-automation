@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase-admin';
+import { withAuth, isAuthError } from '@/lib/api-auth-helper';
 
 // GET - Fetch appointment types
 export async function GET(request: NextRequest) {
   try {
-    const supabase = supabaseAdmin;
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+    const { supabaseWithAuth: supabase } = authResult;
     const { searchParams } = new URL(request.url);
 
     const user_id = searchParams.get('user_id');
@@ -13,13 +17,9 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category');
     const online_booking_enabled = searchParams.get('online_booking_enabled');
 
+    // For now, if no user_id or business_id provided, return empty result (RLS implementation will come later)
     if (!user_id && !business_id) {
-      return NextResponse.json(
-        {
-          error: 'Either user_id or business_id is required',
-        },
-        { status: 400 }
-      );
+      return NextResponse.json({ appointment_types: [] });
     }
 
     let query = supabase.from('appointment_types').select('*');
@@ -53,7 +53,10 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Error fetching appointment types:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ appointment_types: data || [] });
@@ -69,7 +72,11 @@ export async function GET(request: NextRequest) {
 // POST - Create appointment type
 export async function POST(request: NextRequest) {
   try {
-    const supabase = supabaseAdmin;
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+    const { supabaseWithAuth: supabase } = authResult;
     const body = await request.json();
 
     const {
@@ -154,7 +161,10 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Error creating appointment type:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ appointment_type: data });
@@ -170,7 +180,11 @@ export async function POST(request: NextRequest) {
 // PUT - Update appointment type
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = supabaseAdmin;
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+    const { supabaseWithAuth: supabase } = authResult;
     const body = await request.json();
 
     const {
@@ -285,7 +299,10 @@ export async function PUT(request: NextRequest) {
 
     if (error) {
       console.error('Error updating appointment type:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ appointment_type: data });
@@ -301,7 +318,11 @@ export async function PUT(request: NextRequest) {
 // DELETE - Delete appointment type
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = supabaseAdmin;
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+    const { supabaseWithAuth: supabase } = authResult;
     const { searchParams } = new URL(request.url);
 
     const id = searchParams.get('id');
@@ -347,7 +368,10 @@ export async function DELETE(request: NextRequest) {
 
       if (error) {
         console.error('Error deleting appointment type:', error);
-        return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+        return NextResponse.json(
+          { error: (error as Error).message },
+          { status: 500 }
+        );
       }
 
       return NextResponse.json({
@@ -369,7 +393,10 @@ export async function DELETE(request: NextRequest) {
 
       if (error) {
         console.error('Error deactivating appointment type:', error);
-        return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+        return NextResponse.json(
+          { error: (error as Error).message },
+          { status: 500 }
+        );
       }
 
       return NextResponse.json({

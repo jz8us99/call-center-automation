@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Retell } from 'retell-sdk';
+import { supabaseAdmin } from './supabase-admin';
 
 export interface RetellCall {
   call_id?: string;
@@ -42,34 +43,46 @@ export interface WebhookVerificationResult {
 }
 
 /**
- * 验证 Retell webhook 签名并解析请求体
- * @param request NextRequest 对象
- * @returns WebhookVerificationResult 验证结果
+ * Verify Retell webhook signature and parse request body (for route handlers)
+ * @param request NextRequest object
+ * @returns WebhookVerificationResult verification result
  */
 export async function verifyRetellWebhook(
   request: NextRequest
 ): Promise<WebhookVerificationResult> {
   try {
-    // 解析请求体
+    // Parse request body
     const json = await request.json();
-    const body = JSON.stringify(json);
 
-    // 生产环境必须验证签名，开发环境可选择跳过
-    if (
-      process.env.NODE_ENV !== 'production' &&
-      process.env.CHECK_SIGN === 'false'
-    ) {
-      console.warn('警告: 开发模式下跳过webhook签名验证');
+    // Only allow signature skipping in development/local environment
+    const isLocalEnv = process.env.ENVIRONMENT === 'local'; // Local development without Vercel
+    console.log(`env is : ${process.env.ENVIRONMENT}`);
+    const ignoreFlag = request.headers.get('ignore-check') || false;
+    if (ignoreFlag && isLocalEnv) {
+      console.warn(
+        'Warning: Skipping webhook signature verification in development mode'
+      );
       return {
         success: true,
-        body,
+        body: '', // No need for body string in development
         payload: json,
+      };
+    } else if (ignoreFlag && !isLocalEnv) {
+      console.error(
+        'Security: Attempted to skip signature verification in production environment - rejecting request'
+      );
+      return {
+        success: false,
+        error: NextResponse.json({ error: 'Invalid request' }, { status: 401 }),
       };
     }
 
-    // 获取签名
+    // Only stringify when actually needed for signature verification
+    const body = JSON.stringify(json);
+
+    // Get signature
     const signature = request.headers.get('x-retell-signature');
-    console.log('Processing webhook signature verification');
+    console.log(`Webhook signature: ${signature}`);
 
     if (!signature) {
       console.error('Missing x-retell-signature header');
@@ -82,7 +95,7 @@ export async function verifyRetellWebhook(
       };
     }
 
-    // 检查 API Key
+    // Check API Key
     const apiKey = process.env.RETELL_API_KEY;
     console.log('Verifying webhook signature...');
 
@@ -97,7 +110,7 @@ export async function verifyRetellWebhook(
       };
     }
 
-    // 验证签名
+    // Verify signature
     const valid = Retell.verify(body, apiKey, signature);
 
     if (!valid) {
@@ -110,7 +123,7 @@ export async function verifyRetellWebhook(
       };
     }
 
-    // 返回成功结果
+    // Return success result
     return {
       success: true,
       body,
@@ -125,5 +138,26 @@ export async function verifyRetellWebhook(
         { status: 500 }
       ),
     };
+  }
+}
+
+/**
+ * Get user_id by agent_id with default value support
+ * @param agent_id Retell agent ID
+ * @returns user_id string, returns default value on failure
+ */
+export async function getUserIdByAgentId(agent_id?: string): Promise<string> {
+  try {
+    const { data: agentConfig } = await supabaseAdmin
+      .from('agent_configs')
+      .select('user_id')
+      .eq('agent_id', agent_id)
+      .single();
+
+    return agentConfig?.user_id;
+  } catch (error) {
+    console.error('Failed to get user_id from agent_configs:', error);
+    console.log(`Using default user_id for agent_id ${agent_id}`);
+    throw error;
   }
 }

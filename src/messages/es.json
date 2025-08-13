@@ -1,0 +1,702 @@
+{
+  "LocaleSwitcher": {
+    "label": "Idioma",
+    "en": "English",
+    "zh": "中文",
+    "es": "Español"
+  },
+  "auth": {
+    "signIn": "Iniciar Sesión",
+    "signOut": "Cerrar Sesión",
+    "signUp": "Registrarse",
+    "email": "Email",
+    "password": "Contraseña",
+    "signingIn": "Iniciando sesión...",
+    "loadingGoogle": "Cargando Google...",
+    "signInWithGoogle": "Iniciar sesión con Google",
+    "continue": "Continuar",
+    "enterYourEmail": "Ingresa tu email",
+    "orWithYourEmailBelow": "o con tu email a continuación",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "needAnAccount": "¿Necesitas una cuenta?",
+    "termsOfService": "Términos de Servicio",
+    "privacyPolicy": "Política de Privacidad",
+    "resetPassword": "Restablecer Contraseña",
+    "resetPasswordDescription": "Ingresa tu dirección de email y te enviaremos un enlace para restablecer tu contraseña.",
+    "cancel": "Cancelar",
+    "sendResetEmail": "Enviar Enlace de Restablecimiento",
+    "sending": "Enviando...",
+    "unexpectedError": "Ocurrió un error inesperado",
+    "googleServicesLoading": "Los servicios de Google aún se están cargando. Por favor, inténtalo de nuevo.",
+    "googleSignInTimeout": "El inicio de sesión con Google expiró. Asegúrate de estar conectado a tu cuenta de Google e inténtalo de nuevo.",
+    "googleSignInNotAvailable": "El inicio de sesión con Google no está disponible en este momento. Por favor, usa email y contraseña para iniciar sesión.",
+    "googleSignInUnavailable": "El inicio de sesión con Google está temporalmente no disponible. Por favor, usa email y contraseña para iniciar sesión.",
+    "googleSignInFailed": "El inicio de sesión con Google falló. Por favor, inténtalo de nuevo o usa email y contraseña para iniciar sesión.",
+    "passwordResetEmailSent": "¡Email de restablecimiento de contraseña enviado! Por favor, revisa tu email para obtener instrucciones."
+  },
+  "header": {
+    "nav": {
+      "products": "Productos",
+      "solutions": "Soluciones",
+      "pricing": "Precios",
+      "partners": "Socios",
+      "company": "Empresa"
+    },
+    "user": {
+      "welcome": "Bienvenido, {name}",
+      "adminPanel": "Panel de Admin",
+      "dashboard": "Dashboard",
+      "settings": "Configuración",
+      "signIn": "Iniciar Sesión",
+      "signOut": "Cerrar Sesión"
+    },
+    "contact": {
+      "phone": "+1 (555) 123-4567"
+    }
+  },
+  "dashboard": {
+    "loadingDashboard": "Cargando dashboard...",
+    "welcome": "Bienvenido, {name}",
+    "adminView": "Estás viendo como administrador con acceso a todos los datos de usuario",
+    "userView": "Tu dashboard personal",
+    "adminViewBadge": "Admin",
+    "totalCallRecords": "Total de Registros de Llamadas",
+    "todaysCalls": "Llamadas de Hoy",
+    "uniqueNumbers": "Números Únicos",
+    "auth": {
+      "needSignIn": "Por favor inicia sesión para acceder a tu dashboard.",
+      "goToSignIn": "Ir a Iniciar Sesión"
+    }
+  },
+  "settings": {
+    "preferences": {
+      "appearance": "Apariencia",
+      "appearanceDesc": "Personaliza cómo se ve la aplicación en tu dispositivo",
+      "darkMode": "Modo Oscuro",
+      "darkModeDesc": "Alterna entre temas claro y oscuro",
+      "language": "Idioma y Región",
+      "languageDesc": "Establece tus preferencias de idioma y región",
+      "interfaceLanguage": "Idioma de Interfaz",
+      "languageChangeNote": "Los cambios de idioma surten efecto inmediatamente",
+      "timezone": "Zona Horaria",
+      "timezoneDesc": "Usado para mostrar fechas y horas",
+      "emailNotifications": "Notificaciones por Email",
+      "emailNotificationsDesc": "Elige qué notificaciones quieres recibir",
+      "callNotifications": "Notificaciones de Llamadas",
+      "callNotificationsDesc": "Recibe notificaciones sobre llamadas entrantes y salientes",
+      "appointmentNotifications": "Recordatorios de Citas",
+      "appointmentNotificationsDesc": "Recibe recordatorios sobre próximas citas",
+      "systemUpdates": "Actualizaciones del Sistema",
+      "systemUpdatesDesc": "Actualizaciones importantes y notificaciones de mantenimiento",
+      "billingPayments": "Facturación y Pagos",
+      "billingPaymentsDesc": "Recibos de pago e información de facturación",
+      "marketingPromotions": "Marketing y Promociones",
+      "marketingPromotionsDesc": "Ofertas especiales y actualizaciones de productos",
+      "savePreferences": "Guardar Preferencias"
+    }
+  },
+  "languages": {
+    "en": "English",
+    "zh": "中文",
+    "es": "Español"
+  },
+  "timezones": {
+    "UTC": "UTC (Tiempo Universal Coordinado)",
+    "America/New_York": "Hora del Este (Nueva York)",
+    "America/Chicago": "Hora Central (Chicago)",
+    "America/Denver": "Hora de la Montaña (Denver)",
+    "America/Los_Angeles": "Hora del Pacífico (Los Ángeles)",
+    "Europe/London": "GMT (Londres)",
+    "Europe/Paris": "CET (París)",
+    "Europe/Berlin": "CET (Berlín)",
+    "Asia/Tokyo": "JST (Tokio)",
+    "Asia/Shanghai": "CST (Shanghái)",
+    "Asia/Seoul": "KST (Seúl)"
+  },
+  "appointmentSystem": {
+    "title": "📅 Paso 5: Configuración del Sistema de Citas",
+    "description": "Configure sus horarios comerciales, días festivos, tipos de citas y configuraciones de reserva para completar la configuración del sistema",
+    "tabs": {
+      "appointmentTypes": "Tipos de Citas",
+      "businessHours": "Horarios Comerciales",
+      "holidays": "Configuración de Días Festivos",
+      "bookingSettings": "Configuraciones de Reserva"
+    },
+    "appointmentTypes": {
+      "title": "Tipos de Citas",
+      "description": "¡Sus tipos de citas están listos! Hemos cargado tipos de citas comunes como predeterminados. Puede editarlos, eliminarlos o agregar nuevos para adaptarse a las necesidades de su negocio.",
+      "saveChanges": "💾 Guardar Cambios",
+      "cancelChanges": "Cancelar Cambios",
+      "addAppointmentType": "Agregar Tipo de Cita",
+      "table": {
+        "appointmentType": "Tipo de Cita",
+        "duration": "Duración",
+        "status": "Estado",
+        "color": "Color",
+        "actions": "Acciones"
+      }
+    },
+    "businessHours": {
+      "title": "Horarios Comerciales de Operación",
+      "description": "Establezca sus horarios de operación para cada día. Todos los días son personalizables incluyendo fines de semana.",
+      "editHours": "Editar Horarios"
+    }
+  },
+  "staffManagement": {
+    "loading": "Cargando gestión de personal..."
+  },
+  "aiAgents": {
+    "title": "Sus Agentes de IA",
+    "description": "Cree y gestione múltiples agentes de IA para diferentes propósitos. Cada agente puede tener personalidades, scripts y capacidades únicas.",
+    "createNewAgent": "Crear Nuevo Agente"
+  },
+  "modals": {
+    "help": {
+      "title": "Guía de Ayuda y Navegación",
+      "helpButton": "Ayuda",
+      "needMoreHelp": "¿Necesitas más ayuda? Contacta a nuestro equipo de soporte.",
+      "gotIt": "¡Entendido!",
+      "pages": {
+        "home": {
+          "title": "Guía de Inicio",
+          "description": "Aprende cómo navegar la página de inicio y comenzar",
+          "gettingStarted": "Comenzando",
+          "gettingStartedContent1": "• Haz clic en 'Iniciar Sesión' para acceder a tu cuenta",
+          "gettingStartedContent2": "• Usa el menú de navegación para explorar funciones",
+          "gettingStartedContent3": "• Llama al número de teléfono para asistencia inmediata",
+          "availableFeatures": "Funciones Disponibles",
+          "availableFeaturesContent1": "• Ver información de productos y precios",
+          "availableFeaturesContent2": "• Acceder a testimonios y casos de estudio",
+          "availableFeaturesContent3": "• Contactar al equipo de ventas para demos"
+        },
+        "auth": {
+          "title": "Guía de Autenticación",
+          "description": "Cómo iniciar sesión y gestionar tu cuenta",
+          "signInOptions": "Opciones de Inicio de Sesión",
+          "signInOptionsContent1": "• Usa tu email y contraseña",
+          "signInOptionsContent2": "• Inicia sesión con Google OAuth",
+          "signInOptionsContent3": "• Solicita restablecimiento de contraseña si es necesario",
+          "newUsers": "Nuevos Usuarios",
+          "newUsersContent1": "• Haz clic en 'Registrarse' para crear una cuenta",
+          "newUsersContent2": "• Verifica tu dirección de email",
+          "newUsersContent3": "• Completa la configuración de tu perfil"
+        },
+        "dashboard": {
+          "title": "Guía del Dashboard",
+          "description": "Entendiendo tu dashboard y sus funciones",
+          "mainNavigation": "Navegación Principal",
+          "mainNavigationContent1": "• Dashboard: Resumen de tu cuenta",
+          "mainNavigationContent2": "• Configuración: Configura tu asistente AI",
+          "mainNavigationContent3": "• Ajustes: Gestiona preferencias y cuenta",
+          "dashboardFeatures": "Funciones del Dashboard",
+          "dashboardFeaturesContent1": "• Ver estadísticas y registros de llamadas",
+          "dashboardFeaturesContent2": "• Monitorear rendimiento del asistente AI",
+          "dashboardFeaturesContent3": "• Acceder a actividad reciente",
+          "quickActions": "Acciones Rápidas",
+          "quickActionsContent1": "• Haz clic en entradas de llamadas para ver detalles",
+          "quickActionsContent2": "• Usa filtros para buscar llamadas específicas",
+          "quickActionsContent3": "• Exporta datos para reportes"
+        },
+        "configuration": {
+          "title": "Guía de Configuración",
+          "description": "Configurando y gestionando tu asistente AI",
+          "navigationTabs": "Pestañas de Navegación",
+          "navigationTabsContent1": "• Info Empresarial: Detalles y configuración de empresa",
+          "navigationTabsContent2": "• Agente AI: Configura tu asistente",
+          "navigationTabsContent3": "• Personal: Gestiona miembros del equipo",
+          "navigationTabsContent4": "• Flujo de Llamadas: Configura enrutamiento de llamadas",
+          "navigationTabsContent5": "• Base de Conocimiento: Sube materiales de entrenamiento",
+          "navigationTabsContent6": "• Pruebas: Prueba tu configuración",
+          "aiAgentSetup": "Configuración del Agente AI",
+          "aiAgentSetupContent1": "• Elige la personalidad de tu asistente",
+          "aiAgentSetupContent2": "• Configura mensajes de saludo",
+          "aiAgentSetupContent3": "• Configura plantillas de respuesta",
+          "staffManagement": "Gestión de Personal",
+          "staffManagementContent1": "• Añade miembros del equipo y roles",
+          "staffManagementContent2": "• Establece permisos y niveles de acceso",
+          "staffManagementContent3": "• Configura reglas de reenvío"
+        },
+        "signup": {
+          "title": "Guía de Registro",
+          "description": "Creando tu cuenta y comenzando",
+          "accountCreation": "Creación de Cuenta",
+          "accountCreationContent1": "• Proporciona tu email y crea una contraseña",
+          "accountCreationContent2": "• Verifica tu dirección de email",
+          "accountCreationContent3": "• Completa tu perfil empresarial",
+          "gettingStarted": "Comenzando",
+          "gettingStartedContent1": "• Configura tu información empresarial",
+          "gettingStartedContent2": "• Configura tu asistente AI",
+          "gettingStartedContent3": "• Prueba tu configuración con llamadas de ejemplo",
+          "existingUsers": "Usuarios Existentes",
+          "existingUsersContent1": "• ¿Ya tienes cuenta? Usa Iniciar Sesión",
+          "existingUsersContent2": "• ¿Olvidaste tu contraseña? Usa restablecimiento",
+          "existingUsersContent3": "• ¿Necesitas ayuda? Contacta soporte"
+        }
+      },
+      "allPages": {
+        "title": "Todas las Páginas Disponibles",
+        "description": "Resumen rápido de todas las secciones en la aplicación",
+        "pages": {
+          "homePage": "Página de Inicio",
+          "signIn": "Iniciar Sesión",
+          "signUp": "Registrarse",
+          "dashboard": "Dashboard",
+          "configuration": "Configuración",
+          "adminDashboard": "Dashboard de Admin"
+        },
+        "descriptions": {
+          "homePage": "Página principal con información de productos",
+          "signIn": "Autenticación y acceso a cuenta",
+          "signUp": "Crear nueva cuenta y registro",
+          "dashboard": "Dashboard de usuario con registros y estadísticas",
+          "configuration": "Configuración de asistente AI y empresa",
+          "adminDashboard": "Panel administrativo para gestión del sistema"
+        }
+      },
+      "navigationTips": {
+        "title": "Consejos de Navegación",
+        "description": "Consejos útiles para navegar por la aplicación",
+        "homeNavigation": "Navegación de Inicio",
+        "homeNavigationContent1": "• Usa el logo para regresar a la página de inicio",
+        "homeNavigationContent2": "• El menú de navegación está siempre disponible",
+        "homeNavigationContent3": "• Menú de usuario en la esquina superior derecha",
+        "findingFeatures": "Encontrar Funciones",
+        "findingFeaturesContent1": "• Revisa la barra lateral para secciones principales",
+        "findingFeaturesContent2": "• Usa la funcionalidad de búsqueda cuando esté disponible",
+        "findingFeaturesContent3": "• Busca botones de ayuda en cada página",
+        "accountManagement": "Gestión de Cuenta",
+        "accountManagementContent1": "• Accede al perfil desde el menú desplegable",
+        "accountManagementContent2": "• Ajustes disponibles en navegación principal",
+        "accountManagementContent3": "• Opción de cerrar sesión en menú de usuario",
+        "configuration": "Configuración",
+        "configurationContent1": "• Sigue el asistente de configuración paso a paso",
+        "configurationContent2": "• Guarda cambios antes de ir al siguiente paso",
+        "configurationContent3": "• Prueba tu configuración antes de ponerla en funcionamiento"
+      },
+      "keyboardShortcuts": {
+        "title": "Atajos de Teclado",
+        "description": "Atajos de teclado útiles para navegar más rápido",
+        "general": "General",
+        "generalShortcuts": {
+          "help": "Mostrar este diálogo de ayuda",
+          "escape": "Cerrar diálogos y menús",
+          "tab": "Navegar entre elementos del formulario"
+        },
+        "dashboard": "Dashboard",
+        "dashboardShortcuts": {
+          "search": "Enfocar caja de búsqueda",
+          "playPause": "Reproducir/pausar audio",
+          "openDetails": "Abrir detalles del elemento seleccionado"
+        }
+      }
+    }
+  },
+  "dashboardHeader": {
+    "breadcrumbs": {
+      "admin": "Admin",
+      "dashboard": "Dashboard",
+      "users": "Usuarios",
+      "pricing": "Precios",
+      "settings": "Configuración",
+      "userDetails": "Detalles de Usuario",
+      "agentConfig": "Config de Agente"
+    },
+    "welcome": "Bienvenido, {name}",
+    "navigation": {
+      "adminPanel": "Panel de Admin",
+      "dashboard": "Dashboard",
+      "settings": "Configuración",
+      "signOut": "Cerrar Sesión"
+    }
+  },
+  "settingsTabs": {
+    "preferences": {
+      "label": "Preferencias",
+      "description": "Idioma, notificaciones y preferencias de app"
+    },
+    "account": {
+      "label": "Cuenta",
+      "description": "Perfil, seguridad y preferencias"
+    },
+    "payment": {
+      "label": "Pagos",
+      "description": "Facturación, suscripciones y métodos de pago"
+    },
+    "business": {
+      "label": "Negocio",
+      "description": "Configuración de negocio y configuración de agente AI"
+    }
+  },
+  "callLogs": {
+    "title": "Registros de Llamadas",
+    "loading": "Cargando registros de llamadas...",
+    "unknown": "Desconocido",
+    "noRecords": "Aún no hay registros de llamadas",
+    "noRecordsDesc": "Los registros de llamadas aparecerán aquí una vez que se realicen las llamadas.",
+    "columns": {
+      "startTime": "Hora de Inicio",
+      "endTime": "Hora de Fin",
+      "duration": "Duración",
+      "type": "Tipo",
+      "phoneNumber": "Número de Teléfono",
+      "cost": "Costo",
+      "summary": "Resumen",
+      "audio": "Audio"
+    }
+  },
+  "searchFilters": {
+    "startTimeFrom": "Hora de Inicio Desde",
+    "startTimeTo": "Hora de Inicio Hasta",
+    "selectStartTime": "Seleccionar hora de inicio",
+    "selectEndTime": "Seleccionar hora de fin",
+    "type": "Tipo",
+    "allTypes": "Todos los Tipos",
+    "inbound": "Entrante",
+    "outbound": "Saliente",
+    "phoneNumber": "Número de Teléfono",
+    "enterPhoneNumber": "Ingresa número de teléfono",
+    "search": "Buscar",
+    "clear": "Limpiar"
+  },
+  "home": {
+    "hero": {
+      "title": "Su Recepcionista 24x7",
+      "subtitle": "Impulsado por IA",
+      "description": "Obtenga el servicio de recepcionista #1 calificado para pequeñas empresas.",
+      "getStarted": "Comenzar"
+    },
+    "valueProposition": {
+      "title": "Cobertura total de llamadas, impulsada por",
+      "titleHighlight": "IA avanzada",
+      "description": "Nuestro sistema de IA inteligente proporciona manejo profesional y eficiente de llamadas que asegura que cada cliente reciba un servicio excepcional.",
+      "stats": {
+        "satisfaction": "Satisfacción del cliente",
+        "clutchRating": "Calificación Clutch",
+        "availability": "Disponibilidad",
+        "trustpilotRating": "Calificación Trustpilot"
+      }
+    },
+    "industries": {
+      "title": "Servimos una variedad de industrias",
+      "subtitle": "Soluciones de IA personalizadas para cada tipo de negocio",
+      "homeServices": {
+        "title": "Servicios del Hogar",
+        "subtitle": "Convierte llamadas en trabajos reservados, 24/7",
+        "description": "Desde plomería hasta HVAC, manejamos las llamadas de clientes profesionalmente"
+      },
+      "medical": {
+        "title": "Consultorios Médicos y de Bienestar",
+        "subtitle": "Ayuda a clientes más rápido",
+        "description": "Manejo profesional de llamadas con IA, reservas, programación y más"
+      },
+      "marketing": {
+        "title": "Agencias de Marketing",
+        "subtitle": "Nunca pierdas un cliente potencial",
+        "description": "Manejo profesional de llamadas para profesionales de marketing"
+      },
+      "petServices": {
+        "title": "Servicios para Mascotas",
+        "subtitle": "Mantén felices a los padres de mascotas",
+        "description": "Manejo cariñoso de llamadas con IA para veterinarios y cuidado de mascotas"
+      },
+      "propertyManagement": {
+        "title": "Gestión de Propiedades",
+        "subtitle": "Soporte 24/7 para inquilinos",
+        "description": "Manejo de llamadas de gestión de propiedades las 24 horas"
+      },
+      "salonsSpas": {
+        "title": "Salones y Spas",
+        "subtitle": "Reserva citas sin problemas",
+        "description": "Reserva profesional de citas y servicio al cliente"
+      }
+    },
+    "testimonials": {
+      "title": "Lo que dicen nuestros clientes",
+      "testimonial1": {
+        "name": "Sarah Johnson",
+        "company": "Johnson & Associates Law",
+        "text": "La recepcionista AI ha transformado nuestra práctica. Nunca perdemos una llamada y los clientes aman el servicio profesional."
+      },
+      "testimonial2": {
+        "name": "Michael Chen",
+        "company": "Elite Home Services",
+        "text": "Nuestra tasa de reservas aumentó un 40% desde que usamos el servicio. El ROI es increíble."
+      },
+      "testimonial3": {
+        "name": "Emma Rodriguez",
+        "company": "Bella Spa & Wellness",
+        "text": "Profesional, confiable y rentable. Nuestros clientes aman el servicio consistente y de alta calidad."
+      }
+    },
+    "integrations": {
+      "title": "Se integra con tus herramientas favoritas"
+    }
+  },
+  "signup": {
+    "createAccountPrompt": "Crea tu cuenta para comenzar",
+    "connecting": "Conectando...",
+    "signUpWithGoogle": "Registrarse con Google",
+    "googleSecurityTip": "Consejo de seguridad: Serás redirigido a la página oficial de autenticación de Google para un registro seguro",
+    "orWithEmail": "o con tu email a continuación",
+    "fullName": "Nombre Completo",
+    "enterFullName": "Ingresa tu nombre completo",
+    "email": "Email",
+    "enterEmail": "Ingresa tu email",
+    "password": "Contraseña",
+    "enterPassword": "Ingresa tu contraseña",
+    "confirmPassword": "Confirmar Contraseña",
+    "confirmPasswordPlaceholder": "Confirma tu contraseña",
+    "creatingAccount": "Creando cuenta...",
+    "createAccount": "Crear Cuenta",
+    "alreadyHaveAccount": "¿Ya tienes una cuenta? Iniciar sesión",
+    "backToHome": "Volver al Inicio",
+    "passwordsDoNotMatch": "Las contraseñas no coinciden",
+    "userAlreadyExists": "Este usuario ya existe",
+    "registrationSuccess": "¡Registro exitoso! Por favor revisa tu email y haz clic en el enlace de verificación para completar la configuración de tu cuenta.",
+    "unexpectedError": "Ocurrió un error inesperado",
+    "googleSignUpFailed": "El registro con Google falló",
+    "googleSignUpInitFailed": "Error al inicializar el registro con Google. Por favor inténtalo de nuevo."
+  },
+  "accountSettings": {
+    "profile": {
+      "title": "Información del Perfil",
+      "description": "Actualiza la información de tu perfil de cuenta y dirección de email.",
+      "firstName": "Nombre",
+      "lastName": "Apellido",
+      "email": "Dirección de Email",
+      "firstNamePlaceholder": "Ingresa tu nombre",
+      "lastNamePlaceholder": "Ingresa tu apellido",
+      "emailPlaceholder": "Ingresa tu email",
+      "emailNote": "Contacta soporte para cambiar tu dirección de email.",
+      "saveChanges": "Guardar Cambios"
+    },
+    "security": {
+      "title": "Seguridad",
+      "description": "Gestiona tu contraseña y configuraciones de seguridad de cuenta.",
+      "currentPassword": "Contraseña Actual",
+      "newPassword": "Nueva Contraseña",
+      "confirmPassword": "Confirmar Nueva Contraseña",
+      "currentPasswordPlaceholder": "Ingresa contraseña actual",
+      "newPasswordPlaceholder": "Ingresa nueva contraseña",
+      "confirmPasswordPlaceholder": "Confirma nueva contraseña",
+      "updatePassword": "Actualizar Contraseña"
+    },
+    "preferences": {
+      "title": "Preferencias",
+      "description": "Personaliza tus preferencias de cuenta y configuraciones de notificación.",
+      "timezone": "Zona Horaria",
+      "language": "Idioma",
+      "savePreferences": "Guardar Preferencias",
+      "timezoneOptions": {
+        "utc": "UTC",
+        "eastern": "Hora del Este",
+        "central": "Hora Central",
+        "mountain": "Hora de la Montaña",
+        "pacific": "Hora del Pacífico"
+      },
+      "languageOptions": {
+        "english": "English",
+        "spanish": "Español",
+        "chinese": "中文"
+      }
+    }
+  },
+  "billingSettings": {
+    "currentPlan": {
+      "title": "Plan Actual",
+      "description": "Tu información actual de suscripción y uso.",
+      "planName": "Plan Pro",
+      "active": "Activo",
+      "planDetails": "300 llamadas por mes • $800.00/mes",
+      "changePlan": "Cambiar Plan",
+      "usage": {
+        "callsThisMonth": "Llamadas este mes",
+        "callsRemaining": "Llamadas restantes",
+        "overageCharges": "Cargos por exceso"
+      }
+    },
+    "paymentMethods": {
+      "title": "Métodos de Pago",
+      "description": "Gestiona tus métodos de pago e información de facturación.",
+      "addPaymentMethod": "Añadir Método de Pago",
+      "expires": "Vence 12/2025",
+      "default": "Predeterminado",
+      "remove": "Eliminar",
+      "addPrompt": "Añade un método de pago para gestionar tu suscripción"
+    },
+    "billingHistory": {
+      "title": "Historial de Facturación",
+      "description": "Descarga tus facturas y recibos anteriores.",
+      "table": {
+        "invoice": "Factura",
+        "date": "Fecha",
+        "status": "Estado",
+        "amount": "Cantidad",
+        "actions": "Acciones",
+        "paid": "Pagado",
+        "download": "Descargar"
+      }
+    },
+    "usageAnalytics": {
+      "title": "Análisis de Uso",
+      "description": "Desglose detallado de tu uso mensual.",
+      "chartPlaceholder": "El gráfico de análisis de uso se mostrará aquí",
+      "comingSoon": "Próximamente..."
+    }
+  },
+  "businessSettings": {
+    "steps": {
+      "business": {
+        "label": "Información Empresarial",
+        "description": "Entrena tu IA para entender tu negocio tanto como sea posible"
+      },
+      "products": {
+        "label": "Productos",
+        "description": "Gestiona tu inventario de productos y precios"
+      },
+      "services": {
+        "label": "Servicios",
+        "description": "Configura servicios basados en citas con duración y precios"
+      },
+      "appointments": {
+        "label": "Sistema de Citas",
+        "description": "Configura tipos de citas, horarios de trabajo y configuraciones de reserva"
+      },
+      "staff": {
+        "label": "Gestión de Personal",
+        "description": "Añade miembros del personal y gestiona sus horarios basándote en las horas de trabajo"
+      },
+      "agent": {
+        "label": "Configuración de Agentes IA",
+        "description": "Crea y gestiona múltiples agentes IA con diferentes capacidades"
+      }
+    }
+  },
+  "businessInformation": {
+    "loading": "Cargando información de su negocio...",
+    "basicInfo": {
+      "title": "Información Básica del Negocio",
+      "description": "Proporcione información esencial sobre su negocio que se utilizará en toda la configuración de su agente IA.",
+      "businessName": "Nombre del Negocio *",
+      "businessNamePlaceholder": "Su Nombre de Negocio",
+      "businessType": "Tipo de Negocio *",
+      "businessTypePlaceholder": "Seleccione su tipo de negocio",
+      "businessDescription": "Descripción del Negocio",
+      "businessDescriptionPlaceholder": "Breve descripción de su negocio y servicios...",
+      "yearsInBusiness": "Años en el Negocio",
+      "numberOfEmployees": "Número de Empleados",
+      "timezone": "Zona Horaria"
+    }
+  },
+  "businessProducts": {
+    "loading": "Cargando perfil del negocio y productos...",
+    "businessTypeRequired": "Tipo de Negocio Requerido",
+    "title": "Productos del Negocio",
+    "categoriesTitle": "Categorías de Productos y Productos",
+    "addCategory": "Agregar Categoría",
+    "noCategories": "Sin Categorías de Productos",
+    "editCategory": "Editar Categoría de Productos",
+    "categoryName": "Nombre de Categoría *"
+  },
+  "businessServices": {
+    "loading": "Cargando perfil del negocio y servicios...",
+    "businessTypeRequired": "Tipo de Negocio Requerido",
+    "businessTypeRequiredDesc": "Por favor complete primero el paso de Información del Negocio para configurar su tipo de negocio.",
+    "currentBusinessProfile": "Perfil actual del negocio: {status}",
+    "found": "Encontrado",
+    "notFound": "No encontrado",
+    "title": "Servicios del Negocio",
+    "description": "Configure servicios basados en citas para su negocio {businessType}{businessName}. Los servicios requieren duración y pueden programarse con citas.",
+    "categoryForm": {
+      "editTitle": "Editar Categoría de Servicio",
+      "addTitle": "Agregar Categoría de Servicio",
+      "editDescription": "Actualice los detalles de la categoría de servicio a continuación.",
+      "addDescription": "Cree una nueva categoría de servicio para sus servicios basados en citas de {businessType}.",
+      "categoryName": "Nombre de Categoría *",
+      "categoryNamePlaceholder": "ej., Atención Preventiva, Servicios de Diagnóstico",
+      "description": "Descripción",
+      "descriptionPlaceholder": "Describa qué servicios cubre esta categoría...",
+      "updating": "Actualizando...",
+      "adding": "Agregando...",
+      "updateCategory": "Actualizar Categoría",
+      "addCategory": "Agregar Categoría",
+      "cancel": "Cancelar"
+    },
+    "categories": {
+      "title": "Categorías de Servicio y Servicios",
+      "description": "Organice sus servicios basados en citas en categorías y gestione ofertas de servicios individuales con duración, precios y requisitos de programación.",
+      "addCategory": "Agregar Categoría",
+      "noCategories": "Sin Categorías de Servicio",
+      "noCategoriesDesc": "Cree su primera categoría de servicio para organizar sus ofertas de citas de {businessType}.",
+      "addFirstCategory": "Agregar Primera Categoría",
+      "servicesCount": "{count} servicios",
+      "tableHeaders": {
+        "serviceName": "Nombre del Servicio",
+        "description": "Descripción",
+        "duration": "Duración",
+        "price": "Precio",
+        "actions": "Acciones"
+      },
+      "noServicesYet": "No hay servicios en esta categoría aún.",
+      "addServiceTip": "Haga clic en el ícono + en el encabezado para agregar un servicio",
+      "uncategorizedServices": "Servicios Sin Categorizar"
+    },
+    "serviceForm": {
+      "editTitle": "Editar Servicio",
+      "addTitle": "Agregar Servicio",
+      "editDescription": "Actualice los detalles del servicio a continuación.",
+      "addDescription": "Defina un servicio específico basado en citas con información de duración y precios.",
+      "serviceName": "Nombre del Servicio *",
+      "serviceNamePlaceholder": "ej., Limpieza Dental, Consulta",
+      "category": "Categoría",
+      "categoryPlaceholder": "Seleccionar categoría (opcional)",
+      "noCategory": "Sin Categoría",
+      "description": "Descripción",
+      "descriptionPlaceholder": "Describa qué incluye este servicio...",
+      "duration": "Duración (minutos) *",
+      "servicePrice": "Precio del Servicio",
+      "pricePlaceholder": "0.00",
+      "currency": "Moneda",
+      "updating": "Actualizando...",
+      "adding": "Agregando...",
+      "updateService": "Actualizar Servicio",
+      "addService": "Agregar Servicio",
+      "cancel": "Cancelar"
+    },
+    "inlineEdit": {
+      "serviceName": "Nombre del servicio",
+      "description": "Descripción",
+      "duration": "Duración",
+      "price": "Precio"
+    },
+    "alerts": {
+      "categoryNameRequired": "El nombre de la categoría es requerido y debe configurarse el tipo de negocio",
+      "categoryNameRequiredSimple": "El nombre de la categoría es requerido",
+      "serviceNameRequired": "El nombre del servicio es requerido y debe configurarse el tipo de negocio",
+      "serviceNameRequiredSimple": "El nombre del servicio es requerido",
+      "confirmDeleteCategory": "¿Está seguro de que desea eliminar esta categoría? Esto también afectará cualquier servicio asociado.",
+      "confirmDeleteService": "¿Está seguro de que desea eliminar este servicio?",
+      "failedToAddCategory": "Error al agregar categoría",
+      "failedToUpdateCategory": "Error al actualizar categoría",
+      "failedToDeleteCategory": "Error al eliminar categoría",
+      "failedToAddService": "Error al agregar servicio",
+      "failedToUpdateService": "Error al actualizar servicio",
+      "failedToDeleteService": "Error al eliminar servicio",
+      "tryAgain": "Por favor intente nuevamente."
+    },
+    "saveChanges": {
+      "unsavedChanges": "Tiene cambios no guardados en las categorías de servicio",
+      "changesSaved": "¡Cambios guardados exitosamente!",
+      "failedToSave": "Error al guardar cambios",
+      "saving": "Guardando...",
+      "saveChanges": "Guardar Cambios"
+    },
+    "status": {
+      "title": "Estado de Servicios",
+      "businessType": "Tipo de Negocio: {businessType}",
+      "categories": "Categorías: {count}",
+      "services": "Servicios: {count}",
+      "readyMessage": "✅ ¡Listo para asignación de personal y programación de citas!"
+    }
+  }
+}

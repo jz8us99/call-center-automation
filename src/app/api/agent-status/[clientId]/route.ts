@@ -1,18 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { authenticateRequest } from '@/lib/supabase';
-import { supabase } from '@/lib/supabase-admin';
+import { withAuth, isAuthError } from '@/lib/api-auth-helper';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ clientId: string }> }
+  { params }: { params: { clientId: string } }
 ) {
   try {
-    const user = await authenticateRequest(request);
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
     }
+    const { user, supabaseWithAuth: supabase } = authResult;
 
-    const { clientId } = await params;
+    const clientId = params.clientId;
 
     // Verify user has access to this client's data
     if (user.id !== clientId && !user.is_super_admin && user.role !== 'admin') {

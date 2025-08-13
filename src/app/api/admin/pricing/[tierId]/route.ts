@@ -6,39 +6,13 @@ import { supabase } from '@/lib/supabase';
 // PUT /api/admin/pricing/[tierId] - Update specific pricing tier
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ tierId: string }> }
+  { params }: { params: { tierId: string } }
 ) {
   try {
-    const { tierId } = await params;
+    const { tierId } = params;
     const body = await request.json();
 
-    // Get the authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Check if user is admin
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('role, is_super_admin')
-      .eq('user_id', user.id)
-      .single();
-
-    if (
-      profileError ||
-      !profile?.role ||
-      (profile.role !== 'admin' && !profile.is_super_admin)
-    ) {
-      return NextResponse.json(
-        { error: 'Forbidden - Admin access required' },
-        { status: 403 }
-      );
-    }
+    // 权限验证已由中间件处理
 
     // For now, just return success message
     // In a real implementation, you would update the tier in the database
@@ -61,38 +35,12 @@ export async function PUT(
 // DELETE /api/admin/pricing/[tierId] - Delete specific pricing tier
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ tierId: string }> }
+  { params }: { params: { tierId: string } }
 ) {
   try {
-    const { tierId } = await params;
+    const { tierId } = params;
 
-    // Get the authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Check if user is admin
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('role, is_super_admin')
-      .eq('user_id', user.id)
-      .single();
-
-    if (
-      profileError ||
-      !profile?.role ||
-      (profile.role !== 'admin' && !profile.is_super_admin)
-    ) {
-      return NextResponse.json(
-        { error: 'Forbidden - Admin access required' },
-        { status: 403 }
-      );
-    }
+    // 权限验证已由中间件处理
 
     // For now, just return success message
     // In a real implementation, you would delete the tier from the database

@@ -12,9 +12,9 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AppointmentBookingInterface } from '@/components/booking/AppointmentBookingInterface';
-import { AppointmentManagementDashboard } from '@/components/appointments/AppointmentManagementDashboard';
-import { Step5AppointmentSystem } from '@/components/appointments/Step5AppointmentSystem';
+import { AppointmentBookingInterface } from '@/components/settings/business/steps/step4-appointments/AppointmentBookingInterface';
+import { AppointmentManagementDashboard } from '@/components/settings/business/steps/step4-appointments/AppointmentManagementDashboard';
+import { AppointmentSystem } from '@/components/settings/business/steps/step4-appointments/AppointmentSystem';
 import { CalendarIcon, UserIcon, ClockIcon } from '@/components/icons';
 
 export default function AppointmentsPage() {
@@ -196,7 +196,9 @@ export default function AppointmentsPage() {
               >
                 <div className="flex items-center gap-2">
                   <UserIcon className="h-5 w-5 text-orange-600" />
-                  <span className="font-semibold">Today&apos;s Appointments</span>
+                  <span className="font-semibold">
+                    Today&apos;s Appointments
+                  </span>
                 </div>
                 <p className="text-sm text-gray-600 text-left">
                   View and manage today&apos;s appointments
@@ -267,7 +269,7 @@ export default function AppointmentsPage() {
           </TabsContent>
 
           <TabsContent value="step5-config" className="space-y-6">
-            <Step5AppointmentSystem user={user} businessId={user.id} />
+            <AppointmentSystem user={user} businessId={user.id} />
           </TabsContent>
         </Tabs>
 

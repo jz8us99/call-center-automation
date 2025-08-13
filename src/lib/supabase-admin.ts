@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 
-// 注意：这里需要使用service_role密钥，它可以绕过RLS
-// 如果没有service_role密钥，我们将使用常规客户端但禁用RLS检查
+// Note: service_role key is required here, it can bypass RLS
+// If no service_role key, we'll use regular client but disable RLS checks
 
 function createSupabaseAdmin() {
   const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -31,6 +31,8 @@ function createSupabaseAdmin() {
   });
 }
 
-// 服务端客户端，用于API路由，可以绕过RLS
+// Server-side client for API routes, can bypass RLS
 export const supabaseAdmin = createSupabaseAdmin();
-export const supabase = supabaseAdmin; // For backward compatibility
+
+// For compatibility, also export as supabase
+export const supabase = supabaseAdmin;

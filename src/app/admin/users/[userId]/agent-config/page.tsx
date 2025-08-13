@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { User } from '@supabase/supabase-js';
+import { authenticatedFetch } from '@/lib/api-client';
 
 // Components
 import { Button } from '@/components/ui/button';
@@ -16,7 +17,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { AgentConfigurationDashboard } from '@/components/configuration/AgentConfigurationDashboard';
+import { AgentConfigurationDashboard } from '@/components/settings/business/admin/AgentConfigurationDashboard';
 import { UsageUpgradeDialog } from '@/components/ui/usage-upgrade-dialog';
 import {
   ArrowLeftIcon,
@@ -47,7 +48,7 @@ export default function AdminUserAgentConfig() {
   const router = useRouter();
   const params = useParams();
   const userId = params.userId as string;
-  const { loading: profileLoading, isAdmin } = useUserProfile(user);
+  const { profile, loading: profileLoading, isAdmin } = useUserProfile(user);
 
   useEffect(() => {
     const getUser = async () => {
@@ -80,12 +81,15 @@ export default function AdminUserAgentConfig() {
       try {
         setTargetUserLoading(true);
 
-        const response = await fetch(`/api/admin/users/${userId}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
+        const response = await authenticatedFetch(
+          `/api/admin/users/${userId}`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        );
 
         if (!response.ok) {
           const errorData = await response.json();
@@ -126,13 +130,16 @@ export default function AdminUserAgentConfig() {
 
   const handleUpgrade = async (newTier: 'basic' | 'premium' | 'enterprise') => {
     try {
-      const response = await fetch(`/api/admin/users/${userId}/upgrade`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ newTier }),
-      });
+      const response = await authenticatedFetch(
+        `/api/admin/users/${userId}/upgrade`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ newTier }),
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -571,7 +578,7 @@ export default function AdminUserAgentConfig() {
               user={user}
               // Pass additional props to indicate this is admin mode
               isAdminMode={true}
-              targetUser={targetUser || undefined}
+              targetUser={targetUser}
             />
           )}
         </div>

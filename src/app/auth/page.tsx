@@ -5,9 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useGoogleAuth } from '@/hooks/useGoogleAuth';
-import { HelpButton } from '@/components/HelpDialog';
-import { HomeIcon } from '@/components/icons';
-import { SimpleThemeSwitch } from '@/components/SimpleThemeSwitch';
+import { HelpButton } from '@/components/modals/HelpDialog';
+import { useTranslations } from 'next-intl';
 
 export default function AuthPage() {
   const [email, setEmail] = useState('');
@@ -19,6 +18,7 @@ export default function AuthPage() {
   const [resetEmail, setResetEmail] = useState('');
   const [resetLoading, setResetLoading] = useState(false);
   const router = useRouter();
+  const t = useTranslations('auth');
 
   // Use the new Google Auth hook
   const {
@@ -54,24 +54,63 @@ export default function AuthPage() {
       if (error) {
         setError(error.message);
       } else if (data.user) {
-        // Get user profile to determine role-based redirect
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_id', data.user.id)
-          .maybeSingle();
+        try {
+          // Small delay to allow database triggers to complete
+          await new Promise(resolve => setTimeout(resolve, 1000));
 
-        if (profileError) {
-          console.error('Error fetching profile:', profileError);
-          router.push('/dashboard'); // Default fallback
-        } else if (profile?.role === 'admin') {
-          router.push('/admin');
-        } else {
+          // Get user profile to determine role-based redirect
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('user_id', data.user.id)
+            .maybeSingle();
+
+          let profile = profileData;
+
+          // If profile doesn't exist, create one as fallback
+          if (!profile && !profileError) {
+            console.log('Profile not found, creating one...');
+            const { data: newProfile, error: createError } = await supabase
+              .from('profiles')
+              .insert({
+                user_id: data.user.id,
+                email: data.user.email || '',
+                full_name: data.user.user_metadata?.full_name || null,
+                role: 'user',
+                is_super_admin: false,
+                pricing_tier: 'basic',
+                agent_types_allowed: ['inbound_call'],
+                is_active: true,
+              })
+              .select()
+              .single();
+
+            if (createError) {
+              console.error('Error creating profile:', createError);
+              // Continue with default redirect even if profile creation fails
+              router.push('/dashboard');
+              return;
+            }
+
+            profile = newProfile;
+          }
+
+          if (profileError) {
+            console.error('Error fetching profile:', profileError);
+            router.push('/dashboard'); // Default fallback
+          } else if (profile?.role === 'admin') {
+            router.push('/admin');
+          } else {
+            router.push('/dashboard');
+          }
+        } catch (profileException) {
+          console.error('Profile handling error:', profileException);
+          // Continue with default redirect if profile handling fails
           router.push('/dashboard');
         }
       }
     } catch {
-      setError('An unexpected error occurred');
+      setError(t('unexpectedError'));
     } finally {
       setLoading(false);
     }
@@ -79,7 +118,7 @@ export default function AuthPage() {
 
   const handleGoogleSignIn = async () => {
     if (!isGoogleLoaded) {
-      setError('Google services are still loading. Please try again.');
+      setError(t('googleServicesLoading'));
       return;
     }
 
@@ -99,30 +138,20 @@ export default function AuthPage() {
     } catch (err) {
       console.error('Google sign in error:', err);
       const errorMessage =
-        err instanceof Error
-          ? err.message
-          : 'Failed to sign in with Google. Please try again.';
+        err instanceof Error ? err.message : t('googleSignInFailed');
 
       // Provide user-friendly error messages
       if (errorMessage.includes('timed out')) {
-        setError(
-          'Google sign-in timed out. Please make sure you are logged into your Google account and try again.'
-        );
+        setError(t('googleSignInTimeout'));
       } else if (
         errorMessage.includes('not available') ||
         errorMessage.includes('not displayed')
       ) {
-        setError(
-          'Google sign-in is not available right now. Please use email and password to sign in.'
-        );
+        setError(t('googleSignInNotAvailable'));
       } else if (errorMessage.includes('Client ID not configured')) {
-        setError(
-          'Google sign-in is temporarily unavailable. Please use email and password to sign in.'
-        );
+        setError(t('googleSignInUnavailable'));
       } else {
-        setError(
-          'Google sign-in failed. Please try again or use email and password to sign in.'
-        );
+        setError(t('googleSignInFailed'));
       }
     }
   };
@@ -139,14 +168,12 @@ export default function AuthPage() {
       if (error) {
         alert(`Error: ${error.message}`);
       } else {
-        alert(
-          'Password reset email sent! Please check your email for instructions.'
-        );
+        alert(t('passwordResetEmailSent'));
         setShowForgotPassword(false);
         setResetEmail('');
       }
     } catch {
-      alert('An unexpected error occurred');
+      alert(t('unexpectedError'));
     } finally {
       setResetLoading(false);
     }
@@ -156,10 +183,10 @@ export default function AuthPage() {
     <div className="min-h-screen bg-white dark:bg-gray-800 dark:bg-gray-900 flex items-center justify-center p-4 transition-colors duration-300">
       {/* Main Login Card */}
       <div className="w-full max-w-md">
-        <div className="bg-white dark:bg-gray-800 dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-gray-600">
           {/* Brand Logo - Above Sign in */}
           <div className="mb-8">
-            <div className="flex items-center justify-between mb-6">
+            <div className="mb-6">
               <Link
                 href="/"
                 className="inline-flex items-center space-x-2 hover:opacity-80 transition-opacity"
@@ -168,23 +195,13 @@ export default function AuthPage() {
                   <span className="text-white text-xl font-bold">R</span>
                 </div>
                 <span className="text-xl font-bold text-black dark:text-white">
-                  JSX-ReceptionAI
+                  ReceptionPro
                 </span>
               </Link>
-              <Link
-                href="/"
-                className="flex items-center gap-2 text-black dark:text-gray-300 hover:text-black dark:text-white transition-colors text-sm"
-              >
-                <HomeIcon className="h-4 w-4" />
-                Home
-              </Link>
             </div>
-            <div className="flex items-center justify-between">
-              <h1 className="text-2xl font-semibold text-black dark:text-white mb-2 text-left">
-                Sign in
-              </h1>
-              <SimpleThemeSwitch />
-            </div>
+            <h1 className="text-2xl font-semibold text-black dark:text-white mb-2 text-left">
+              {t('signIn')}
+            </h1>
           </div>
 
           {/* Google Sign In Button */}
@@ -196,16 +213,16 @@ export default function AuthPage() {
             >
               {googleLoading ? (
                 <>
-                  <div className="w-5 h-5 border-2 border-gray-300 dark:border-gray-600 border-t-blue-500 rounded-full animate-spin"></div>
-                  <span className="text-black dark:text-gray-300 font-medium">
-                    Signing in...
+                  <div className="w-5 h-5 border-2 border-gray-300 dark:border-gray-500 border-t-blue-500 dark:border-t-blue-400 rounded-full animate-spin"></div>
+                  <span className="text-black dark:text-gray-100 font-medium">
+                    {t('signingIn')}
                   </span>
                 </>
               ) : !isGoogleLoaded ? (
                 <>
-                  <div className="w-5 h-5 border-2 border-gray-300 dark:border-gray-600 border-t-gray-400 rounded-full animate-spin"></div>
-                  <span className="text-black dark:text-gray-300 font-medium">
-                    Loading Google...
+                  <div className="w-5 h-5 border-2 border-gray-300 dark:border-gray-500 border-t-gray-400 dark:border-t-gray-300 rounded-full animate-spin"></div>
+                  <span className="text-black dark:text-gray-100 font-medium">
+                    {t('loadingGoogle')}
                   </span>
                 </>
               ) : (
@@ -228,8 +245,8 @@ export default function AuthPage() {
                       d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                     />
                   </svg>
-                  <span className="text-black dark:text-gray-300 font-medium">
-                    Sign in with Google
+                  <span className="text-black dark:text-gray-100 font-medium">
+                    {t('signInWithGoogle')}
                   </span>
                 </>
               )}
@@ -243,7 +260,7 @@ export default function AuthPage() {
             </div>
             <div className="relative flex justify-center text-sm">
               <span className="px-4 bg-white dark:bg-gray-800 text-gray-500">
-                or with your email below
+                {t('orWithYourEmailBelow')}
               </span>
             </div>
           </div>
@@ -255,7 +272,7 @@ export default function AuthPage() {
                 htmlFor="email"
                 className="text-sm font-medium text-black dark:text-white"
               >
-                Email
+                {t('email')}
               </label>
               <input
                 id="email"
@@ -263,7 +280,7 @@ export default function AuthPage() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200"
-                placeholder="Enter your email"
+                placeholder={t('enterYourEmail')}
                 required
               />
             </div>
@@ -273,7 +290,7 @@ export default function AuthPage() {
                 htmlFor="password"
                 className="text-sm font-medium text-black dark:text-white"
               >
-                Password
+                {t('password')}
               </label>
               <div className="relative">
                 <input
@@ -282,7 +299,7 @@ export default function AuthPage() {
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   className="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200"
-                  placeholder="Password"
+                  placeholder={t('password')}
                   required
                 />
                 <button
@@ -335,7 +352,7 @@ export default function AuthPage() {
                 onClick={() => setShowForgotPassword(true)}
                 className="text-orange-500 hover:text-orange-600 text-sm font-medium transition-colors duration-200"
               >
-                Forgot password?
+                {t('forgotPassword')}
               </button>
             </div>
 
@@ -350,20 +367,20 @@ export default function AuthPage() {
               disabled={loading}
               className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl text-lg"
             >
-              {loading ? 'Signing in...' : 'Continue'}
+              {loading ? t('signingIn') : t('continue')}
             </button>
           </form>
 
           {/* Sign Up Link */}
           <div className="mt-8 text-center">
             <span className="text-black dark:text-gray-300 text-sm">
-              Need an account?{' '}
+              {t('needAnAccount')}{' '}
             </span>
             <Link
               href="/signup"
               className="text-orange-500 hover:text-orange-600 font-medium transition-colors duration-200"
             >
-              Sign up
+              {t('signUp')}
             </Link>
           </div>
         </div>
@@ -374,13 +391,13 @@ export default function AuthPage() {
             href="#"
             className="text-gray-500 hover:text-black dark:text-gray-300 text-sm transition-colors duration-200"
           >
-            Terms of Service
+            {t('termsOfService')}
           </a>
           <a
             href="#"
             className="text-gray-500 hover:text-black dark:text-gray-300 text-sm transition-colors duration-200"
           >
-            Privacy Policy
+            {t('privacyPolicy')}
           </a>
         </div>
       </div>
@@ -390,11 +407,10 @@ export default function AuthPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 w-full max-w-md shadow-xl">
             <h3 className="text-xl font-bold text-black dark:text-white mb-4">
-              Reset Password
+              {t('resetPassword')}
             </h3>
             <p className="text-black dark:text-gray-300 text-sm mb-4">
-              Enter your email address and we&apos;ll send you a link to reset
-              your password.
+              {t('resetPasswordDescription')}
             </p>
             <form onSubmit={handleForgotPassword} className="space-y-4">
               <div className="space-y-2">
@@ -402,7 +418,7 @@ export default function AuthPage() {
                   htmlFor="resetEmail"
                   className="text-sm font-medium text-black dark:text-white"
                 >
-                  Email
+                  {t('email')}
                 </label>
                 <input
                   id="resetEmail"
@@ -410,7 +426,7 @@ export default function AuthPage() {
                   value={resetEmail}
                   onChange={e => setResetEmail(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-black dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200"
-                  placeholder="Enter your email"
+                  placeholder={t('enterYourEmail')}
                   required
                 />
               </div>
@@ -420,14 +436,14 @@ export default function AuthPage() {
                   onClick={() => setShowForgotPassword(false)}
                   className="flex-1 py-2 px-4 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-black dark:text-gray-300 rounded-lg transition-colors duration-200"
                 >
-                  Cancel
+                  {t('cancel')}
                 </button>
                 <button
                   type="submit"
                   disabled={resetLoading}
                   className="flex-1 py-2 px-4 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white rounded-lg transition-colors duration-200"
                 >
-                  {resetLoading ? 'Sending...' : 'Send Reset Link'}
+                  {resetLoading ? t('sending') : t('sendResetEmail')}
                 </button>
               </div>
             </form>

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { User } from '@supabase/supabase-js';
-import { SimpleThemeSwitch } from '@/components/SimpleThemeSwitch';
+import { DashboardHeader } from '@/components/layout/DashboardHeader';
 
 // Components
 import { Button } from '@/components/ui/button';
@@ -19,13 +19,10 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import {
-  PlusIcon,
-  UsersIcon,
-  SettingsIcon,
-  HomeIcon,
-  SignOutIcon,
-} from '@/components/icons';
+import { PlusIcon, UsersIcon, SettingsIcon } from '@/components/icons';
+import { authenticatedFetch } from '@/lib/api-client';
+import { toast } from 'sonner';
+import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 
 interface UserProfile {
   id: string;
@@ -43,11 +40,11 @@ interface UserProfile {
 }
 
 export default function AdminUserManagement() {
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
-  const [,] = useState('');
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [showUserForm, setShowUserForm] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
@@ -89,7 +86,7 @@ export default function AdminUserManagement() {
     try {
       setUsersLoading(true);
 
-      const response = await fetch('/api/admin/users', {
+      const response = await authenticatedFetch('/api/admin/users', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -124,11 +121,6 @@ export default function AdminUserManagement() {
     }
   }, [user, isAdmin, loadUsers]);
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.push('/');
-  };
-
   const handleCreateUser = () => {
     setSelectedUser(null);
     setShowUserForm(true);
@@ -137,6 +129,41 @@ export default function AdminUserManagement() {
   const handleEditUser = (userProfile: UserProfile) => {
     setSelectedUser(userProfile);
     setShowUserForm(true);
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    const confirmed = await confirm({
+      title: 'Delete User',
+      description: 'Are you sure you want to delete this user?',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+    });
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      const response = await authenticatedFetch(`/api/admin/users/${userId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete user');
+      }
+
+      // Reload users after successful deletion
+      await loadUsers();
+      toast.success('用户删除成功');
+    } catch (error) {
+      console.error('Failed to delete user:', error);
+      toast.error('删除用户失败，请重试');
+    }
   };
 
   const handleSaveUser = async (formData: FormData) => {
@@ -163,7 +190,7 @@ export default function AdminUserManagement() {
         : '/api/admin/users';
       const method = isEditing ? 'PUT' : 'POST';
 
-      const response = await fetch(url, {
+      const response = await authenticatedFetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
@@ -182,12 +209,10 @@ export default function AdminUserManagement() {
       setShowUserForm(false);
       setSelectedUser(null);
       await loadUsers();
-      alert(`User ${isEditing ? 'updated' : 'created'} successfully`);
+      toast.success(`用户${isEditing ? '更新' : '创建'}成功`);
     } catch (error) {
       console.error('Failed to save user:', error);
-      alert(
-        `Failed to ${selectedUser ? 'update' : 'create'} user. Please try again.`
-      );
+      toast.error(`${selectedUser ? '更新' : '创建'}用户失败，请重试`);
     } finally {
       setFormLoading(false);
     }
@@ -234,7 +259,7 @@ export default function AdminUserManagement() {
   if (!isDevelopment && (!user || !isAdmin)) {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
-        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-8 text-center shadow-lg">
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-2xl p-8 text-center shadow-lg">
           <h1 className="text-2xl font-bold text-black dark:text-white mb-4">
             Access Denied
           </h1>
@@ -256,7 +281,7 @@ export default function AdminUserManagement() {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-900">
         {/* Header */}
-        <header className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
+        <header className="border-b border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 shadow-sm">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
@@ -446,7 +471,7 @@ export default function AdminUserManagement() {
                         ].map(agentType => (
                           <label
                             key={agentType.id}
-                            className="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg"
+                            className="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg"
                           >
                             <input
                               type="checkbox"
@@ -533,86 +558,13 @@ export default function AdminUserManagement() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
-      {/* Header */}
-      <header className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link
-              href="/admin/dashboard"
-              className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
-            >
-              <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
-                <span className="text-white text-xl font-bold">R</span>
-              </div>
-              <span className="text-xl font-bold text-black dark:text-white">
-                JSX-ReceptionAI
-              </span>
-              <span className="text-sm bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
-                Admin - User Management
-              </span>
-            </Link>
-
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => router.back()}
-                className="flex items-center gap-2 text-black dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-400 transition-colors"
-              >
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
-                <span className="hidden sm:inline">Back</span>
-              </button>
-              <Link
-                href="/"
-                className="flex items-center gap-2 text-black dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-400 transition-colors"
-              >
-                <HomeIcon className="h-4 w-4" />
-                <span className="hidden sm:inline">Home</span>
-              </Link>
-              <Link
-                href="/admin/dashboard"
-                className="flex items-center gap-2 text-black dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-400 transition-colors"
-              >
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 00-2-2z"
-                  />
-                </svg>
-                <span className="hidden sm:inline">Dashboard</span>
-              </Link>
-              <SimpleThemeSwitch />
-              <span className="text-sm text-black dark:text-gray-300">
-                Welcome, {profile?.full_name || user?.email}
-              </span>
-              <button
-                onClick={handleSignOut}
-                className="flex items-center gap-2 text-black dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-400 transition-colors"
-              >
-                <SignOutIcon />
-                Sign out
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <DashboardHeader
+        user={user}
+        userDisplayName={
+          profile?.full_name || user?.email?.split('@')[0] || 'Admin'
+        }
+        pageType="admin"
+      />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
@@ -805,7 +757,7 @@ export default function AdminUserManagement() {
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-gray-200 dark:border-gray-700">
+                      <tr className="border-b border-gray-200 dark:border-gray-600">
                         <th className="text-left py-3 px-4 font-semibold text-black dark:text-white">
                           Full Name
                         </th>
@@ -834,7 +786,7 @@ export default function AdminUserManagement() {
                         return (
                           <tr
                             key={userProfile.id}
-                            className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                            className="border-b border-gray-100 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                           >
                             <td className="py-4 px-4">
                               <div className="font-medium text-black dark:text-white">
@@ -922,6 +874,7 @@ export default function AdminUserManagement() {
           </Card>
         </div>
       </main>
+      <ConfirmDialog />
     </div>
   );
 }

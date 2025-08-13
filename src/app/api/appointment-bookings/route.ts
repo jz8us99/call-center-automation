@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase-admin';
+import { withAuth, isAuthError } from '@/lib/api-auth-helper';
 
 // GET - Fetch appointment bookings
 export async function GET(request: NextRequest) {
   try {
-    const supabase = supabaseAdmin;
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+    const { supabaseWithAuth: supabase } = authResult;
     const { searchParams } = new URL(request.url);
 
     const user_id = searchParams.get('user_id');
@@ -60,7 +64,10 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Error fetching appointment bookings:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ appointments: data || [] });
@@ -76,7 +83,11 @@ export async function GET(request: NextRequest) {
 // POST - Create appointment booking
 export async function POST(request: NextRequest) {
   try {
-    const supabase = supabaseAdmin;
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+    const { supabaseWithAuth: supabase } = authResult;
     const body = await request.json();
 
     const {
@@ -186,7 +197,10 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Error creating appointment booking:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ appointment: data });
@@ -202,7 +216,11 @@ export async function POST(request: NextRequest) {
 // PUT - Update appointment booking
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = supabaseAdmin;
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+    const { supabaseWithAuth: supabase } = authResult;
     const body = await request.json();
 
     const {
@@ -289,7 +307,10 @@ export async function PUT(request: NextRequest) {
 
     if (error) {
       console.error('Error updating appointment booking:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ appointment: data });
@@ -305,7 +326,11 @@ export async function PUT(request: NextRequest) {
 // DELETE - Delete appointment booking
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = supabaseAdmin;
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+    const { supabaseWithAuth: supabase } = authResult;
     const { searchParams } = new URL(request.url);
 
     const id = searchParams.get('id');
@@ -328,7 +353,10 @@ export async function DELETE(request: NextRequest) {
 
     if (error) {
       console.error('Error deleting appointment booking:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ success: true });

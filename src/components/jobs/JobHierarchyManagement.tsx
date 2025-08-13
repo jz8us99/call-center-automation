@@ -30,6 +30,8 @@ import {
   UsersIcon,
   SettingsIcon,
 } from '@/components/icons';
+import { toast } from 'sonner';
+import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 
 interface JobTitle {
   id: string;
@@ -77,6 +79,7 @@ export function JobHierarchyManagement({
   rbac,
   onClose,
 }: JobHierarchyManagementProps) {
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const [jobTitles, setJobTitles] = useState<JobTitle[]>([]);
   const [jobCategories, setJobCategories] = useState<JobCategory[]>([]);
   const [jobTypes, setJobTypes] = useState<JobType[]>([]);
@@ -130,7 +133,7 @@ export function JobHierarchyManagement({
 
   const handleAddJobTitle = async () => {
     if (!titleFormData.title_name.trim()) {
-      alert('Job title name is required');
+      toast.error('Job title name is required');
       return;
     }
 
@@ -161,11 +164,11 @@ export function JobHierarchyManagement({
         setShowAddTitleForm(false);
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to add job title');
+        toast.error(errorData.error || 'Failed to add job title');
       }
     } catch (error) {
       console.error('Failed to add job title:', error);
-      alert('Failed to add job title. Please try again.');
+      toast.error('Failed to add job title. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -173,7 +176,7 @@ export function JobHierarchyManagement({
 
   const handleUpdateJobTitle = async () => {
     if (!editingTitle || !titleFormData.title_name.trim()) {
-      alert('Job title name is required');
+      toast.error('Job title name is required');
       return;
     }
 
@@ -207,22 +210,26 @@ export function JobHierarchyManagement({
         setShowAddTitleForm(false);
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to update job title');
+        toast.error(errorData.error || 'Failed to update job title');
       }
     } catch (error) {
       console.error('Failed to update job title:', error);
-      alert('Failed to update job title. Please try again.');
+      toast.error('Failed to update job title. Please try again.');
     } finally {
       setSaving(false);
     }
   };
 
   const handleDeleteJobTitle = async (jobTitle: JobTitle) => {
-    if (
-      !confirm(
-        `Are you sure you want to delete "${jobTitle.title_name}"? This will also affect related categories and job types.`
-      )
-    ) {
+    const confirmed = await confirm({
+      title: 'Delete Job Title',
+      description: `Are you sure you want to delete "${jobTitle.title_name}"? This will also affect related categories and job types.`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -235,11 +242,11 @@ export function JobHierarchyManagement({
         setJobTitles(prev => prev.filter(jt => jt.id !== jobTitle.id));
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to delete job title');
+        toast.error(errorData.error || 'Failed to delete job title');
       }
     } catch (error) {
       console.error('Failed to delete job title:', error);
-      alert('Failed to delete job title. Please try again.');
+      toast.error('Failed to delete job title. Please try again.');
     }
   };
 
@@ -552,6 +559,7 @@ export function JobHierarchyManagement({
           </CardContent>
         </Card>
       )}
+      <ConfirmDialog />
     </div>
   );
 }

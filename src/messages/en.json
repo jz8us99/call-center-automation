@@ -1,0 +1,806 @@
+{
+  "LocaleSwitcher": {
+    "label": "Language",
+    "en": "English",
+    "zh": "中文",
+    "es": "Español"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "signUp": "Sign Up",
+    "email": "Email",
+    "password": "Password",
+    "signingIn": "Signing in...",
+    "loadingGoogle": "Loading Google...",
+    "signInWithGoogle": "Sign in with Google",
+    "continue": "Continue",
+    "enterYourEmail": "Enter your email",
+    "orWithYourEmailBelow": "or with your email below",
+    "forgotPassword": "Forgot password?",
+    "needAnAccount": "Need an account?",
+    "termsOfService": "Terms of Service",
+    "privacyPolicy": "Privacy Policy",
+    "resetPassword": "Reset Password",
+    "resetPasswordDescription": "Enter your email address and we'll send you a link to reset your password.",
+    "cancel": "Cancel",
+    "sendResetEmail": "Send Reset Link",
+    "sending": "Sending...",
+    "unexpectedError": "An unexpected error occurred",
+    "googleServicesLoading": "Google services are still loading. Please try again.",
+    "googleSignInTimeout": "Google sign-in timed out. Please make sure you are logged into your Google account and try again.",
+    "googleSignInNotAvailable": "Google sign-in is not available right now. Please use email and password to sign in.",
+    "googleSignInUnavailable": "Google sign-in is temporarily unavailable. Please use email and password to sign in.",
+    "googleSignInFailed": "Google sign-in failed. Please try again or use email and password to sign in.",
+    "passwordResetEmailSent": "Password reset email sent! Please check your email for instructions."
+  },
+  "header": {
+    "nav": {
+      "products": "Products",
+      "solutions": "Solutions",
+      "pricing": "Pricing",
+      "partners": "Partners",
+      "company": "Company"
+    },
+    "user": {
+      "welcome": "Welcome, {name}",
+      "adminPanel": "Admin Panel",
+      "dashboard": "Dashboard",
+      "settings": "Settings",
+      "signIn": "Sign In",
+      "signOut": "Sign Out"
+    },
+    "contact": {
+      "phone": "+1 (555) 123-4567"
+    }
+  },
+  "dashboard": {
+    "loadingDashboard": "Loading dashboard...",
+    "welcome": "Welcome, {name}",
+    "adminView": "You're viewing as admin with access to all user data",
+    "userView": "Your personal dashboard",
+    "adminViewBadge": "Admin",
+    "totalCallRecords": "Total Call Records",
+    "todaysCalls": "Today's Calls",
+    "uniqueNumbers": "Unique Numbers",
+    "auth": {
+      "needSignIn": "Please sign in to access your dashboard.",
+      "goToSignIn": "Go to Sign In"
+    }
+  },
+  "settings": {
+    "preferences": {
+      "appearance": "Appearance",
+      "appearanceDesc": "Customize how the application looks on your device",
+      "darkMode": "Dark Mode",
+      "darkModeDesc": "Toggle between light and dark themes",
+      "language": "Language & Region",
+      "languageDesc": "Set your language and regional preferences",
+      "interfaceLanguage": "Interface Language",
+      "languageChangeNote": "Language changes take effect immediately",
+      "timezone": "Timezone",
+      "timezoneDesc": "Used for displaying dates and times",
+      "emailNotifications": "Email Notifications",
+      "emailNotificationsDesc": "Choose what notifications you want to receive",
+      "callNotifications": "Call Notifications",
+      "callNotificationsDesc": "Get notified about incoming and outgoing calls",
+      "appointmentNotifications": "Appointment Reminders",
+      "appointmentNotificationsDesc": "Receive reminders about upcoming appointments",
+      "systemUpdates": "System Updates",
+      "systemUpdatesDesc": "Important updates and maintenance notifications",
+      "billingPayments": "Billing & Payments",
+      "billingPaymentsDesc": "Payment receipts and billing information",
+      "marketingPromotions": "Marketing & Promotions",
+      "marketingPromotionsDesc": "Special offers and product updates",
+      "savePreferences": "Save Preferences"
+    }
+  },
+  "languages": {
+    "en": "English",
+    "zh": "中文 (Chinese)",
+    "es": "Español (Spanish)"
+  },
+  "timezones": {
+    "UTC": "UTC (Coordinated Universal Time)",
+    "America/New_York": "Eastern Time (New York)",
+    "America/Chicago": "Central Time (Chicago)",
+    "America/Denver": "Mountain Time (Denver)",
+    "America/Los_Angeles": "Pacific Time (Los Angeles)",
+    "Europe/London": "GMT (London)",
+    "Europe/Paris": "CET (Paris)",
+    "Europe/Berlin": "CET (Berlin)",
+    "Asia/Tokyo": "JST (Tokyo)",
+    "Asia/Shanghai": "CST (Shanghai)",
+    "Asia/Seoul": "KST (Seoul)"
+  },
+  "appointmentSystem": {
+    "title": "📅 Step 5: Appointment System Configuration",
+    "description": "Configure your business hours, holidays, appointment types, and booking settings to complete your system setup",
+    "tabs": {
+      "appointmentTypes": "Appointment Types",
+      "businessHours": "Business Hours",
+      "holidays": "Holiday Configuration",
+      "bookingSettings": "Booking Settings"
+    },
+    "appointmentTypes": {
+      "title": "Appointment Types",
+      "description": "Your appointment types are ready! We've loaded common appointment types as defaults. You can edit, remove, or add new ones to match your business needs.",
+      "saveChanges": "💾 Save Changes",
+      "cancelChanges": "Cancel Changes",
+      "addAppointmentType": "Add Appointment Type",
+      "table": {
+        "appointmentType": "Appointment Type",
+        "duration": "Duration",
+        "status": "Status",
+        "color": "Color",
+        "actions": "Actions"
+      }
+    },
+    "businessHours": {
+      "title": "Business Operating Hours",
+      "description": "Set your operating hours for each day. All days are customizable including weekends.",
+      "editHours": "Edit Hours"
+    }
+  },
+  "staffManagement": {
+    "loading": "Loading staff management..."
+  },
+  "aiAgents": {
+    "title": "Your AI Agents",
+    "description": "Create and manage multiple AI agents for different purposes. Each agent can have unique personalities, scripts, and capabilities.",
+    "createNewAgent": "Create New Agent"
+  },
+  "modals": {
+    "help": {
+      "title": "Help & Navigation Guide",
+      "helpButton": "Help",
+      "needMoreHelp": "Need more help? Contact our support team.",
+      "gotIt": "Got it!",
+      "pages": {
+        "home": {
+          "title": "Homepage Guide",
+          "description": "Learn how to navigate the homepage and get started",
+          "gettingStarted": "Getting Started",
+          "gettingStartedContent1": "• Click 'Sign In' to access your account",
+          "gettingStartedContent2": "• Use the navigation menu to explore features",
+          "gettingStartedContent3": "• Call the phone number for immediate assistance",
+          "availableFeatures": "Available Features",
+          "availableFeaturesContent1": "• View product information and pricing",
+          "availableFeaturesContent2": "• Access customer testimonials and case studies",
+          "availableFeaturesContent3": "• Contact sales team for demos"
+        },
+        "auth": {
+          "title": "Authentication Guide",
+          "description": "How to sign in and manage your account",
+          "signInOptions": "Sign In Options",
+          "signInOptionsContent1": "• Use your email and password",
+          "signInOptionsContent2": "• Sign in with Google OAuth",
+          "signInOptionsContent3": "• Request password reset if needed",
+          "newUsers": "New Users",
+          "newUsersContent1": "• Click 'Sign Up' to create an account",
+          "newUsersContent2": "• Verify your email address",
+          "newUsersContent3": "• Complete your profile setup"
+        },
+        "dashboard": {
+          "title": "Dashboard Guide",
+          "description": "Understanding your dashboard and its features",
+          "mainNavigation": "Main Navigation",
+          "mainNavigationContent1": "• Dashboard: Overview of your account",
+          "mainNavigationContent2": "• Configuration: Set up your AI assistant",
+          "mainNavigationContent3": "• Settings: Manage preferences and account",
+          "dashboardFeatures": "Dashboard Features",
+          "dashboardFeaturesContent1": "• View call statistics and logs",
+          "dashboardFeaturesContent2": "• Monitor AI assistant performance",
+          "dashboardFeaturesContent3": "• Access recent activity",
+          "quickActions": "Quick Actions",
+          "quickActionsContent1": "• Click on call entries to view details",
+          "quickActionsContent2": "• Use filters to search specific calls",
+          "quickActionsContent3": "• Export data for reporting"
+        },
+        "configuration": {
+          "title": "Configuration Guide",
+          "description": "Setting up and managing your AI assistant",
+          "navigationTabs": "Navigation Tabs",
+          "navigationTabsContent1": "• Business Info: Company details and setup",
+          "navigationTabsContent2": "• AI Agent: Configure your assistant",
+          "navigationTabsContent3": "• Staff: Manage team members",
+          "navigationTabsContent4": "• Call Flow: Set up call routing",
+          "navigationTabsContent5": "• Knowledge Base: Upload training materials",
+          "navigationTabsContent6": "• Testing: Test your configuration",
+          "aiAgentSetup": "AI Agent Setup",
+          "aiAgentSetupContent1": "• Choose your assistant's personality",
+          "aiAgentSetupContent2": "• Set up greeting messages",
+          "aiAgentSetupContent3": "• Configure response templates",
+          "staffManagement": "Staff Management",
+          "staffManagementContent1": "• Add team members and roles",
+          "staffManagementContent2": "• Set permissions and access levels",
+          "staffManagementContent3": "• Configure forwarding rules"
+        },
+        "signup": {
+          "title": "Sign Up Guide",
+          "description": "Creating your account and getting started",
+          "accountCreation": "Account Creation",
+          "accountCreationContent1": "• Provide your email and create a password",
+          "accountCreationContent2": "• Verify your email address",
+          "accountCreationContent3": "• Complete your business profile",
+          "gettingStarted": "Getting Started",
+          "gettingStartedContent1": "• Set up your business information",
+          "gettingStartedContent2": "• Configure your AI assistant",
+          "gettingStartedContent3": "• Test your setup with sample calls",
+          "existingUsers": "Existing Users",
+          "existingUsersContent1": "• Already have an account? Use Sign In",
+          "existingUsersContent2": "• Forgot password? Use password reset",
+          "existingUsersContent3": "• Need help? Contact support"
+        }
+      },
+      "allPages": {
+        "title": "All Available Pages",
+        "description": "Quick overview of all sections in the application",
+        "pages": {
+          "homePage": "Home Page",
+          "signIn": "Sign In",
+          "signUp": "Sign Up",
+          "dashboard": "Dashboard",
+          "configuration": "Configuration",
+          "adminDashboard": "Admin Dashboard"
+        },
+        "descriptions": {
+          "homePage": "Main landing page with product information",
+          "signIn": "Authentication and account access",
+          "signUp": "Create new account and registration",
+          "dashboard": "User dashboard with call logs and statistics",
+          "configuration": "AI assistant setup and business configuration",
+          "adminDashboard": "Administrative panel for system management"
+        }
+      },
+      "navigationTips": {
+        "title": "Navigation Tips",
+        "description": "Helpful tips for getting around the application",
+        "homeNavigation": "Home Navigation",
+        "homeNavigationContent1": "• Use the logo to return to homepage",
+        "homeNavigationContent2": "• Navigation menu is always available",
+        "homeNavigationContent3": "• User menu in top-right corner",
+        "findingFeatures": "Finding Features",
+        "findingFeaturesContent1": "• Check the sidebar for main sections",
+        "findingFeaturesContent2": "• Use search functionality when available",
+        "findingFeaturesContent3": "• Look for help buttons on each page",
+        "accountManagement": "Account Management",
+        "accountManagementContent1": "• Access profile from user dropdown",
+        "accountManagementContent2": "• Settings available in main navigation",
+        "accountManagementContent3": "• Sign out option in user menu",
+        "configuration": "Configuration",
+        "configurationContent1": "• Follow the setup wizard step by step",
+        "configurationContent2": "• Save changes before moving to next step",
+        "configurationContent3": "• Test your setup before going live"
+      },
+      "keyboardShortcuts": {
+        "title": "Keyboard Shortcuts",
+        "description": "Helpful keyboard shortcuts to navigate faster",
+        "general": "General",
+        "generalShortcuts": {
+          "help": "Show this help dialog",
+          "escape": "Close dialogs and menus",
+          "tab": "Navigate between form elements"
+        },
+        "dashboard": "Dashboard",
+        "dashboardShortcuts": {
+          "search": "Focus search box",
+          "playPause": "Play/pause audio",
+          "openDetails": "Open selected item details"
+        }
+      }
+    }
+  },
+  "dashboardHeader": {
+    "breadcrumbs": {
+      "admin": "Admin",
+      "dashboard": "Dashboard",
+      "users": "Users",
+      "pricing": "Pricing",
+      "settings": "Settings",
+      "userDetails": "User Details",
+      "agentConfig": "Agent Config"
+    },
+    "welcome": "Welcome, {name}",
+    "navigation": {
+      "adminPanel": "Admin Panel",
+      "dashboard": "Dashboard",
+      "settings": "Settings",
+      "signOut": "Sign Out"
+    }
+  },
+  "settingsTabs": {
+    "preferences": {
+      "label": "Preferences",
+      "description": "Language, notifications, and app preferences"
+    },
+    "account": {
+      "label": "Account",
+      "description": "Profile, security, and preferences"
+    },
+    "payment": {
+      "label": "Payment",
+      "description": "Billing, subscriptions, and payment methods"
+    },
+    "business": {
+      "label": "Business",
+      "description": "Business configuration and AI agent setup"
+    }
+  },
+  "callLogs": {
+    "title": "Call Records",
+    "loading": "Loading call records...",
+    "unknown": "Unknown",
+    "noRecords": "No call records yet",
+    "noRecordsDesc": "Call records will appear here once calls are made.",
+    "columns": {
+      "startTime": "Start Time",
+      "endTime": "End Time",
+      "duration": "Duration",
+      "type": "Type",
+      "phoneNumber": "Phone Number",
+      "cost": "Cost",
+      "summary": "Summary",
+      "audio": "Audio"
+    }
+  },
+  "searchFilters": {
+    "startTimeFrom": "Start Time From",
+    "startTimeTo": "Start Time To",
+    "selectStartTime": "Select start time",
+    "selectEndTime": "Select end time",
+    "type": "Type",
+    "allTypes": "All Types",
+    "inbound": "Inbound",
+    "outbound": "Outbound",
+    "phoneNumber": "Phone Number",
+    "enterPhoneNumber": "Enter phone number",
+    "search": "Search",
+    "clear": "Clear"
+  },
+  "home": {
+    "hero": {
+      "title": "Your 24x7 Receptionist",
+      "subtitle": "Powered by AI",
+      "description": "Get the #1 rated receptionist service for small businesses.",
+      "getStarted": "Get Started"
+    },
+    "valueProposition": {
+      "title": "Total call coverage, powered by",
+      "titleHighlight": "advanced AI",
+      "description": "Our intelligent AI system provides professional, efficient call handling that ensures every customer receives exceptional service.",
+      "stats": {
+        "satisfaction": "Customer satisfaction",
+        "clutchRating": "Clutch rating",
+        "availability": "Availability",
+        "trustpilotRating": "Trustpilot rating"
+      }
+    },
+    "industries": {
+      "title": "We serve a variety of industries",
+      "subtitle": "Tailored AI solutions for every business type",
+      "homeServices": {
+        "title": "Home Services",
+        "subtitle": "Convert calls into booked jobs, 24/7",
+        "description": "From plumbing to HVAC, we handle customer calls professionally"
+      },
+      "medical": {
+        "title": "Doctor and Wellness Offices",
+        "subtitle": "Help clients faster",
+        "description": "Professional AI-powered call handling bookings scheduling and more"
+      },
+      "marketing": {
+        "title": "Marketing Agencies",
+        "subtitle": "Never miss a lead",
+        "description": "Professional call handling for marketing professionals"
+      },
+      "petServices": {
+        "title": "Pet Services",
+        "subtitle": "Keep pet parents happy",
+        "description": "Caring AI call handling for veterinarians and pet care"
+      },
+      "propertyManagement": {
+        "title": "Property Management",
+        "subtitle": "24/7 tenant support",
+        "description": "Round-the-clock property management call handling"
+      },
+      "salonsSpas": {
+        "title": "Salons & Spas",
+        "subtitle": "Book appointments seamlessly",
+        "description": "Professional appointment booking and customer service"
+      }
+    },
+    "testimonials": {
+      "title": "What our customers say",
+      "testimonial1": {
+        "name": "Sarah Johnson",
+        "company": "Johnson & Associates Law",
+        "text": "The AI receptionist has transformed our practice. We never miss a call and clients love the professional service."
+      },
+      "testimonial2": {
+        "name": "Michael Chen",
+        "company": "Elite Home Services",
+        "text": "Our booking rate increased by 40% since using the service. The ROI is incredible."
+      },
+      "testimonial3": {
+        "name": "Emma Rodriguez",
+        "company": "Bella Spa & Wellness",
+        "text": "Professional, reliable, and cost-effective. Our clients love the consistent, high-quality service."
+      }
+    },
+    "integrations": {
+      "title": "Integrates with your favorite tools"
+    }
+  },
+  "signup": {
+    "createAccountPrompt": "Create your account to get started",
+    "connecting": "Connecting...",
+    "signUpWithGoogle": "Sign up with Google",
+    "googleSecurityTip": "Security tip: You will be redirected to Google's official authentication page for secure registration",
+    "orWithEmail": "or with your email below",
+    "fullName": "Full Name",
+    "enterFullName": "Enter your full name",
+    "email": "Email",
+    "enterEmail": "Enter your email",
+    "password": "Password",
+    "enterPassword": "Enter your password",
+    "confirmPassword": "Confirm Password",
+    "confirmPasswordPlaceholder": "Confirm your password",
+    "creatingAccount": "Creating account...",
+    "createAccount": "Create Account",
+    "alreadyHaveAccount": "Already have an account? Sign in",
+    "backToHome": "Back to Home",
+    "passwordsDoNotMatch": "Passwords do not match",
+    "userAlreadyExists": "This user already exists",
+    "registrationSuccess": "Registration successful! Please check your email and click the verification link to complete your account setup.",
+    "unexpectedError": "An unexpected error occurred",
+    "googleSignUpFailed": "Google sign up failed",
+    "googleSignUpInitFailed": "Failed to initialize Google sign up. Please try again."
+  },
+  "accountSettings": {
+    "profile": {
+      "title": "Profile Information",
+      "description": "Update your account profile information and email address.",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email Address",
+      "firstNamePlaceholder": "Enter your first name",
+      "lastNamePlaceholder": "Enter your last name",
+      "emailPlaceholder": "Enter your email",
+      "emailNote": "Contact support to change your email address.",
+      "saveChanges": "Save Changes"
+    },
+    "security": {
+      "title": "Security",
+      "description": "Manage your password and account security settings.",
+      "currentPassword": "Current Password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm New Password",
+      "currentPasswordPlaceholder": "Enter current password",
+      "newPasswordPlaceholder": "Enter new password",
+      "confirmPasswordPlaceholder": "Confirm new password",
+      "updatePassword": "Update Password"
+    },
+    "preferences": {
+      "title": "Preferences",
+      "description": "Customize your account preferences and notification settings.",
+      "timezone": "Timezone",
+      "language": "Language",
+      "savePreferences": "Save Preferences",
+      "timezoneOptions": {
+        "utc": "UTC",
+        "eastern": "Eastern Time",
+        "central": "Central Time",
+        "mountain": "Mountain Time",
+        "pacific": "Pacific Time"
+      },
+      "languageOptions": {
+        "english": "English",
+        "spanish": "Español",
+        "chinese": "中文"
+      }
+    }
+  },
+  "billingSettings": {
+    "currentPlan": {
+      "title": "Current Plan",
+      "description": "Your current subscription and usage information.",
+      "planName": "Pro Plan",
+      "active": "Active",
+      "planDetails": "300 calls per month • $800.00/month",
+      "changePlan": "Change Plan",
+      "usage": {
+        "callsThisMonth": "Calls this month",
+        "callsRemaining": "Calls remaining",
+        "overageCharges": "Overage charges"
+      }
+    },
+    "paymentMethods": {
+      "title": "Payment Methods",
+      "description": "Manage your payment methods and billing information.",
+      "addPaymentMethod": "Add Payment Method",
+      "expires": "Expires 12/2025",
+      "default": "Default",
+      "remove": "Remove",
+      "addPrompt": "Add a payment method to manage your subscription"
+    },
+    "billingHistory": {
+      "title": "Billing History",
+      "description": "Download your previous invoices and receipts.",
+      "table": {
+        "invoice": "Invoice",
+        "date": "Date",
+        "status": "Status",
+        "amount": "Amount",
+        "actions": "Actions",
+        "paid": "Paid",
+        "download": "Download"
+      }
+    },
+    "usageAnalytics": {
+      "title": "Usage Analytics",
+      "description": "Detailed breakdown of your monthly usage.",
+      "chartPlaceholder": "Usage analytics chart will be displayed here",
+      "comingSoon": "Coming soon..."
+    }
+  },
+  "businessSettings": {
+    "steps": {
+      "business": {
+        "label": "Business Information",
+        "description": "Train your AI to understand your business as much as it can"
+      },
+      "products": {
+        "label": "Products",
+        "description": "Manage your product inventory and pricing"
+      },
+      "services": {
+        "label": "Services",
+        "description": "Configure appointment-based services with duration and pricing"
+      },
+      "appointments": {
+        "label": "Appointment System",
+        "description": "Configure appointment types, business hours, and booking settings"
+      },
+      "staff": {
+        "label": "Staff Management",
+        "description": "Add staff members and manage their schedules based on business hours"
+      },
+      "agent": {
+        "label": "AI Agents Setup",
+        "description": "Create and manage multiple AI agents with different capabilities"
+      }
+    }
+  },
+  "businessInformation": {
+    "loading": "Loading your business information...",
+    "basicInfo": {
+      "title": "Basic Business Information",
+      "description": "Provide essential information about your business that will be used throughout your AI agent configuration.",
+      "businessName": "Business Name *",
+      "businessNamePlaceholder": "Your Business Name",
+      "businessType": "Business Type *",
+      "businessTypePlaceholder": "Select your business type",
+      "businessDescription": "Business Description",
+      "businessDescriptionPlaceholder": "Brief description of your business and services...",
+      "yearsInBusiness": "Years in Business",
+      "numberOfEmployees": "Number of Employees",
+      "timezone": "Timezone"
+    },
+    "contactInfo": {
+      "title": "Contact Information",
+      "description": "Business contact details and primary contact person information.",
+      "businessPhone": "Business Phone *",
+      "phonePlaceholder": "(555) 123-4567",
+      "businessEmail": "Business Email",
+      "emailPlaceholder": "info@yourbusiness.com",
+      "businessAddress": "Business Address",
+      "streetAddress": "Street Address",
+      "streetAddressPlaceholder": "123 Main Street, Suite 100",
+      "city": "City",
+      "cityPlaceholder": "City",
+      "stateProvince": "State/Province",
+      "statePlaceholder": "State",
+      "postalCode": "ZIP/Postal Code",
+      "postalCodePlaceholder": "12345",
+      "primaryContactName": "Primary Contact Name",
+      "contactNamePlaceholder": "John Smith",
+      "contactRole": "Contact Role",
+      "contactRolePlaceholder": "Office Manager",
+      "contactPhone": "Contact Phone",
+      "contactEmail": "Contact Email",
+      "contactEmailPlaceholder": "john@yourbusiness.com"
+    },
+    "insuranceInfo": {
+      "title": "Insurance Acceptance",
+      "description": "List the insurance providers your business accepts. This helps customers know which insurances you work with.",
+      "acceptedProviders": "Accepted Insurance Providers",
+      "noProviders": "No insurance providers added yet.",
+      "providerPlaceholder": "Enter insurance provider name",
+      "add": "Add",
+      "commonProviders": "Common Insurance Providers:"
+    },
+    "locations": {
+      "title": "Business Locations",
+      "description": "Manage multiple business locations. Staff can be assigned to specific locations for better organization and scheduling.",
+      "addLocation": "Add Location",
+      "noLocations": "No Business Locations",
+      "firstLocationHelp": "Add your first business location to help organize staff and services. A default location will be created automatically when you save your business information.",
+      "addFirstLocation": "Add First Location",
+      "editLocation": "Edit Location",
+      "addNewLocation": "Add New Location",
+      "locationName": "Location Name *",
+      "locationNamePlaceholder": "Main Office, Branch Location, etc.",
+      "setPrimary": "Set as primary location",
+      "saveLocation": "Save Location",
+      "cancel": "Cancel"
+    },
+    "saveStatus": {
+      "success": "Business Information Saved Successfully!",
+      "error": "Error saving business information",
+      "completeInfo": "Complete Business Information",
+      "successDescription": "You can now proceed to Staff Management. Your information will be used across all AI agents.",
+      "errorDescription": "There was an error saving your information. Please try again.",
+      "fillRequiredFields": "Please fill in the required fields above to enable saving.",
+      "instructionDescription": "This information will be used across all your AI agents and can be updated anytime.",
+      "savedSuccessfully": "Saved Successfully",
+      "saveBusinessInfo": "Save Business Information"
+    },
+    "form": {
+      "title": "Business Information",
+      "description": "Information about your business that the AI agent will use when talking to callers",
+      "businessName": "Business Name *",
+      "businessNamePlaceholder": "e.g., Sunshine Medical Clinic",
+      "businessType": "Business Type *",
+      "businessTypePlaceholder": "Select business type",
+      "businessDescription": "Business Description",
+      "businessDescriptionPlaceholder": "Tell me about your business...",
+      "businessAddress": "Business Address",
+      "addressPlaceholder": "123 Main St, City, State 12345",
+      "businessPhone": "Business Phone *",
+      "phonePlaceholder": "+1 (555) 123-4567",
+      "businessEmail": "Business Email",
+      "emailPlaceholder": "info@business.com",
+      "websiteUrl": "Website URL (Alternative to document upload)",
+      "websitePlaceholder": "https://www.yourbusiness.com",
+      "primaryContactTitle": "Primary Contact Person",
+      "primaryContactDescription": "The main contact person for this business location",
+      "primaryContactName": "Primary Contact Name",
+      "contactNamePlaceholder": "Dr. Jane Smith",
+      "primaryContactRole": "Primary Contact Role",
+      "contactRolePlaceholder": "Practice Manager",
+      "contactEmailPlaceholder": "contact@business.com",
+      "businessKnowledgeTitle": "Business Knowledge",
+      "businessKnowledgeDescription": "Upload documents or provide your website URL to help the AI understand your business better",
+      "businessKnowledgeInstructions": "Provide information about your business by uploading relevant documents or sharing your website URL. The AI will analyze this content to better serve your customers.",
+      "pricingDocuments": "Pricing Documents",
+      "pricingDocumentsDesc": "Service prices, packages, insurance information",
+      "businessPolicies": "Business Policies",
+      "businessPoliciesDesc": "Policies, procedures, terms and conditions",
+      "operatingHours": "Operating Hours",
+      "operatingHoursDesc": "Hours of operation, schedules, availability",
+      "uploading": "Uploading...",
+      "uploadLabel": "Upload {label}",
+      "chooseFiles": "Choose Files",
+      "noFilesSelected": "No files selected",
+      "saving": "Saving...",
+      "saveConfiguration": "Save Configuration"
+    }
+  },
+  "businessProducts": {
+    "loading": "Loading business profile and products...",
+    "businessTypeRequired": "Business Type Required",
+    "businessTypeRequiredDesc": "Please complete the Business Information step first to configure your product inventory.",
+    "title": "Business Products",
+    "description": "Manage your product inventory for your {businessType} business{businessName, select, null {} other { ({businessName})}}. Products are items you sell that don't require appointments.",
+    "categoriesTitle": "Product Categories & Products",
+    "categoriesDescription": "Organize your products into categories and manage individual product offerings with pricing and inventory details.",
+    "addCategory": "Add Category",
+    "noCategories": "No Product Categories",
+    "noCategoriesDesc": "Create your first product category to organize your inventory.",
+    "addFirstCategory": "Add Your First Category",
+    "editCategory": "Edit Product Category",
+    "categoryName": "Category Name *"
+  },
+  "businessServices": {
+    "loading": "Loading business profile and services...",
+    "businessTypeRequired": "Business Type Required",
+    "businessTypeRequiredDesc": "Please complete the Business Information step first to configure your business type.",
+    "currentBusinessProfile": "Current business profile: {status}",
+    "found": "Found",
+    "notFound": "Not found",
+    "title": "Business Services",
+    "description": "Configure appointment-based services for your {businessType} business{businessName}. Services require duration and can be scheduled with appointments.",
+    "categoryForm": {
+      "editTitle": "Edit Service Category",
+      "addTitle": "Add Service Category",
+      "editDescription": "Update the service category details below.",
+      "addDescription": "Create a new service category for your {businessType} appointment-based services.",
+      "categoryName": "Category Name *",
+      "categoryNamePlaceholder": "e.g., Preventive Care, Diagnostic Services",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe what services this category covers...",
+      "updating": "Updating...",
+      "adding": "Adding...",
+      "updateCategory": "Update Category",
+      "addCategory": "Add Category",
+      "cancel": "Cancel"
+    },
+    "categories": {
+      "title": "Service Categories & Services",
+      "description": "Organize your appointment-based services into categories and manage individual service offerings with duration, pricing, and scheduling requirements.",
+      "addCategory": "Add Category",
+      "noCategories": "No Service Categories",
+      "noCategoriesDesc": "Create your first service category to organize your {businessType} appointment offerings.",
+      "addFirstCategory": "Add First Category",
+      "servicesCount": "{count} services",
+      "tableHeaders": {
+        "serviceName": "Service Name",
+        "description": "Description",
+        "duration": "Duration",
+        "price": "Price",
+        "actions": "Actions"
+      },
+      "noServicesYet": "No services in this category yet.",
+      "addServiceTip": "Click the + icon in the header to add a service",
+      "uncategorizedServices": "Uncategorized Services"
+    },
+    "serviceForm": {
+      "editTitle": "Edit Service",
+      "addTitle": "Add Service",
+      "editDescription": "Update the service details below.",
+      "addDescription": "Define a specific appointment-based service with duration and pricing information.",
+      "serviceName": "Service Name *",
+      "serviceNamePlaceholder": "e.g., Teeth Cleaning, Consultation",
+      "category": "Category",
+      "categoryPlaceholder": "Select category (optional)",
+      "noCategory": "No Category",
+      "description": "Description",
+      "descriptionPlaceholder": "Describe what this service includes...",
+      "duration": "Duration (minutes) *",
+      "servicePrice": "Service Price",
+      "pricePlaceholder": "0.00",
+      "currency": "Currency",
+      "updating": "Updating...",
+      "adding": "Adding...",
+      "updateService": "Update Service",
+      "addService": "Add Service",
+      "cancel": "Cancel"
+    },
+    "inlineEdit": {
+      "serviceName": "Service name",
+      "description": "Description",
+      "duration": "Duration",
+      "price": "Price"
+    },
+    "alerts": {
+      "categoryNameRequired": "Category name is required and business type must be configured",
+      "categoryNameRequiredSimple": "Category name is required",
+      "serviceNameRequired": "Service name is required and business type must be configured",
+      "serviceNameRequiredSimple": "Service name is required",
+      "confirmDeleteCategory": "Are you sure you want to delete this category? This will also affect any associated services.",
+      "confirmDeleteService": "Are you sure you want to delete this service?",
+      "failedToAddCategory": "Failed to add category",
+      "failedToUpdateCategory": "Failed to update category",
+      "failedToDeleteCategory": "Failed to delete category",
+      "failedToAddService": "Failed to add service",
+      "failedToUpdateService": "Failed to update service",
+      "failedToDeleteService": "Failed to delete service",
+      "tryAgain": "Please try again."
+    },
+    "saveChanges": {
+      "unsavedChanges": "You have unsaved changes to service categories",
+      "changesSaved": "Changes saved successfully!",
+      "failedToSave": "Failed to save changes",
+      "saving": "Saving...",
+      "saveChanges": "Save Changes"
+    },
+    "status": {
+      "title": "Services Status",
+      "businessType": "Business Type: {businessType}",
+      "categories": "Categories: {count}",
+      "services": "Services: {count}",
+      "readyMessage": "✅ Ready for staff assignment and appointment scheduling!"
+    }
+  }
+}

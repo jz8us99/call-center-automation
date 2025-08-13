@@ -17,7 +17,15 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AgentType, AGENT_TYPE_CONFIGS } from '@/types/agent-types';
-import { AgentTemplate } from '@/types/business-types';
+
+interface AgentTemplate {
+  name?: string;
+  description?: string;
+  prompt_template?: string;
+  voice_settings?: Record<string, any>;
+  call_routing?: Record<string, any>;
+  configuration_template?: Record<string, any>;
+}
 import { X } from 'lucide-react';
 
 interface TemplatePreviewModalProps {

@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase-admin';
+import { withAuth, isAuthError } from '@/lib/api-auth-helper';
 
 // GET - Fetch customers with filtering and search options
 export async function GET(request: NextRequest) {
   try {
-    const supabase = supabaseAdmin;
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+    const { supabaseWithAuth: supabase } = authResult;
     const { searchParams } = new URL(request.url);
 
     const user_id = searchParams.get('user_id');
@@ -50,7 +54,10 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error('Error fetching customers:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({
@@ -71,7 +78,11 @@ export async function GET(request: NextRequest) {
 // POST - Create new customer
 export async function POST(request: NextRequest) {
   try {
-    const supabase = supabaseAdmin;
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+    const { supabaseWithAuth: supabase } = authResult;
     const body = await request.json();
 
     const {
@@ -181,7 +192,10 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Error creating customer:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ customer: data });
@@ -197,7 +211,11 @@ export async function POST(request: NextRequest) {
 // PUT - Update customer
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = supabaseAdmin;
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+    const { supabaseWithAuth: supabase } = authResult;
     const body = await request.json();
 
     const {
@@ -343,7 +361,10 @@ export async function PUT(request: NextRequest) {
 
     if (error) {
       console.error('Error updating customer:', error);
-      return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+      return NextResponse.json(
+        { error: (error as Error).message },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({ customer: data });
@@ -359,7 +380,11 @@ export async function PUT(request: NextRequest) {
 // DELETE - Delete customer (soft delete by default)
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = supabaseAdmin;
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
+    }
+    const { supabaseWithAuth: supabase } = authResult;
     const { searchParams } = new URL(request.url);
 
     const id = searchParams.get('id');
@@ -403,7 +428,10 @@ export async function DELETE(request: NextRequest) {
 
       if (error) {
         console.error('Error deleting customer:', error);
-        return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+        return NextResponse.json(
+          { error: (error as Error).message },
+          { status: 500 }
+        );
       }
 
       return NextResponse.json({
@@ -425,7 +453,10 @@ export async function DELETE(request: NextRequest) {
 
       if (error) {
         console.error('Error deactivating customer:', error);
-        return NextResponse.json({ error: (error as Error).message }, { status: 500 });
+        return NextResponse.json(
+          { error: (error as Error).message },
+          { status: 500 }
+        );
       }
 
       return NextResponse.json({

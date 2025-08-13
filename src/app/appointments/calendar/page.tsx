@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 
 import { User } from '@supabase/supabase-js';
-import { StaffCalendarListing } from '@/components/appointments/StaffCalendarListing';
+import { StaffCalendarListing } from '@/components/settings/business/steps/step4-appointments/StaffCalendarListing';
 import {
   Card,
   CardContent,
@@ -41,7 +41,7 @@ export default function AppointmentCalendarPage() {
 
   const loadBusinessProfile = async (userId: string) => {
     try {
-      const response = await fetch(`/api/business-profile?user_id=${userId}`);
+      const response = await fetch(`/api/business/profile?user_id=${userId}`);
       if (response.ok) {
         const data = await response.json();
         setBusinessProfile(data.profile);

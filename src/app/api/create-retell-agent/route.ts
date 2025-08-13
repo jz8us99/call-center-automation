@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { authenticateRequest } from '@/lib/supabase';
-import { supabase } from '@/lib/supabase-admin';
+import { withAuth, isAuthError } from '@/lib/api-auth-helper';
 import { emailService } from '@/lib/email-service';
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await authenticateRequest(request);
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
     }
+    const { user, supabaseWithAuth: supabase } = authResult;
 
     const {
       clientId,
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
 }
 
 function createKnowledgeBase(
-  businessKnowledge: any[],
+  businessKnowledge: Record<string, unknown>[],
   businessName: string,
   businessType: string
 ): string {
@@ -157,7 +157,7 @@ async function createRetellAgent(config: {
   agentPersonality: string;
   knowledgeBase: string;
   customPrompt?: string;
-  voiceSettings: any;
+  voiceSettings: Record<string, unknown>;
 }) {
   // This would integrate with the actual Retell AI API
   // For now, return a mock response

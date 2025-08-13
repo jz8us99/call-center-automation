@@ -7,6 +7,7 @@ import {
   AgentConfiguration,
   AgentTranslation,
   DuplicateAgentRequest,
+  VoiceSettings,
   SUPPORTED_LANGUAGES,
 } from '@/types/ai-agent-types';
 import { supabase } from './supabase-admin';
@@ -235,7 +236,7 @@ export class TranslationManager {
         await this.updateTranslatedAgent(
           translation.target_agent_id,
           updatedFields,
-          (translation.supported_languages as any).code
+          translation.supported_languages.code
         );
       }
 
@@ -372,7 +373,7 @@ export class TranslationManager {
       language_code?: SupportedLanguage;
     },
     targetLanguage: SupportedLanguage,
-    targetLanguageConfig: any,
+    targetLanguageConfig: Record<string, unknown>,
     customName?: string,
     autoTranslate: boolean = true
   ): Promise<AIAgent> {
@@ -458,9 +459,9 @@ export class TranslationManager {
   }
 
   private adaptVoiceSettingsForLanguage(
-    sourceVoiceSettings: any,
+    sourceVoiceSettings: VoiceSettings,
     targetLanguage: SupportedLanguage
-  ): any {
+  ): VoiceSettings {
     const languageSettings = SUPPORTED_LANGUAGES[targetLanguage];
 
     return {
@@ -503,9 +504,9 @@ export class TranslationManager {
       );
 
       const configData = {
+        agent_id: translatedAgentId,
         ...sourceConfiguration,
         ...translatedConfig,
-        agent_id: translatedAgentId,
         id: undefined, // Remove ID to create new record
         created_at: undefined,
         updated_at: undefined,
@@ -579,7 +580,7 @@ export class TranslationManager {
       );
 
       // Build translated configuration
-      const translatedConfig: any = {
+      const translatedConfig: Partial<AgentConfiguration> = {
         response_templates: { ...config.response_templates },
         confirmation_messages: { ...config.confirmation_messages },
       };
@@ -685,7 +686,7 @@ export class TranslationManager {
         'voice_settings',
       ];
 
-      const fieldsToUpdate: any = {};
+      const fieldsToUpdate: Record<string, unknown> = {};
 
       syncableFields.forEach(field => {
         if (updatedFields[field as keyof AIAgent] !== undefined) {

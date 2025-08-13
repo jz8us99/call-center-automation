@@ -2,8 +2,7 @@
 // Handle multi-language agent duplication
 
 import { NextRequest, NextResponse } from 'next/server';
-import { authenticateRequest } from '@/lib/supabase';
-import { supabase } from '@/lib/supabase-admin';
+import { withAuth, isAuthError } from '@/lib/api-auth-helper';
 import {
   TranslationManager,
   MockTranslationService,
@@ -23,10 +22,11 @@ export async function POST(
   { params }: { params: Promise<{ agentId: string }> }
 ) {
   try {
-    const user = await authenticateRequest(request);
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const authResult = await withAuth(request);
+    if (isAuthError(authResult)) {
+      return authResult;
     }
+    const { user, supabaseWithAuth: supabase } = authResult;
 
     const { agentId: sourceAgentId } = await params;
     const duplicateRequest: DuplicateAgentRequest = await request.json();
@@ -83,7 +83,8 @@ export async function POST(
 
     // Check if source is already in target language
     if (
-      (sourceAgent.supported_languages as any)?.code === duplicateRequest.target_language
+      (sourceAgent.supported_languages as any)?.code ===
+      duplicateRequest.target_language
     ) {
       return NextResponse.json(
         { error: 'Source agent is already in the target language' },

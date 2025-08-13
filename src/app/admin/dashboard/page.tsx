@@ -9,27 +9,33 @@ import { User } from '@supabase/supabase-js';
 
 // Components
 import { Badge } from '@/components/ui/badge';
-import { SimpleThemeSwitch } from '@/components/SimpleThemeSwitch';
+import { DashboardHeader } from '@/components/layout/DashboardHeader';
+import {
+  CallLogsTable,
+  CallLog,
+  CallLogColumn,
+} from '@/components/tables/CallLogsTable';
+import { SearchFilters } from '@/components/tables/SearchFilters';
 
-interface CallLog {
+// Admin dashboard column configuration
+const ADMIN_COLUMNS: CallLogColumn[] = [
+  'startTime',
+  'endTime',
+  'duration',
+  'type',
+  'phoneNumber',
+  'cost',
+];
+
+interface AdminCallLog {
   id: string;
   user_id: string;
-  created_at: string;
-  updated_at: string;
-  direction?: 'inbound' | 'outbound';
-  from_number?: string;
-  to_number?: string;
-  phone_number?: string;
-  first_name?: string;
-  last_name?: string;
-  email?: string;
-  start_timestamp?: string;
-  end_timestamp?: string;
+  phone_number: string;
+  call_status: string;
+  started_at: string;
+  ended_at: string;
   duration?: number;
   call_summary?: string;
-  transcript?: string;
-  call_type?: string;
-  custom_data?: Record<string, unknown>;
   profiles?: {
     id: string;
     full_name: string;
@@ -48,11 +54,20 @@ interface UserProfile {
 export default function AdminDashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [calls, setCalls] = useState<CallLog[]>([]);
+  const [calls, setCalls] = useState<AdminCallLog[]>([]);
+  const [callLogs, setCallLogs] = useState<CallLog[]>([]);
+  const [callLogsPagination, setCallLogsPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 0,
+  });
+  const [callLogsLoading, setCallLogsLoading] = useState(false);
+  const [callLogsError, setCallLogsError] = useState<string | null>(null);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string>('all');
   const [callsLoading, setCallsLoading] = useState(false);
-  const [, setUsersLoading] = useState(false);
+  const [usersLoading, setUsersLoading] = useState(false);
   const [stats, setStats] = useState({
     totalUsers: 0,
     activeSessions: 0,
@@ -92,23 +107,21 @@ export default function AdminDashboard() {
     try {
       setUsersLoading(true);
 
-      // Get current session and token for authentication
+      // Get the current session token
       const {
         data: { session },
       } = await supabase.auth.getSession();
 
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-
-      // Add authorization header if session exists
-      if (session?.access_token) {
-        headers['Authorization'] = `Bearer ${session.access_token}`;
+      if (!session?.access_token) {
+        throw new Error('No authentication token available');
       }
 
       const response = await fetch('/api/admin/users', {
         method: 'GET',
-        headers,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
       });
 
       if (!response.ok) {
@@ -126,53 +139,128 @@ export default function AdminDashboard() {
     }
   }, []);
 
-  // Load call logs with optional user filtering
+  // Load call logs for CallLogsTable component
+  const loadCallLogs = useCallback(
+    async (page = 1, filters?: SearchFilters) => {
+      try {
+        setCallLogsLoading(true);
+        setCallLogsError(null);
+
+        // Get the current session token
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (!session?.access_token) {
+          throw new Error('No authentication token available');
+        }
+
+        // Build query parameters
+        const params = new URLSearchParams({
+          page: page.toString(),
+          limit: '10',
+        });
+
+        if (filters?.startTimeFrom) {
+          params.append('start_time_from', filters.startTimeFrom);
+        }
+        if (filters?.startTimeTo) {
+          params.append('start_time_to', filters.startTimeTo);
+        }
+        if (filters?.type && filters.type !== 'all') {
+          params.append('type', filters.type);
+        }
+        if (filters?.phoneNumber) {
+          params.append('phone_number', filters.phoneNumber);
+        }
+        if (filters?.userId) {
+          params.append('user_id', filters.userId);
+        }
+
+        const response = await fetch(`/api/admin/calls?${params.toString()}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch call logs');
+        }
+
+        const data = await response.json();
+        setCallLogs(data.calls || []);
+        setCallLogsPagination({
+          page: data.pagination?.page || page,
+          limit: data.pagination?.limit || 10,
+          total: data.totalCount || 0,
+          totalPages:
+            data.pagination?.totalPages ||
+            Math.ceil((data.totalCount || 0) / 10),
+        });
+      } catch (error) {
+        console.error('Failed to load call logs:', error);
+        setCallLogsError(
+          error instanceof Error ? error.message : 'Failed to fetch call logs'
+        );
+        setCallLogs([]);
+      } finally {
+        setCallLogsLoading(false);
+      }
+    },
+    []
+  );
+
+  // Handle search for CallLogsTable
+  const handleCallLogsSearch = useCallback(
+    (filters: SearchFilters) => {
+      loadCallLogs(1, filters);
+    },
+    [loadCallLogs]
+  );
+
+  // Load call logs with optional user filtering (for simple table)
   const loadCalls = useCallback(async (userId: string = 'all') => {
     try {
       setCallsLoading(true);
 
-      const params = new URLSearchParams({
-        page: '1',
-        limit: '20',
-      });
-
-      if (userId && userId !== 'all') {
-        params.append('user_id', userId);
-      }
-
-      // Get current session and token for authentication
+      // Get the current session token
       const {
         data: { session },
       } = await supabase.auth.getSession();
 
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-
-      // Add authorization header if session exists
-      if (session?.access_token) {
-        headers['Authorization'] = `Bearer ${session.access_token}`;
+      if (!session?.access_token) {
+        throw new Error('No authentication token available');
       }
 
-      const response = await fetch(`/api/customer-call-logs-rls?${params}`, {
+      const params = new URLSearchParams({
+        limit: '20',
+        offset: '0',
+      });
+
+      if (userId && userId !== 'all') {
+        params.append('userId', userId);
+      }
+
+      const response = await fetch(`/api/admin/calls?${params}`, {
         method: 'GET',
-        headers,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('API Error Response:', errorText);
-        throw new Error(
-          `Failed to fetch calls: ${response.status} ${response.statusText} - ${errorText}`
-        );
+        throw new Error('Failed to fetch calls');
       }
 
       const data = await response.json();
-      setCalls(data.data || []);
+      setCalls(data.calls || []);
       setStats(prev => ({
         ...prev,
-        totalCalls: data.pagination?.total || 0,
-        recentCalls: data.data?.length || 0,
+        totalCalls: data.totalCount || 0,
+        recentCalls: data.calls?.length || 0,
       }));
     } catch (error) {
       console.error('Failed to load calls:', error);
@@ -194,8 +282,9 @@ export default function AdminDashboard() {
     if (isDevelopment || (user && isAdmin)) {
       loadUsers();
       loadCalls();
+      loadCallLogs();
     }
-  }, [user, isAdmin, loadUsers, loadCalls]);
+  }, [user, isAdmin, loadUsers, loadCalls, loadCallLogs]);
 
   // Development mode bypass - remove this in production
   const isDevelopment = process.env.NODE_ENV === 'development';
@@ -216,7 +305,7 @@ export default function AdminDashboard() {
   if (!isDevelopment && (!user || !isAdmin)) {
     return (
       <div className="min-h-screen bg-white dark:bg-gray-800 dark:bg-gray-900 flex items-center justify-center">
-        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-8 text-center shadow-lg">
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-2xl p-8 text-center shadow-lg">
           <h1 className="text-2xl font-bold text-black dark:text-white mb-4">
             Access Denied
           </h1>
@@ -234,104 +323,21 @@ export default function AdminDashboard() {
     );
   }
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.push('/');
-  };
-
   return (
     <div className="min-h-screen bg-white dark:bg-gray-800 dark:bg-gray-900">
-      {/* Header */}
-      <header className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link
-              href="/"
-              className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
-            >
-              <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
-                <span className="text-white text-xl font-bold">R</span>
-              </div>
-              <span className="text-xl font-bold text-black dark:text-white">
-                JSX-ReceptionAI
-              </span>
-              <span className="text-sm bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
-                Admin Dashboard
-              </span>
-            </Link>
-
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => router.back()}
-                className="flex items-center gap-2 text-black dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-400 transition-colors"
-              >
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
-                <span className="hidden sm:inline">Back</span>
-              </button>
-              <Link
-                href="/"
-                className="flex items-center gap-2 text-black dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-400 transition-colors"
-              >
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="m3 12 2-2m0 0 7-7 7 7M5 10v10a1 1 0 0 0 1 1h3m0 0V11a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v10m3 0a1 1 0 0 0 1-1V10m0 0 7-7"
-                  />
-                </svg>
-                <span className="hidden sm:inline">Home</span>
-              </Link>
-              <SimpleThemeSwitch />
-              <span className="text-sm text-black dark:text-gray-300">
-                Welcome, {profile?.full_name || user?.email}
-              </span>
-              <button
-                onClick={handleSignOut}
-                className="flex items-center gap-2 text-black dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-400 transition-colors"
-              >
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                  />
-                </svg>
-                Sign out
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <DashboardHeader
+        user={user}
+        userDisplayName={
+          profile?.full_name || user?.email?.split('@')[0] || 'Admin'
+        }
+        pageType="admin"
+      />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <div className="grid gap-6">
           {/* Welcome Card */}
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
+          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-2xl p-6 shadow-sm">
             <h1 className="text-3xl font-bold text-black dark:text-white mb-2">
               Welcome to Admin Dashboard
             </h1>
@@ -343,7 +349,7 @@ export default function AdminDashboard() {
 
           {/* Stats Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm">
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl p-4 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-500 text-sm">Total Users</p>
@@ -369,7 +375,7 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm">
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl p-4 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-500 text-sm">Total Calls</p>
@@ -395,7 +401,7 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm">
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl p-4 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-500 text-sm">System Status</p>
@@ -421,7 +427,7 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 shadow-sm">
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl p-4 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-500 text-sm">Recent Calls</p>
@@ -449,14 +455,14 @@ export default function AdminDashboard() {
           </div>
 
           {/* Quick Actions */}
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
+          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-2xl p-6 shadow-sm">
             <h2 className="text-xl font-semibold text-black dark:text-white mb-4">
               Quick Actions
             </h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
               <Link
                 href="/admin/users"
-                className="flex items-center gap-3 p-4 bg-white dark:bg-gray-800 dark:bg-gray-900 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 dark:border-gray-700"
+                className="flex items-center gap-3 p-4 bg-white dark:bg-gray-800 dark:bg-gray-900 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 dark:border-gray-600"
               >
                 <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
                   <svg
@@ -485,7 +491,7 @@ export default function AdminDashboard() {
 
               <Link
                 href="/admin/pricing"
-                className="flex items-center gap-3 p-4 bg-white dark:bg-gray-800 dark:bg-gray-900 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 dark:border-gray-700"
+                className="flex items-center gap-3 p-4 bg-white dark:bg-gray-800 dark:bg-gray-900 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 dark:border-gray-600"
               >
                 <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
                   <svg
@@ -512,7 +518,7 @@ export default function AdminDashboard() {
                 </div>
               </Link>
 
-              <button className="flex items-center gap-3 p-4 bg-white dark:bg-gray-800 dark:bg-gray-900 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 dark:border-gray-700">
+              <button className="flex items-center gap-3 p-4 bg-white dark:bg-gray-800 dark:bg-gray-900 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 dark:border-gray-600">
                 <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                   <svg
                     className="h-4 w-4 text-blue-600"
@@ -544,7 +550,7 @@ export default function AdminDashboard() {
                 </div>
               </button>
 
-              <button className="flex items-center gap-3 p-4 bg-white dark:bg-gray-800 dark:bg-gray-900 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 dark:border-gray-700">
+              <button className="flex items-center gap-3 p-4 bg-white dark:bg-gray-800 dark:bg-gray-900 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 dark:border-gray-600">
                 <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
                   <svg
                     className="h-4 w-4 text-orange-600"
@@ -572,173 +578,17 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Call Logs Section */}
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-black dark:text-white">
-                Call Logs
-              </h2>
-              <div className="flex items-center space-x-4">
-                <label className="text-sm font-medium text-gray-700">
-                  Filter by User:
-                </label>
-                <select
-                  value={selectedUserId}
-                  onChange={e => handleUserFilterChange(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 min-w-[200px]"
-                >
-                  <option value="all">All Users</option>
-                  {users.map(user => (
-                    <option key={user.id} value={user.id}>
-                      {user.full_name} ({user.business_name || user.email})
-                    </option>
-                  ))}
-                </select>
-                {callsLoading && (
-                  <div className="w-4 h-4 border-2 border-orange-300 border-t-transparent rounded-full animate-spin"></div>
-                )}
-              </div>
-            </div>
-
-            {callsLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="w-8 h-8 border-4 border-orange-300 border-t-transparent rounded-full animate-spin"></div>
-              </div>
-            ) : calls.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <svg
-                    className="h-6 w-6 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold text-black dark:text-white mb-2">
-                  No Call Logs Found
-                </h3>
-                <p className="text-black dark:text-gray-300">
-                  {selectedUserId === 'all'
-                    ? 'No call logs available in the system yet.'
-                    : 'No call logs found for the selected user.'}
-                </p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-200 dark:border-gray-700">
-                      <th className="text-left py-3 px-4 font-semibold text-black dark:text-white">
-                        User
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-black dark:text-white">
-                        Phone Number
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-black dark:text-white">
-                        Type/Direction
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-black dark:text-white">
-                        Duration
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-black dark:text-white">
-                        Date
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-black dark:text-white">
-                        Summary
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {calls.map(call => (
-                      <tr
-                        key={call.id}
-                        className="border-b border-gray-100 hover:bg-white dark:bg-gray-800 dark:bg-gray-900"
-                      >
-                        <td className="py-4 px-4">
-                          <div>
-                            <div className="font-medium text-black dark:text-white">
-                              {call.profiles?.full_name ||
-                                call.user_id ||
-                                'Unknown User'}
-                            </div>
-                            <div className="text-sm text-black dark:text-gray-300">
-                              {call.profiles?.business_name ||
-                                call.profiles?.email ||
-                                'No profile data'}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-4 px-4">
-                          <span className="text-black dark:text-white">
-                            {call.direction === 'inbound'
-                              ? call.from_number
-                              : call.to_number || call.phone_number || '-'}
-                          </span>
-                        </td>
-                        <td className="py-4 px-4">
-                          <Badge
-                            variant={
-                              call.call_type === 'completed'
-                                ? 'default'
-                                : 'secondary'
-                            }
-                            className={
-                              call.call_type === 'completed'
-                                ? 'bg-green-100 text-green-800'
-                                : call.call_type === 'in_progress'
-                                  ? 'bg-blue-100 text-blue-800'
-                                  : 'bg-gray-100 text-gray-800'
-                            }
-                          >
-                            {call.call_type || call.direction || 'Unknown'}
-                          </Badge>
-                        </td>
-                        <td className="py-4 px-4">
-                          <span className="text-black dark:text-white">
-                            {call.duration
-                              ? `${Math.floor(call.duration / 60)}:${String(call.duration % 60).padStart(2, '0')}`
-                              : '-'}
-                          </span>
-                        </td>
-                        <td className="py-4 px-4">
-                          <div>
-                            <div className="text-black dark:text-white">
-                              {call.start_timestamp || call.created_at
-                                ? new Date(
-                                    call.start_timestamp || call.created_at
-                                  ).toLocaleDateString()
-                                : '-'}
-                            </div>
-                            <div className="text-sm text-black dark:text-gray-300">
-                              {call.start_timestamp || call.created_at
-                                ? new Date(
-                                    call.start_timestamp || call.created_at
-                                  ).toLocaleTimeString()
-                                : '-'}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-4 px-4">
-                          <div className="max-w-xs">
-                            <p className="text-sm text-black dark:text-white truncate">
-                              {call.call_summary || 'No summary available'}
-                            </p>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
+          {/* Call Logs Section - Using CallLogsTable Component */}
+          <CallLogsTable
+            callLogs={callLogs}
+            loading={callLogsLoading}
+            error={callLogsError}
+            pagination={callLogsPagination}
+            onPageChange={loadCallLogs}
+            onSearch={handleCallLogsSearch}
+            showUserSelector={true}
+            visibleColumns={ADMIN_COLUMNS}
+          />
         </div>
       </main>
     </div>

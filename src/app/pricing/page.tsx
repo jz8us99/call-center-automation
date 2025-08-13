@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { CheckIcon } from '@/components/icons';
-import { SimpleThemeSwitch } from '@/components/SimpleThemeSwitch';
-import { HomeButton } from '@/components/HomeButton';
+import { SimpleThemeSwitch } from '@/components/common/SimpleThemeSwitch';
+import { HomeButton } from '@/components/common/HomeButton';
 
 const PricingPage = () => {
   const [activeTab, setActiveTab] = useState('ai-receptionist');
