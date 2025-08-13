@@ -4,6 +4,7 @@ import './tailwind.css';
 import { ThemeProviders } from './theme-providers';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
+import { Toaster } from 'sonner';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -50,6 +51,7 @@ export default async function RootLayout({
         <ThemeProviders>
           <NextIntlClientProvider locale={locale} messages={messages}>
             {children}
+            <Toaster richColors position="top-right" />
           </NextIntlClientProvider>
         </ThemeProviders>
       </body>

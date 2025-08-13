@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
+import { AuthenticatedApiClient } from '@/lib/api-client';
 import {
   Card,
   CardContent,
@@ -42,6 +43,7 @@ import {
   EditIcon,
   PlusIcon,
 } from '@/components/icons';
+import { toast } from 'sonner';
 
 interface StaffMember {
   id: string;
@@ -157,7 +159,7 @@ export function StaffAppointmentCalendar({
 
   const loadStaffData = async () => {
     try {
-      const response = await fetch(
+      const response = await AuthenticatedApiClient.get(
         `/api/business/staff?user_id=${businessId}&staff_id=${staffId}`
       );
       if (response.ok) {
@@ -192,7 +194,7 @@ export function StaffAppointmentCalendar({
       const startDate = `${currentYear}-01-01`;
       const endDate = `${currentYear}-12-31`;
 
-      const response = await fetch(
+      const response = await AuthenticatedApiClient.get(
         `/api/appointments?user_id=${businessId}&staff_id=${staffId}&start_date=${startDate}&end_date=${endDate}`
       );
       if (response.ok) {
@@ -209,7 +211,7 @@ export function StaffAppointmentCalendar({
       const startDate = `${currentYear}-01-01`;
       const endDate = `${currentYear}-12-31`;
 
-      const response = await fetch(
+      const response = await AuthenticatedApiClient.get(
         `/api/business/staff-availability?staff_id=${staffId}&start_date=${startDate}&end_date=${endDate}`
       );
       if (response.ok) {
@@ -227,7 +229,7 @@ export function StaffAppointmentCalendar({
 
   const loadHolidays = async () => {
     try {
-      const response = await fetch(
+      const response = await AuthenticatedApiClient.get(
         `/api/business/holidays?user_id=${businessId}&year=${currentYear}`
       );
       if (response.ok) {
@@ -241,7 +243,7 @@ export function StaffAppointmentCalendar({
 
   const loadCalendarConfig = async () => {
     try {
-      const response = await fetch(
+      const response = await AuthenticatedApiClient.get(
         `/api/business/staff-calendar-configs?user_id=${businessId}&staff_id=${staffId}`
       );
       if (response.ok) {
@@ -271,29 +273,26 @@ export function StaffAppointmentCalendar({
 
   const generateDefaultCalendar = async () => {
     try {
-      const response = await fetch('/api/business/staff-calendars', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const response = await AuthenticatedApiClient.post(
+        '/api/business/staff-calendars',
+        {
           user_id: businessId,
           staff_id: staffId,
           year: currentYear,
           generate_default: true,
-        }),
-      });
+        }
+      );
 
       if (response.ok) {
         await loadAvailability();
-        alert('Default calendar generated successfully!');
+        toast.success('Default calendar generated successfully!');
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to generate default calendar');
+        toast.error(errorData.error || 'Failed to generate default calendar');
       }
     } catch (error) {
       console.error('Failed to generate calendar:', error);
-      alert('Failed to generate calendar. Please try again.');
+      toast.error('Failed to generate calendar. Please try again.');
     }
   };
 
@@ -311,25 +310,27 @@ export function StaffAppointmentCalendar({
         body.id = calendarConfig.id;
       }
 
-      const response = await fetch('/api/business/staff-calendar-configs', {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-      });
+      const response = calendarConfig
+        ? await AuthenticatedApiClient.put(
+            '/api/business/staff-calendar-configs',
+            body
+          )
+        : await AuthenticatedApiClient.post(
+            '/api/business/staff-calendar-configs',
+            body
+          );
 
       if (response.ok) {
         await loadCalendarConfig();
         setShowConfigDialog(false);
-        alert('Configuration saved successfully!');
+        toast.success('Configuration saved successfully!');
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to save configuration');
+        toast.error(errorData.error || 'Failed to save configuration');
       }
     } catch (error) {
       console.error('Failed to save configuration:', error);
-      alert('Failed to save configuration. Please try again.');
+      toast.error('Failed to save configuration. Please try again.');
     }
   };
 
@@ -337,19 +338,23 @@ export function StaffAppointmentCalendar({
     availabilityData: Partial<AvailabilitySlot>
   ) => {
     try {
-      const response = await fetch('/api/business/staff-availability', {
-        method: editingAvailability?.id ? 'PUT' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          id: editingAvailability?.id,
-          calendar_id: (availability[selectedDate!] as any)?.calendar_id,
-          staff_id: staffId,
-          user_id: businessId,
-          ...availabilityData,
-        }),
-      });
+      const availabilityPayload = {
+        id: editingAvailability?.id,
+        calendar_id: (availability[selectedDate!] as any)?.calendar_id,
+        staff_id: staffId,
+        user_id: businessId,
+        ...availabilityData,
+      };
+
+      const response = editingAvailability?.id
+        ? await AuthenticatedApiClient.put(
+            '/api/business/staff-availability',
+            availabilityPayload
+          )
+        : await AuthenticatedApiClient.post(
+            '/api/business/staff-availability',
+            availabilityPayload
+          );
 
       if (response.ok) {
         await loadAvailability();
@@ -357,11 +362,11 @@ export function StaffAppointmentCalendar({
         setEditingAvailability(null);
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to update availability');
+        toast.error(errorData.error || 'Failed to update availability');
       }
     } catch (error) {
       console.error('Failed to update availability:', error);
-      alert('Failed to update availability. Please try again.');
+      toast.error('Failed to update availability. Please try again.');
     }
   };
 

@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getCurrentUserToken, getCurrentUserInfo } from '@/lib/get-jwt-token';
 import { User } from '@supabase/supabase-js';
+import { useConfirmDialog } from '@/components/ui/confirm-dialog';
+import { toast } from 'sonner';
 
 interface DebugInfo {
   [key: string]: unknown;
@@ -20,6 +22,7 @@ interface UserInfo {
 }
 
 export default function DebugRLSPage() {
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null);
   const [rlsStatus, setRlsStatus] = useState<RLSStatus | null>(null);
   const [loading, setLoading] = useState(false);
@@ -77,20 +80,30 @@ export default function DebugRLSPage() {
       });
 
       const result = await response.json();
-      alert(result.success ? 'RLS策略已修复!' : `修复失败: ${result.error}`);
+      toast[result.success ? 'success' : 'error'](
+        result.success ? 'RLS策略已修复!' : `修复失败: ${result.error}`
+      );
 
       // 重新检查状态
       await checkRLSStatus();
       await runDebug();
     } catch {
-      alert('修复请求失败');
+      toast.error('修复请求失败');
     } finally {
       setLoading(false);
     }
   };
 
   const disableRLS = async () => {
-    if (!confirm('确定要禁用RLS吗？这仅用于测试！')) return;
+    const confirmed = await confirm({
+      title: '禁用RLS',
+      description: '确定要禁用RLS吗？这仅用于测试！',
+      confirmText: '确定',
+      cancelText: '取消',
+      variant: 'destructive',
+    });
+
+    if (!confirmed) return;
 
     setLoading(true);
     try {
@@ -101,13 +114,13 @@ export default function DebugRLSPage() {
       });
 
       const result = await response.json();
-      alert(
+      toast[result.success ? 'success' : 'error'](
         result.success ? 'RLS已禁用（仅测试用）' : `禁用失败: ${result.error}`
       );
 
       await checkRLSStatus();
     } catch {
-      alert('禁用请求失败');
+      toast.error('禁用请求失败');
     } finally {
       setLoading(false);
     }
@@ -123,11 +136,13 @@ export default function DebugRLSPage() {
       });
 
       const result = await response.json();
-      alert(result.success ? '测试策略已创建' : `创建失败: ${result.error}`);
+      toast[result.success ? 'success' : 'error'](
+        result.success ? '测试策略已创建' : `创建失败: ${result.error}`
+      );
 
       await checkRLSStatus();
     } catch {
-      alert('创建测试策略失败');
+      toast.error('创建测试策略失败');
     } finally {
       setLoading(false);
     }
@@ -136,7 +151,7 @@ export default function DebugRLSPage() {
   const testAPI = async () => {
     const token = await getCurrentUserToken();
     if (!token) {
-      alert('请先登录获取token');
+      toast.error('请先登录获取token');
       return;
     }
 
@@ -166,9 +181,11 @@ export default function DebugRLSPage() {
       const postResult = await postResponse.json();
       console.log('POST Response:', postResult);
 
-      alert(`API测试完成，请查看控制台。POST状态: ${postResponse.status}`);
+      toast.success(
+        `API测试完成，请查看控制台。POST状态: ${postResponse.status}`
+      );
     } catch (error) {
-      alert('API测试失败');
+      toast.error('API测试失败');
       console.error(error);
     }
   };
@@ -306,6 +323,7 @@ export default function DebugRLSPage() {
           </div>
         )}
       </div>
+      <ConfirmDialog />
     </div>
   );
 }

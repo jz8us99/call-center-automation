@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
+import { AuthenticatedApiClient } from '@/lib/api-client';
 import {
   Card,
   CardContent,
@@ -21,6 +22,8 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import {
   PlusIcon,
   EditIcon,
@@ -70,6 +73,7 @@ export function WorkingBusinessProductsServices({
   user,
   onProductsServicesUpdate,
 }: WorkingBusinessProductsServicesProps) {
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const [businessProfile, setBusinessProfile] =
     useState<BusinessProfile | null>(null);
   const [jobCategories, setJobCategories] = useState<JobCategory[]>([]);
@@ -116,7 +120,7 @@ export function WorkingBusinessProductsServices({
     setLoading(true);
     try {
       // First load business profile to get business type
-      const profileResponse = await fetch(
+      const profileResponse = await AuthenticatedApiClient.get(
         `/api/business/profile?user_id=${user.id}`
       );
       if (profileResponse.ok) {
@@ -140,7 +144,7 @@ export function WorkingBusinessProductsServices({
 
   const loadJobCategories = async (serviceTypeCode: string) => {
     try {
-      const response = await fetch(
+      const response = await AuthenticatedApiClient.get(
         `/api/business/job-categories?service_type_code=${serviceTypeCode}`
       );
       if (response.ok) {
@@ -154,7 +158,7 @@ export function WorkingBusinessProductsServices({
 
   const loadJobTypes = async (serviceTypeCode: string) => {
     try {
-      const response = await fetch(
+      const response = await AuthenticatedApiClient.get(
         `/api/business/job-types?service_type_code=${serviceTypeCode}&user_id=${user.id}`
       );
       if (response.ok) {
@@ -168,24 +172,23 @@ export function WorkingBusinessProductsServices({
 
   const handleAddCategory = async () => {
     if (!categoryForm.category_name || !businessProfile?.business_type) {
-      alert('Category name is required and business type must be configured');
+      toast.error(
+        'Category name is required and business type must be configured'
+      );
       return;
     }
 
     setSaving(true);
     try {
-      const response = await fetch('/api/business/job-categories', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const response = await AuthenticatedApiClient.post(
+        '/api/business/job-categories',
+        {
           service_type_code: businessProfile.business_type,
           category_name: categoryForm.category_name,
           description: categoryForm.description,
           display_order: categoryForm.display_order,
-        }),
-      });
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -194,29 +197,34 @@ export function WorkingBusinessProductsServices({
         setShowCategoryForm(false);
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to add category');
+        toast.error(errorData.error || 'Failed to add category');
       }
     } catch (error) {
       console.error('Failed to add category:', error);
-      alert('Failed to add category. Please try again.');
+      toast.error('Failed to add category. Please try again.');
     } finally {
       setSaving(false);
     }
   };
 
   const handleDeleteCategory = async (id: string) => {
-    if (
-      !confirm(
-        'Are you sure you want to delete this category? This will also affect any associated job types.'
-      )
-    ) {
+    const confirmed = await confirm({
+      title: 'Delete Category',
+      description:
+        'Are you sure you want to delete this category? This will also affect any associated job types.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+    });
+
+    if (!confirmed) {
       return;
     }
 
     try {
-      const response = await fetch(`/api/business/job-categories?id=${id}`, {
-        method: 'DELETE',
-      });
+      const response = await AuthenticatedApiClient.delete(
+        `/api/business/job-categories?id=${id}`
+      );
 
       if (response.ok) {
         setJobCategories(prev => prev.filter(c => c.id !== id));
@@ -226,28 +234,25 @@ export function WorkingBusinessProductsServices({
         }
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to delete category');
+        toast.error(errorData.error || 'Failed to delete category');
       }
     } catch (error) {
       console.error('Failed to delete category:', error);
-      alert('Failed to delete category. Please try again.');
+      toast.error('Failed to delete category. Please try again.');
     }
   };
 
   const handleAddJobType = async () => {
     if (!jobTypeForm.job_name || !businessProfile?.business_type) {
-      alert('Job name is required and business type must be configured');
+      toast.error('Job name is required and business type must be configured');
       return;
     }
 
     setSaving(true);
     try {
-      const response = await fetch('/api/business/job-types', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const response = await AuthenticatedApiClient.post(
+        '/api/business/job-types',
+        {
           service_type_code: businessProfile.business_type,
           category_id: jobTypeForm.category_id || null,
           user_id: user.id,
@@ -260,8 +265,8 @@ export function WorkingBusinessProductsServices({
           price_currency: jobTypeForm.price_currency,
           display_order: jobTypeForm.display_order,
           is_system_default: false,
-        }),
-      });
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -270,11 +275,11 @@ export function WorkingBusinessProductsServices({
         setShowJobTypeForm(false);
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to add job type');
+        toast.error(errorData.error || 'Failed to add job type');
       }
     } catch (error) {
       console.error('Failed to add job type:', error);
-      alert('Failed to add job type. Please try again.');
+      toast.error('Failed to add job type. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -925,6 +930,7 @@ export function WorkingBusinessProductsServices({
           </div>
         </CardContent>
       </Card>
+      <ConfirmDialog />
     </div>
   );
 }

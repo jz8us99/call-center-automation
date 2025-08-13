@@ -35,26 +35,34 @@ export function useWorkflowState(user: User | null, mounted: boolean) {
       const hasBusinessInfo = true;
 
       // Check products
-      const productsResponse = await authenticatedFetch(`/api/business/products`);
+      const productsResponse = await authenticatedFetch(
+        `/api/business/products`
+      );
       const productsData = await productsResponse.json();
       const hasProducts =
         productsData.products && productsData.products.length > 0;
 
       // Check services
-      const servicesResponse = await authenticatedFetch(`/api/business/services`);
+      const servicesResponse = await authenticatedFetch(
+        `/api/business/services`
+      );
       const servicesData = await servicesResponse.json();
       const hasServices =
         servicesData.services && servicesData.services.length > 0;
 
       // Check appointments
-      const appointmentsResponse = await authenticatedFetch(`/api/appointment-types`);
+      const appointmentsResponse = await authenticatedFetch(
+        `/api/appointment-types`
+      );
       const appointmentsData = await appointmentsResponse.json();
       const hasAppointments =
         appointmentsData.appointment_types &&
         appointmentsData.appointment_types.length > 0;
 
       // Check staff
-      const staffResponse = await authenticatedFetch(`/api/business/staff-members`);
+      const staffResponse = await authenticatedFetch(
+        `/api/business/staff-members`
+      );
       const staffData = await staffResponse.json();
       const hasStaff = staffData.staff && staffData.staff.length > 0;
 

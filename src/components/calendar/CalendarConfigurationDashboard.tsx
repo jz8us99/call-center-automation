@@ -2,7 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
+import { AuthenticatedApiClient } from '@/lib/api-client';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import {
   Card,
   CardContent,
@@ -97,6 +100,7 @@ export function CalendarConfigurationDashboard({
   businessName = 'Your Business',
 }: CalendarConfigurationDashboardProps) {
   const router = useRouter();
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [availabilityStats, setAvailabilityStats] = useState<{
     [key: string]: StaffAvailabilityStats;
@@ -137,7 +141,7 @@ export function CalendarConfigurationDashboard({
     setLoading(true);
     try {
       // Load staff members
-      const staffResponse = await fetch(
+      const staffResponse = await AuthenticatedApiClient.get(
         `/api/business/staff?user_id=${user.id}`
       );
       if (staffResponse.ok) {
@@ -162,7 +166,7 @@ export function CalendarConfigurationDashboard({
 
     for (const member of staffMembers) {
       try {
-        const response = await fetch(
+        const response = await AuthenticatedApiClient.get(
           `/api/business/staff-availability?staff_id=${member.id}&user_id=${user.id}&start_date=${currentYear}-01-01&end_date=${nextYear}-12-31`
         );
 
@@ -202,7 +206,7 @@ export function CalendarConfigurationDashboard({
 
   const loadAppointmentTypes = async () => {
     try {
-      const response = await fetch(
+      const response = await AuthenticatedApiClient.get(
         `/api/appointment-types?business_id=${businessId}&is_active=true`
       );
       if (response.ok) {
@@ -228,14 +232,14 @@ export function CalendarConfigurationDashboard({
       !bookingForm.customer.last_name ||
       !bookingForm.customer.phone
     ) {
-      alert(
+      toast.error(
         'Please fill in all required customer fields (first name, last name, phone).'
       );
       return;
     }
 
     if (!bookingForm.appointment_type_id || !bookingForm.staff_id) {
-      alert('Please select both appointment type and staff member.');
+      toast.error('Please select both appointment type and staff member.');
       return;
     }
 
@@ -246,7 +250,7 @@ export function CalendarConfigurationDashboard({
 
       // Try to find existing customer by email or phone
       if (bookingForm.customer.email) {
-        const customerSearchResponse = await fetch(
+        const customerSearchResponse = await AuthenticatedApiClient.get(
           `/api/customers?business_id=${businessId}&search=${bookingForm.customer.email}`
         );
 
@@ -266,7 +270,7 @@ export function CalendarConfigurationDashboard({
 
       // If not found by email, try by phone
       if (!customerId) {
-        const customerSearchResponse = await fetch(
+        const customerSearchResponse = await AuthenticatedApiClient.get(
           `/api/customers?business_id=${businessId}&search=${bookingForm.customer.phone}`
         );
 
@@ -284,17 +288,14 @@ export function CalendarConfigurationDashboard({
 
       // Create new customer if not found
       if (!customerId) {
-        const createCustomerResponse = await fetch('/api/customers', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
+        const createCustomerResponse = await AuthenticatedApiClient.post(
+          '/api/customers',
+          {
             business_id: businessId,
             user_id: user.id,
             ...bookingForm.customer,
-          }),
-        });
+          }
+        );
 
         if (createCustomerResponse.ok) {
           const customerData = await createCustomerResponse.json();
@@ -314,12 +315,9 @@ export function CalendarConfigurationDashboard({
       const selectedType = appointmentTypes.find(
         t => t.id === bookingForm.appointment_type_id
       );
-      const appointmentResponse = await fetch('/api/appointments', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const appointmentResponse = await AuthenticatedApiClient.post(
+        '/api/appointments',
+        {
           business_id: businessId,
           user_id: user.id,
           customer_id: customerId,
@@ -333,11 +331,11 @@ export function CalendarConfigurationDashboard({
           customer_notes: bookingForm.notes,
           booking_source: 'manual',
           status: 'scheduled',
-        }),
-      });
+        }
+      );
 
       if (appointmentResponse.ok) {
-        alert('Appointment created successfully!');
+        toast.success('Appointment created successfully!');
         setShowBookingDialog(false);
         resetBookingForm();
       } else {
@@ -346,7 +344,7 @@ export function CalendarConfigurationDashboard({
       }
     } catch (error) {
       console.error('Failed to create appointment:', error);
-      alert('Failed to create appointment. Please try again.');
+      toast.error('Failed to create appointment. Please try again.');
     } finally {
       setCreatingAppointment(false);
     }
@@ -370,30 +368,31 @@ export function CalendarConfigurationDashboard({
   };
 
   const handleSyncStaffAvailability = async () => {
-    if (
-      !confirm(
-        'This will update all staff availability to match current office hours. Staff members with manual overrides will keep their custom schedules. Continue?'
-      )
-    ) {
+    const confirmed = await confirm({
+      title: 'Sync Staff Availability',
+      description:
+        'This will update all staff availability to match current office hours. Staff members with manual overrides will keep their custom schedules. Continue?',
+      confirmText: 'Yes, Sync',
+      cancelText: 'Cancel',
+    });
+
+    if (!confirmed) {
       return;
     }
 
     setSyncingStaffAvailability(true);
     try {
-      const response = await fetch('/api/business/sync-staff-availability', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const response = await AuthenticatedApiClient.post(
+        '/api/business/sync-staff-availability',
+        {
           user_id: user.id,
           business_id: businessId,
-        }),
-      });
+        }
+      );
 
       if (response.ok) {
         const result = await response.json();
-        alert(
+        toast.success(
           `Successfully synchronized ${result.total_records_updated} availability records for ${result.total_staff} staff members.`
         );
 
@@ -401,11 +400,11 @@ export function CalendarConfigurationDashboard({
         await loadStaffAndStats();
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to sync staff availability');
+        toast.error(errorData.error || 'Failed to sync staff availability');
       }
     } catch (error) {
       console.error('Failed to sync staff availability:', error);
-      alert('Failed to sync staff availability. Please try again.');
+      toast.error('Failed to sync staff availability. Please try again.');
     } finally {
       setSyncingStaffAvailability(false);
     }
@@ -477,7 +476,9 @@ export function CalendarConfigurationDashboard({
       <div className="space-y-6">
         <div className="text-center py-8">
           <div className="w-16 h-16 border-4 border-blue-300 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading calendar configuration...</p>
+          <p className="text-gray-600 dark:text-gray-400">
+            Loading calendar configuration...
+          </p>
         </div>
       </div>
     );
@@ -486,7 +487,7 @@ export function CalendarConfigurationDashboard({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <Card>
+      <Card className="dark:bg-gray-800">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -545,11 +546,13 @@ export function CalendarConfigurationDashboard({
 
       {/* Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="p-4">
+        <Card className="dark:bg-gray-800">
+          <CardContent className="p-4 dark:bg-gray-800">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Total Staff</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Total Staff
+                </p>
                 <p className="text-2xl font-bold">{stats.total}</p>
               </div>
               <UserIcon className="h-8 w-8 text-blue-500" />
@@ -557,11 +560,13 @@ export function CalendarConfigurationDashboard({
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4">
+        <Card className="dark:bg-gray-800">
+          <CardContent className="p-4 dark:bg-gray-800">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Configured</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Configured
+                </p>
                 <p className="text-2xl font-bold text-green-600">
                   {stats.configured}
                 </p>
@@ -571,11 +576,13 @@ export function CalendarConfigurationDashboard({
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4">
+        <Card className="dark:bg-gray-800">
+          <CardContent className="p-4 dark:bg-gray-800">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Needs Setup</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Needs Setup
+                </p>
                 <p className="text-2xl font-bold text-orange-600">
                   {stats.unconfigured}
                 </p>
@@ -587,8 +594,8 @@ export function CalendarConfigurationDashboard({
       </div>
 
       {/* Filters */}
-      <Card>
-        <CardContent className="p-4">
+      <Card className="dark:bg-gray-800">
+        <CardContent className="p-4 dark:bg-gray-800">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
@@ -631,7 +638,7 @@ export function CalendarConfigurationDashboard({
       </Card>
 
       {/* Staff List */}
-      <Card>
+      <Card className="dark:bg-gray-800">
         <CardHeader>
           <CardTitle>Staff Calendar Configuration</CardTitle>
           <CardDescription>
@@ -639,16 +646,16 @@ export function CalendarConfigurationDashboard({
             availability
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="dark:bg-gray-800">
           {filteredStaff.length === 0 ? (
             <div className="text-center py-8">
               <UserIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
                 {staff.length === 0
                   ? 'No Staff Members Found'
                   : 'No Matching Staff Found'}
               </h3>
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-400">
                 {staff.length === 0
                   ? 'Add staff members in the Staff Management section first.'
                   : 'Try adjusting your search terms or filters.'}
@@ -663,22 +670,22 @@ export function CalendarConfigurationDashboard({
                 return (
                   <div
                     key={member.id}
-                    className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+                    className="border border-gray-200 dark:border-gray-600 dark:bg-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-4 mb-3">
-                          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                            <UserIcon className="h-6 w-6 text-blue-600" />
+                          <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                            <UserIcon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                           </div>
                           <div>
-                            <h3 className="text-lg font-semibold text-gray-900">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                               {member.first_name} {member.last_name}
                             </h3>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
                               {member.title}
                             </p>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
                               {member.email}
                             </p>
                           </div>
@@ -689,14 +696,18 @@ export function CalendarConfigurationDashboard({
 
                         <div className="grid md:grid-cols-4 gap-4 text-sm">
                           <div>
-                            <span className="text-gray-600">Phone:</span>
-                            <p className="font-medium">
+                            <span className="text-gray-600 dark:text-gray-400">
+                              Phone:
+                            </span>
+                            <p className="font-medium dark:text-gray-200">
                               {member.phone || 'Not provided'}
                             </p>
                           </div>
                           <div>
-                            <span className="text-gray-600">Status:</span>
-                            <p className="font-medium">
+                            <span className="text-gray-600 dark:text-gray-400">
+                              Status:
+                            </span>
+                            <p className="font-medium dark:text-gray-200">
                               {member.is_active ? 'Active' : 'Inactive'}
                             </p>
                           </div>
@@ -704,15 +715,15 @@ export function CalendarConfigurationDashboard({
                           {stats && (
                             <>
                               <div>
-                                <span className="text-gray-600">
+                                <span className="text-gray-600 dark:text-gray-400">
                                   Days Configured:
                                 </span>
-                                <p className="font-medium">
+                                <p className="font-medium dark:text-gray-200">
                                   {stats.total_days_configured}
                                 </p>
                               </div>
                               <div>
-                                <span className="text-gray-600">
+                                <span className="text-gray-600 dark:text-gray-400">
                                   Available Days:
                                 </span>
                                 <p className="font-medium text-green-600">
@@ -724,7 +735,7 @@ export function CalendarConfigurationDashboard({
                         </div>
 
                         {stats && stats.last_updated && (
-                          <div className="mt-2 text-xs text-gray-500">
+                          <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
                             Last updated:{' '}
                             {new Date(stats.last_updated).toLocaleDateString()}
                           </div>
@@ -764,10 +775,12 @@ export function CalendarConfigurationDashboard({
 
       {/* Quick Setup Guide */}
       {stats.unconfigured > 0 && (
-        <Card className="bg-orange-50 border-orange-200">
+        <Card className="bg-orange-50 border-orange-200 dark:bg-orange-900/20 dark:border-orange-800">
           <CardHeader>
-            <CardTitle className="text-orange-900">Quick Setup Guide</CardTitle>
-            <CardDescription className="text-orange-700">
+            <CardTitle className="text-orange-900 dark:text-orange-100">
+              Quick Setup Guide
+            </CardTitle>
+            <CardDescription className="text-orange-700 dark:text-orange-300">
               Get your staff calendars configured quickly
             </CardDescription>
           </CardHeader>
@@ -778,10 +791,10 @@ export function CalendarConfigurationDashboard({
                   1
                 </div>
                 <div>
-                  <p className="font-medium text-orange-900">
+                  <p className="font-medium text-orange-900 dark:text-orange-100">
                     Set up office hours and holidays
                   </p>
-                  <p className="text-orange-700">
+                  <p className="text-orange-700 dark:text-orange-300">
                     Configure business-wide settings in Office Setup
                   </p>
                 </div>
@@ -791,10 +804,10 @@ export function CalendarConfigurationDashboard({
                   2
                 </div>
                 <div>
-                  <p className="font-medium text-orange-900">
+                  <p className="font-medium text-orange-900 dark:text-orange-100">
                     Configure individual staff calendars
                   </p>
-                  <p className="text-orange-700">
+                  <p className="text-orange-700 dark:text-orange-300">
                     Click "Configure Calendar" for each staff member
                   </p>
                 </div>
@@ -804,10 +817,10 @@ export function CalendarConfigurationDashboard({
                   3
                 </div>
                 <div>
-                  <p className="font-medium text-orange-900">
+                  <p className="font-medium text-orange-900 dark:text-orange-100">
                     Set staff availability
                   </p>
-                  <p className="text-orange-700">
+                  <p className="text-orange-700 dark:text-orange-300">
                     Define when each staff member is available for appointments
                   </p>
                 </div>
@@ -817,10 +830,10 @@ export function CalendarConfigurationDashboard({
                   4
                 </div>
                 <div>
-                  <p className="font-medium text-orange-900">
+                  <p className="font-medium text-orange-900 dark:text-orange-100">
                     Enable online booking
                   </p>
-                  <p className="text-orange-700">
+                  <p className="text-orange-700 dark:text-orange-300">
                     Once configured, your calendar system is ready for customer
                     bookings
                   </p>
@@ -833,7 +846,7 @@ export function CalendarConfigurationDashboard({
 
       {/* Manual Appointment Booking Dialog */}
       <Dialog open={showBookingDialog} onOpenChange={setShowBookingDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl dark:bg-gray-800">
           <DialogHeader>
             <DialogTitle>Book Appointment</DialogTitle>
             <DialogDescription>
@@ -844,7 +857,9 @@ export function CalendarConfigurationDashboard({
           <div className="space-y-6">
             {/* Appointment Details */}
             <div>
-              <h4 className="font-semibold mb-3">Appointment Details</h4>
+              <h4 className="font-semibold mb-3 dark:text-gray-100">
+                Appointment Details
+              </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="appointment-type">Appointment Type *</Label>
@@ -931,7 +946,9 @@ export function CalendarConfigurationDashboard({
 
             {/* Customer Information */}
             <div>
-              <h4 className="font-semibold mb-3">Customer Information</h4>
+              <h4 className="font-semibold mb-3 dark:text-gray-100">
+                Customer Information
+              </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="customer-first-name">First Name *</Label>
@@ -1047,6 +1064,8 @@ export function CalendarConfigurationDashboard({
           </div>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog />
     </div>
   );
 }

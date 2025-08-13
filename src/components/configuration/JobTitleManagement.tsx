@@ -20,6 +20,8 @@ import {
   CheckIcon,
   UserIcon,
 } from '@/components/icons';
+import { toast } from 'sonner';
+import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 
 interface JobTitle {
   id: string;
@@ -41,6 +43,7 @@ export function JobTitleManagement({
   user,
   onJobTitlesUpdate,
 }: JobTitleManagementProps) {
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const [jobTitles, setJobTitles] = useState<JobTitle[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -76,7 +79,7 @@ export function JobTitleManagement({
 
   const handleAddJobTitle = async () => {
     if (!formData.title_name.trim()) {
-      alert('Job title name is required');
+      toast.error('Job title name is required');
       return;
     }
 
@@ -107,11 +110,11 @@ export function JobTitleManagement({
         setShowAddForm(false);
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to create job title');
+        toast.error(errorData.error || 'Failed to create job title');
       }
     } catch (error) {
       console.error('Failed to create job title:', error);
-      alert('Failed to create job title. Please try again.');
+      toast.error('Failed to create job title. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -119,7 +122,7 @@ export function JobTitleManagement({
 
   const handleUpdateJobTitle = async () => {
     if (!editingTitle || !formData.title_name.trim()) {
-      alert('Job title name is required');
+      toast.error('Job title name is required');
       return;
     }
 
@@ -153,18 +156,26 @@ export function JobTitleManagement({
         setShowAddForm(false);
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to update job title');
+        toast.error(errorData.error || 'Failed to update job title');
       }
     } catch (error) {
       console.error('Failed to update job title:', error);
-      alert('Failed to update job title. Please try again.');
+      toast.error('Failed to update job title. Please try again.');
     } finally {
       setSaving(false);
     }
   };
 
   const handleDeleteJobTitle = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this job title?')) {
+    const confirmed = await confirm({
+      title: 'Delete Job Title',
+      description: 'Are you sure you want to delete this job title?',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -179,11 +190,11 @@ export function JobTitleManagement({
         onJobTitlesUpdate?.(updatedTitles);
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to delete job title');
+        toast.error(errorData.error || 'Failed to delete job title');
       }
     } catch (error) {
       console.error('Failed to delete job title:', error);
-      alert('Failed to delete job title. Please try again.');
+      toast.error('Failed to delete job title. Please try again.');
     }
   };
 
@@ -429,6 +440,7 @@ export function JobTitleManagement({
           </CardContent>
         </Card>
       )}
+      <ConfirmDialog />
     </div>
   );
 }

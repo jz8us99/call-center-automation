@@ -264,7 +264,7 @@ export function GetStartedPanel({
                   </div>
                 </CardHeader>
 
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 dark:bg-gray-800">
                   {/* Key Features */}
                   <div className="space-y-2">
                     <h4 className="font-medium text-gray-900 text-sm">
@@ -344,7 +344,7 @@ export function GetStartedPanel({
             <span>Quick Setup Tips</span>
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="dark:bg-gray-800">
           <div className="grid md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <div className="font-medium text-blue-900">

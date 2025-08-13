@@ -21,6 +21,8 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { PlusIcon, UsersIcon, SettingsIcon } from '@/components/icons';
 import { authenticatedFetch } from '@/lib/api-client';
+import { toast } from 'sonner';
+import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 
 interface UserProfile {
   id: string;
@@ -38,6 +40,7 @@ interface UserProfile {
 }
 
 export default function AdminUserManagement() {
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -129,7 +132,15 @@ export default function AdminUserManagement() {
   };
 
   const handleDeleteUser = async (userId: string) => {
-    if (!confirm('Are you sure you want to delete this user?')) {
+    const confirmed = await confirm({
+      title: 'Delete User',
+      description: 'Are you sure you want to delete this user?',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -148,10 +159,10 @@ export default function AdminUserManagement() {
 
       // Reload users after successful deletion
       await loadUsers();
-      alert('User deleted successfully');
+      toast.success('用户删除成功');
     } catch (error) {
       console.error('Failed to delete user:', error);
-      alert('Failed to delete user. Please try again.');
+      toast.error('删除用户失败，请重试');
     }
   };
 
@@ -198,12 +209,10 @@ export default function AdminUserManagement() {
       setShowUserForm(false);
       setSelectedUser(null);
       await loadUsers();
-      alert(`User ${isEditing ? 'updated' : 'created'} successfully`);
+      toast.success(`用户${isEditing ? '更新' : '创建'}成功`);
     } catch (error) {
       console.error('Failed to save user:', error);
-      alert(
-        `Failed to ${selectedUser ? 'update' : 'create'} user. Please try again.`
-      );
+      toast.error(`${selectedUser ? '更新' : '创建'}用户失败，请重试`);
     } finally {
       setFormLoading(false);
     }
@@ -865,6 +874,7 @@ export default function AdminUserManagement() {
           </Card>
         </div>
       </main>
+      <ConfirmDialog />
     </div>
   );
 }

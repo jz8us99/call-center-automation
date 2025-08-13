@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
+import { AuthenticatedApiClient } from '@/lib/api-client';
+import { toast } from 'sonner';
 import {
   Card,
   CardContent,
@@ -126,7 +128,7 @@ export function StaffCalendarView({
 
   const loadStaffData = async () => {
     try {
-      const response = await fetch(
+      const response = await AuthenticatedApiClient.get(
         `/api/business/staff?user_id=${user.id}&staff_id=${staffId}`
       );
       if (response.ok) {
@@ -158,7 +160,7 @@ export function StaffCalendarView({
 
   const loadOfficeHours = async () => {
     try {
-      const response = await fetch(
+      const response = await AuthenticatedApiClient.get(
         `/api/business/office-hours?user_id=${user.id}&business_id=${businessId}`
       );
       if (response.ok) {
@@ -172,7 +174,7 @@ export function StaffCalendarView({
 
   const loadHolidays = async () => {
     try {
-      const response = await fetch(
+      const response = await AuthenticatedApiClient.get(
         `/api/business/holidays?user_id=${user.id}&business_id=${businessId}&year=${currentYear}`
       );
       if (response.ok) {
@@ -189,7 +191,7 @@ export function StaffCalendarView({
       const startDate = `${currentYear}-01-01`;
       const endDate = `${currentYear}-12-31`;
 
-      const response = await fetch(
+      const response = await AuthenticatedApiClient.get(
         `/api/business/staff-availability?staff_id=${staffId}&user_id=${user.id}&start_date=${startDate}&end_date=${endDate}`
       );
       if (response.ok) {
@@ -210,7 +212,7 @@ export function StaffCalendarView({
       const startDate = `${currentYear}-01-01`;
       const endDate = `${currentYear}-12-31`;
 
-      const response = await fetch(
+      const response = await AuthenticatedApiClient.get(
         `/api/appointment-bookings?staff_id=${staffId}&user_id=${user.id}&start_date=${startDate}&end_date=${endDate}`
       );
       if (response.ok) {
@@ -237,13 +239,16 @@ export function StaffCalendarView({
         body.id = editingAvailability.id;
       }
 
-      const response = await fetch('/api/business/staff-availability', {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-      });
+      const response =
+        method === 'POST'
+          ? await AuthenticatedApiClient.post(
+              '/api/business/staff-availability',
+              body
+            )
+          : await AuthenticatedApiClient.put(
+              '/api/business/staff-availability',
+              body
+            );
 
       if (response.ok) {
         await loadAvailability();
@@ -251,11 +256,11 @@ export function StaffCalendarView({
         setEditingAvailability(null);
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to update availability');
+        toast.error(errorData.error || 'Failed to update availability');
       }
     } catch (error) {
       console.error('Failed to update availability:', error);
-      alert('Failed to update availability. Please try again.');
+      toast.error('Failed to update availability. Please try again.');
     }
   };
 
@@ -334,20 +339,23 @@ export function StaffCalendarView({
     }
 
     if (isPast) {
-      classes += 'bg-gray-50 text-gray-400 ';
+      classes +=
+        'bg-gray-50 dark:bg-gray-700 text-gray-400 dark:text-gray-500 ';
     } else if (holiday) {
-      classes += 'bg-red-50 border-red-200 text-red-700 ';
+      classes +=
+        'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 ';
     } else if (dateAvailability?.is_available) {
       classes +=
-        'bg-green-50 border-green-200 text-green-700 hover:bg-green-100 ';
+        'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-800/30 ';
     } else if (dateAvailability && !dateAvailability.is_available) {
-      classes += 'bg-yellow-50 border-yellow-200 text-yellow-700 ';
+      classes +=
+        'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800 text-yellow-700 dark:text-yellow-300 ';
     } else if (officeHoursForDay) {
       // Show office hours as available (green) instead of blue
       classes +=
-        'bg-green-50 border-green-200 text-green-700 hover:bg-green-100 ';
+        'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-800/30 ';
     } else {
-      classes += 'bg-gray-50 border-gray-200 text-gray-500 ';
+      classes += 'bg-gray-50 border-gray-200 text-gray-500 dark:text-gray-400 ';
     }
 
     if (dateAppointments.length > 0) {
@@ -447,7 +455,9 @@ export function StaffCalendarView({
               {officeHoursForDay.end_time.substring(0, 5)}
             </div>
           ) : (
-            <div className="text-xs mb-1 text-gray-500">Closed</div>
+            <div className="text-xs mb-1 text-gray-500 dark:text-gray-400">
+              Closed
+            </div>
           )}
 
           {dateAppointments.length > 0 && (
@@ -461,7 +471,7 @@ export function StaffCalendarView({
                 </div>
               ))}
               {dateAppointments.length > 2 && (
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-gray-500 dark:text-gray-400">
                   +{dateAppointments.length - 2} more
                 </div>
               )}
@@ -506,7 +516,7 @@ export function StaffCalendarView({
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
             <div
               key={day}
-              className="p-2 text-center font-medium text-gray-600 text-sm"
+              className="p-2 text-center font-medium text-gray-600 dark:text-gray-400 text-sm"
             >
               {day}
             </div>
@@ -517,24 +527,24 @@ export function StaffCalendarView({
 
         <div className="flex flex-wrap gap-4 mt-4 text-xs">
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 bg-green-100 border border-green-200 rounded"></div>
-            <span>Available</span>
+            <div className="w-3 h-3 bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded"></div>
+            <span className="dark:text-gray-300">Available</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 bg-yellow-100 border border-yellow-200 rounded"></div>
-            <span>Unavailable</span>
+            <div className="w-3 h-3 bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 rounded"></div>
+            <span className="dark:text-gray-300">Unavailable</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 bg-red-100 border border-red-200 rounded"></div>
-            <span>Holiday</span>
+            <div className="w-3 h-3 bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded"></div>
+            <span className="dark:text-gray-300">Holiday</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-3 h-3 bg-gray-100 border border-gray-200 rounded"></div>
-            <span>Closed</span>
+            <div className="w-3 h-3 bg-gray-100 dark:bg-gray-600 border border-gray-200 dark:border-gray-600 rounded"></div>
+            <span className="dark:text-gray-300">Closed</span>
           </div>
           <div className="flex items-center gap-1">
-            <span className="text-blue-600">*</span>
-            <span>Custom Override</span>
+            <span className="text-blue-600 dark:text-blue-400">*</span>
+            <span className="dark:text-gray-300">Custom Override</span>
           </div>
         </div>
       </div>
@@ -546,7 +556,9 @@ export function StaffCalendarView({
       <div className="space-y-6">
         <div className="text-center py-8">
           <div className="w-16 h-16 border-4 border-blue-300 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading staff calendar...</p>
+          <p className="text-gray-600 dark:text-gray-400">
+            Loading staff calendar...
+          </p>
         </div>
       </div>
     );
@@ -555,7 +567,7 @@ export function StaffCalendarView({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <Card>
+      <Card className="dark:bg-gray-800">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -580,7 +592,7 @@ export function StaffCalendarView({
       </Card>
 
       {/* Year Selector */}
-      <Card>
+      <Card className="dark:bg-gray-800">
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -635,13 +647,13 @@ export function StaffCalendarView({
         </TabsList>
 
         <TabsContent value="calendar" className="space-y-4">
-          <Card>
+          <Card className="dark:bg-gray-800">
             <CardContent className="p-6">{renderMonthView()}</CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="appointments" className="space-y-4">
-          <Card>
+          <Card className="dark:bg-gray-800">
             <CardHeader>
               <CardTitle>Appointments for {currentYear}</CardTitle>
               <CardDescription>
@@ -652,7 +664,7 @@ export function StaffCalendarView({
               {appointments.length === 0 ? (
                 <div className="text-center py-8">
                   <CalendarIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600">
+                  <p className="text-gray-600 dark:text-gray-400">
                     No appointments scheduled for {currentYear}
                   </p>
                 </div>
@@ -668,10 +680,10 @@ export function StaffCalendarView({
                           <h4 className="font-semibold">
                             {appointment.customer_name}
                           </h4>
-                          <p className="text-sm text-gray-600">
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
                             {appointment.title}
                           </p>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
                             {new Date(
                               appointment.appointment_date
                             ).toLocaleDateString()}{' '}
@@ -696,7 +708,7 @@ export function StaffCalendarView({
                     </div>
                   ))}
                   {appointments.length > 10 && (
-                    <p className="text-center text-gray-500">
+                    <p className="text-center text-gray-500 dark:text-gray-400">
                       Showing 10 of {appointments.length} appointments
                     </p>
                   )}
@@ -707,7 +719,7 @@ export function StaffCalendarView({
         </TabsContent>
 
         <TabsContent value="history" className="space-y-4">
-          <Card>
+          <Card className="dark:bg-gray-800">
             <CardHeader>
               <CardTitle>3-Year History</CardTitle>
               <CardDescription>
@@ -715,7 +727,7 @@ export function StaffCalendarView({
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">
+              <p className="text-gray-600 dark:text-gray-400">
                 Historical data will be displayed here.
               </p>
             </CardContent>

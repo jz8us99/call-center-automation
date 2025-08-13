@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { useTranslations } from 'next-intl';
+import { toast } from 'sonner';
 import {
   Card,
   CardContent,
@@ -145,7 +146,7 @@ export function BusinessInformationForm({
       await onSave(formData);
     } catch (error) {
       console.error('Error saving business information:', error);
-      alert('Error creating agent. Please try again.');
+      toast.error('Error creating agent. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -160,7 +161,7 @@ export function BusinessInformationForm({
     type: 'pricing' | 'policy' | 'hours'
   ) => {
     if (file.size > 10 * 1024 * 1024) {
-      alert('File size must be less than 10MB');
+      toast.error('File size must be less than 10MB');
       return;
     }
 
@@ -171,7 +172,7 @@ export function BusinessInformationForm({
       'text/plain',
     ];
     if (!allowedTypes.includes(file.type)) {
-      alert('Please upload PDF, DOC, DOCX, or TXT files only');
+      toast.error('Please upload PDF, DOC, DOCX, or TXT files only');
       return;
     }
 
@@ -196,7 +197,7 @@ export function BusinessInformationForm({
       }));
     } catch (error) {
       console.error('Error processing file:', error);
-      alert('Error processing file. Please try again.');
+      toast.error('Error processing file. Please try again.');
     } finally {
       setUploadingFiles(prev => {
         const newSet = new Set(prev);
@@ -226,7 +227,7 @@ export function BusinessInformationForm({
 
   const handleWebsiteExtraction = async () => {
     if (!formData.website_url) {
-      alert('Please enter a website URL first');
+      toast.error('Please enter a website URL first');
       return;
     }
 
@@ -245,10 +246,10 @@ export function BusinessInformationForm({
       }
 
       const result = await response.json();
-      alert('Website content extracted successfully!');
+      toast.success('Website content extracted successfully!');
     } catch (error) {
       console.error('Error extracting website:', error);
-      alert(
+      toast.error(
         'Error extracting website content. Please check the URL and try again.'
       );
     } finally {
@@ -263,14 +264,14 @@ export function BusinessInformationForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Agent Basic Information */}
-      <Card>
+      <Card className="dark:bg-gray-800">
         <CardHeader>
           <CardTitle>Agent Information</CardTitle>
           <CardDescription>
             Basic information about your AI voice agent
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 dark:bg-gray-800">
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -325,12 +326,12 @@ export function BusinessInformationForm({
       </Card>
 
       {/* Business Information */}
-      <Card>
+      <Card className="dark:bg-gray-800">
         <CardHeader>
           <CardTitle>{t('form.title')}</CardTitle>
           <CardDescription>{t('form.description')}</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 dark:bg-gray-800">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               {t('form.businessName')}
@@ -429,14 +430,14 @@ export function BusinessInformationForm({
       </Card>
 
       {/* Contact Person */}
-      <Card>
+      <Card className="dark:bg-gray-800">
         <CardHeader>
           <CardTitle>{t('form.primaryContactTitle')}</CardTitle>
           <CardDescription>
             {t('form.primaryContactDescription')}
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 dark:bg-gray-800">
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -496,7 +497,7 @@ export function BusinessInformationForm({
       </Card>
 
       {/* Business Knowledge Upload */}
-      <Card>
+      <Card className="dark:bg-gray-800">
         <CardHeader>
           <CardTitle>{t('form.businessKnowledgeTitle')}</CardTitle>
           <CardDescription>
@@ -540,7 +541,7 @@ export function BusinessInformationForm({
             </p>
           </div>
 
-          <div className="border-t dark:border-gray-600 pt-4">
+          <div className="border-t border-gray-200 dark:border-gray-600 pt-4">
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
               Or upload specific documents:
             </p>
@@ -662,14 +663,14 @@ export function BusinessInformationForm({
       </Card>
 
       {/* Agent Personality */}
-      <Card>
+      <Card className="dark:bg-gray-800">
         <CardHeader>
           <CardTitle>Agent Personality</CardTitle>
           <CardDescription>
             Choose how your AI agent should interact with customers
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="dark:bg-gray-800">
           <Select
             value={formData.agent_personality}
             onValueChange={value =>
@@ -698,20 +699,20 @@ export function BusinessInformationForm({
       </Card>
 
       {/* Greeting Message */}
-      <Card>
+      <Card className="dark:bg-gray-800">
         <CardHeader>
           <CardTitle>Greeting Message</CardTitle>
           <CardDescription>
             The initial message your AI agent will say when answering calls
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="dark:bg-gray-800">
           <textarea
             value={formData.greeting_message}
             onChange={e =>
               handleInputChange('greeting_message', e.target.value)
             }
-            className="w-full h-24 px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500"
+            className="w-full h-24 px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500"
             placeholder="Hello! Thank you for calling Sunshine Medical Clinic. I'm your AI assistant. How can I help you today?"
           />
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
@@ -722,7 +723,7 @@ export function BusinessInformationForm({
       </Card>
 
       {/* Submit Button */}
-      <div className="flex items-center justify-end space-x-4 pt-6 border-t dark:border-gray-600">
+      <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200 dark:border-gray-600">
         <Button type="submit" disabled={saving} className="min-w-32">
           {saving ? (
             <div className="flex items-center space-x-2">

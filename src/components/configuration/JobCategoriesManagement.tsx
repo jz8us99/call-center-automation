@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
+import { AuthenticatedApiClient } from '@/lib/api-client';
 import {
   Card,
   CardContent,
@@ -22,6 +23,8 @@ import {
   SettingsIcon,
   ArrowRightIcon,
 } from '@/components/icons';
+import { toast } from 'sonner';
+import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 
 interface JobCategory {
   id: string;
@@ -48,6 +51,7 @@ export function JobCategoriesManagement({
   onCategorySelect,
   onCategoriesUpdate,
 }: JobCategoriesManagementProps) {
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const [categories, setCategories] = useState<JobCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -107,7 +111,7 @@ export function JobCategoriesManagement({
 
   const handleAddCategory = async () => {
     if (!formData.category_name.trim()) {
-      alert('Category name is required');
+      toast.error('Category name is required');
       return;
     }
 
@@ -136,11 +140,11 @@ export function JobCategoriesManagement({
         setShowAddForm(false);
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to create job category');
+        toast.error(errorData.error || 'Failed to create job category');
       }
     } catch (error) {
       console.error('Failed to create job category:', error);
-      alert('Failed to create job category. Please try again.');
+      toast.error('Failed to create job category. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -148,7 +152,7 @@ export function JobCategoriesManagement({
 
   const handleUpdateCategory = async () => {
     if (!editingCategory || !formData.category_name.trim()) {
-      alert('Category name is required');
+      toast.error('Category name is required');
       return;
     }
 
@@ -181,18 +185,26 @@ export function JobCategoriesManagement({
         setShowAddForm(false);
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to update job category');
+        toast.error(errorData.error || 'Failed to update job category');
       }
     } catch (error) {
       console.error('Failed to update job category:', error);
-      alert('Failed to update job category. Please try again.');
+      toast.error('Failed to update job category. Please try again.');
     } finally {
       setSaving(false);
     }
   };
 
   const handleDeleteCategory = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this job category?')) {
+    const confirmed = await confirm({
+      title: 'Delete Job Category',
+      description: 'Are you sure you want to delete this job category?',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -207,11 +219,11 @@ export function JobCategoriesManagement({
         onCategoriesUpdate?.(updatedCategories);
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to delete job category');
+        toast.error(errorData.error || 'Failed to delete job category');
       }
     } catch (error) {
       console.error('Failed to delete job category:', error);
-      alert('Failed to delete job category. Please try again.');
+      toast.error('Failed to delete job category. Please try again.');
     }
   };
 
@@ -473,6 +485,7 @@ export function JobCategoriesManagement({
           </CardContent>
         </Card>
       )}
+      <ConfirmDialog />
     </div>
   );
 }

@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
+import { AuthenticatedApiClient } from '@/lib/api-client';
+import { toast } from 'sonner';
 import {
   Card,
   CardContent,
@@ -177,7 +179,9 @@ export function AppointmentManagementDashboard({
 
   const loadStaff = async () => {
     try {
-      const response = await fetch(`/api/business/staff?user_id=${user.id}`);
+      const response = await AuthenticatedApiClient.get(
+        `/api/business/staff?user_id=${user.id}`
+      );
       if (response.ok) {
         const data = await response.json();
         setStaff(data.staff || []);
@@ -217,7 +221,9 @@ export function AppointmentManagementDashboard({
         params.append('status', selectedStatus);
       }
 
-      const response = await fetch(`/api/appointments?${params}`);
+      const response = await AuthenticatedApiClient.get(
+        `/api/appointments?${params}`
+      );
       if (response.ok) {
         const data = await response.json();
         let filteredAppointments = data.appointments || [];
@@ -248,18 +254,12 @@ export function AppointmentManagementDashboard({
     reason?: string
   ) => {
     try {
-      const response = await fetch('/api/appointments', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          id: appointmentId,
-          user_id: user.id,
-          status,
-          changed_by: user.id,
-          change_reason: reason,
-        }),
+      const response = await AuthenticatedApiClient.put('/api/appointments', {
+        id: appointmentId,
+        user_id: user.id,
+        status,
+        changed_by: user.id,
+        change_reason: reason,
       });
 
       if (response.ok) {
@@ -270,11 +270,11 @@ export function AppointmentManagementDashboard({
         }
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to update appointment');
+        toast.error(errorData.error || 'Failed to update appointment');
       }
     } catch (error) {
       console.error('Failed to update appointment:', error);
-      alert('Failed to update appointment. Please try again.');
+      toast.error('Failed to update appointment. Please try again.');
     }
   };
 
@@ -284,14 +284,14 @@ export function AppointmentManagementDashboard({
       !bookingForm.customer.last_name ||
       !bookingForm.customer.phone
     ) {
-      alert(
+      toast.error(
         'Please fill in all required customer fields (first name, last name, phone).'
       );
       return;
     }
 
     if (!bookingForm.appointment_type_id || !bookingForm.staff_id) {
-      alert('Please select both appointment type and staff member.');
+      toast.error('Please select both appointment type and staff member.');
       return;
     }
 
@@ -340,17 +340,14 @@ export function AppointmentManagementDashboard({
 
       // Create new customer if not found
       if (!customerId) {
-        const createCustomerResponse = await fetch('/api/customers', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
+        const createCustomerResponse = await AuthenticatedApiClient.post(
+          '/api/customers',
+          {
             business_id: businessId,
             user_id: user.id,
             ...bookingForm.customer,
-          }),
-        });
+          }
+        );
 
         if (createCustomerResponse.ok) {
           const customerData = await createCustomerResponse.json();
@@ -370,12 +367,9 @@ export function AppointmentManagementDashboard({
       const selectedType = appointmentTypes.find(
         t => t.id === bookingForm.appointment_type_id
       );
-      const appointmentResponse = await fetch('/api/appointments', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const appointmentResponse = await AuthenticatedApiClient.post(
+        '/api/appointments',
+        {
           business_id: businessId,
           user_id: user.id,
           customer_id: customerId,
@@ -389,11 +383,11 @@ export function AppointmentManagementDashboard({
           customer_notes: bookingForm.notes,
           booking_source: 'manual',
           status: 'scheduled',
-        }),
-      });
+        }
+      );
 
       if (appointmentResponse.ok) {
-        alert('Appointment created successfully!');
+        toast.success('Appointment created successfully!');
         setShowBookingDialog(false);
         resetBookingForm();
         await loadAppointments();
@@ -403,7 +397,7 @@ export function AppointmentManagementDashboard({
       }
     } catch (error) {
       console.error('Failed to create appointment:', error);
-      alert('Failed to create appointment. Please try again.');
+      toast.error('Failed to create appointment. Please try again.');
     } finally {
       setCreatingAppointment(false);
     }

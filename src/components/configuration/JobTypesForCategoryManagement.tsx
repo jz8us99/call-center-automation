@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
+import { AuthenticatedApiClient } from '@/lib/api-client';
+import { toast } from 'sonner';
+import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import {
   Card,
   CardContent,
@@ -60,6 +63,7 @@ export function JobTypesForCategoryManagement({
   onBack,
   onJobTypesUpdate,
 }: JobTypesForCategoryManagementProps) {
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const [jobTypes, setJobTypes] = useState<JobType[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -83,7 +87,7 @@ export function JobTypesForCategoryManagement({
   const loadJobTypes = async () => {
     setLoading(true);
     try {
-      const response = await fetch(
+      const response = await AuthenticatedApiClient.get(
         `/api/business/job-types?service_type_code=${serviceTypeCode}&category_id=${category.id}&user_id=${user.id}`
       );
       if (response.ok) {
@@ -100,18 +104,15 @@ export function JobTypesForCategoryManagement({
 
   const handleAddJobType = async () => {
     if (!formData.job_name.trim()) {
-      alert('Job type name is required');
+      toast.error('Job type name is required');
       return;
     }
 
     setSaving(true);
     try {
-      const response = await fetch('/api/business/job-types', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const response = await AuthenticatedApiClient.post(
+        '/api/business/job-types',
+        {
           service_type_code: serviceTypeCode,
           category_id: category.id,
           user_id: user.id,
@@ -122,8 +123,8 @@ export function JobTypesForCategoryManagement({
             ? parseFloat(formData.default_price)
             : null,
           price_currency: formData.price_currency,
-        }),
-      });
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -134,11 +135,11 @@ export function JobTypesForCategoryManagement({
         setShowAddForm(false);
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to create job type');
+        toast.error(errorData.error || 'Failed to create job type');
       }
     } catch (error) {
       console.error('Failed to create job type:', error);
-      alert('Failed to create job type. Please try again.');
+      toast.error('Failed to create job type. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -146,18 +147,15 @@ export function JobTypesForCategoryManagement({
 
   const handleUpdateJobType = async () => {
     if (!editingJobType || !formData.job_name.trim()) {
-      alert('Job type name is required');
+      toast.error('Job type name is required');
       return;
     }
 
     setSaving(true);
     try {
-      const response = await fetch('/api/business/job-types', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const response = await AuthenticatedApiClient.put(
+        '/api/business/job-types',
+        {
           id: editingJobType.id,
           job_name: formData.job_name.trim(),
           job_description: formData.job_description.trim() || null,
@@ -166,8 +164,8 @@ export function JobTypesForCategoryManagement({
             ? parseFloat(formData.default_price)
             : null,
           price_currency: formData.price_currency,
-        }),
-      });
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -181,11 +179,11 @@ export function JobTypesForCategoryManagement({
         setShowAddForm(false);
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to update job type');
+        toast.error(errorData.error || 'Failed to update job type');
       }
     } catch (error) {
       console.error('Failed to update job type:', error);
-      alert('Failed to update job type. Please try again.');
+      toast.error('Failed to update job type. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -193,18 +191,26 @@ export function JobTypesForCategoryManagement({
 
   const handleDeleteJobType = async (id: string, isSystemDefault: boolean) => {
     if (isSystemDefault) {
-      alert('Cannot delete system default job types');
+      toast.error('Cannot delete system default job types');
       return;
     }
 
-    if (!confirm('Are you sure you want to delete this job type?')) {
+    const confirmed = await confirm({
+      title: 'Delete Job Type',
+      description: 'Are you sure you want to delete this job type?',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+    });
+
+    if (!confirmed) {
       return;
     }
 
     try {
-      const response = await fetch(`/api/business/job-types?id=${id}`, {
-        method: 'DELETE',
-      });
+      const response = await AuthenticatedApiClient.delete(
+        `/api/business/job-types?id=${id}`
+      );
 
       if (response.ok) {
         const updatedJobTypes = jobTypes.filter(jt => jt.id !== id);
@@ -212,17 +218,17 @@ export function JobTypesForCategoryManagement({
         onJobTypesUpdate?.(updatedJobTypes);
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to delete job type');
+        toast.error(errorData.error || 'Failed to delete job type');
       }
     } catch (error) {
       console.error('Failed to delete job type:', error);
-      alert('Failed to delete job type. Please try again.');
+      toast.error('Failed to delete job type. Please try again.');
     }
   };
 
   const startEdit = (jobType: JobType) => {
     if (jobType.is_system_default) {
-      alert('Cannot edit system default job types');
+      toast.error('Cannot edit system default job types');
       return;
     }
 
@@ -524,6 +530,7 @@ export function JobTypesForCategoryManagement({
           </CardContent>
         </Card>
       )}
+      <ConfirmDialog />
     </div>
   );
 }

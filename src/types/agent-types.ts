@@ -1,8 +1,17 @@
+export interface VoiceSettings {
+  speed: number;
+  pitch: number;
+  tone: string;
+  voice_id?: string;
+  accent?: string;
+  gender?: string;
+}
+
 export enum AgentType {
-  INBOUND_CALL = 'inbound_call',
-  OUTBOUND_APPOINTMENT = 'outbound_appointment',
+  INBOUND_RECEPTIONIST = 'inbound_receptionist',
+  INBOUND_CUSTOMER_SUPPORT = 'inbound_customer_support',
+  OUTBOUND_FOLLOW_UP = 'outbound_follow_up',
   OUTBOUND_MARKETING = 'outbound_marketing',
-  CUSTOMER_SUPPORT = 'customer_support',
 }
 
 export interface AgentTypeConfig {
@@ -20,9 +29,9 @@ export interface AgentTypeConfig {
 }
 
 export const AGENT_TYPE_CONFIGS: Record<AgentType, AgentTypeConfig> = {
-  [AgentType.INBOUND_CALL]: {
-    type: AgentType.INBOUND_CALL,
-    name: 'Inbound Call Agent',
+  [AgentType.INBOUND_RECEPTIONIST]: {
+    type: AgentType.INBOUND_RECEPTIONIST,
+    name: 'Inbound Receptionist',
     description:
       'Handles incoming customer calls, routing, and initial support',
     icon: '📞',
@@ -47,9 +56,9 @@ export const AGENT_TYPE_CONFIGS: Record<AgentType, AgentTypeConfig> = {
       tone: 'professional',
     },
   },
-  [AgentType.OUTBOUND_APPOINTMENT]: {
-    type: AgentType.OUTBOUND_APPOINTMENT,
-    name: 'Outbound Appointment Follow-up Agent',
+  [AgentType.OUTBOUND_FOLLOW_UP]: {
+    type: AgentType.OUTBOUND_FOLLOW_UP,
+    name: 'Outbound Follow-up Agent',
     description:
       'Manages appointment confirmations, reminders, and rescheduling',
     icon: '📅',
@@ -101,8 +110,8 @@ export const AGENT_TYPE_CONFIGS: Record<AgentType, AgentTypeConfig> = {
       tone: 'energetic',
     },
   },
-  [AgentType.CUSTOMER_SUPPORT]: {
-    type: AgentType.CUSTOMER_SUPPORT,
+  [AgentType.INBOUND_CUSTOMER_SUPPORT]: {
+    type: AgentType.INBOUND_CUSTOMER_SUPPORT,
     name: 'Customer Support Agent',
     description: 'Provides detailed technical support and issue resolution',
     icon: '🛠️',

@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
+import { AuthenticatedApiClient } from '@/lib/api-client';
+import { toast } from 'sonner';
 import {
   Card,
   CardContent,
@@ -136,28 +138,25 @@ export function BookingSettingsManagement({
     try {
       setSaving(true);
 
-      const response = await fetch('/api/business/booking-settings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const response = await AuthenticatedApiClient.post(
+        '/api/business/booking-settings',
+        {
           user_id: user.id,
           business_id: businessId,
           ...settings,
-        }),
-      });
+        }
+      );
 
       if (response.ok) {
-        alert('Booking settings saved successfully!');
+        toast.success('Booking settings saved successfully!');
         await loadBookingSettings();
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to save booking settings');
+        toast.error(errorData.error || 'Failed to save booking settings');
       }
     } catch (error) {
       console.error('Failed to save booking settings:', error);
-      alert('Failed to save booking settings. Please try again.');
+      toast.error('Failed to save booking settings. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -165,11 +164,13 @@ export function BookingSettingsManagement({
 
   if (loading) {
     return (
-      <Card>
+      <Card className="dark:bg-gray-800">
         <CardContent className="p-6">
           <div className="text-center">
             <div className="w-8 h-8 border-4 border-blue-300 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading booking settings...</p>
+            <p className="text-gray-600 dark:text-gray-400">
+              Loading booking settings...
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -177,7 +178,7 @@ export function BookingSettingsManagement({
   }
 
   return (
-    <Card>
+    <Card className="dark:bg-gray-800">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <SettingsIcon className="h-5 w-5" />
@@ -201,7 +202,7 @@ export function BookingSettingsManagement({
 
           {/* Booking Rules Tab */}
           <TabsContent value="booking-rules" className="space-y-6">
-            <Card>
+            <Card className="dark:bg-gray-800">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <ClockIcon className="h-4 w-4" />
@@ -227,7 +228,7 @@ export function BookingSettingsManagement({
                       min="1"
                       max="365"
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       How far in advance customers can book
                     </p>
                   </div>
@@ -249,7 +250,7 @@ export function BookingSettingsManagement({
                       min="0"
                       max="168"
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       Minimum notice required for booking
                     </p>
                   </div>
@@ -272,7 +273,7 @@ export function BookingSettingsManagement({
                       max="480"
                       step="15"
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       Default appointment duration
                     </p>
                   </div>
@@ -295,7 +296,7 @@ export function BookingSettingsManagement({
                       max="60"
                       step="5"
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       Buffer time between appointments
                     </p>
                   </div>
@@ -312,7 +313,7 @@ export function BookingSettingsManagement({
                         updateSetting('booking_window_start', e.target.value)
                       }
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       Earliest booking time
                     </p>
                   </div>
@@ -329,7 +330,7 @@ export function BookingSettingsManagement({
                         updateSetting('booking_window_end', e.target.value)
                       }
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       Latest booking time
                     </p>
                   </div>
@@ -351,7 +352,7 @@ export function BookingSettingsManagement({
                       min="1"
                       max="100"
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       Maximum bookings per day
                     </p>
                   </div>
@@ -373,7 +374,7 @@ export function BookingSettingsManagement({
                       min="1"
                       max="10"
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       Maximum bookings per time slot
                     </p>
                   </div>
@@ -385,7 +386,7 @@ export function BookingSettingsManagement({
                       <Label htmlFor="allow_same_day_booking">
                         Allow Same-Day Booking
                       </Label>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
                         Customers can book appointments for today
                       </p>
                     </div>
@@ -403,7 +404,7 @@ export function BookingSettingsManagement({
                       <Label htmlFor="allow_weekend_booking">
                         Allow Weekend Booking
                       </Label>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
                         Enable bookings on weekends
                       </p>
                     </div>
@@ -422,7 +423,7 @@ export function BookingSettingsManagement({
 
           {/* Customer Settings Tab */}
           <TabsContent value="customer-settings" className="space-y-6">
-            <Card>
+            <Card className="dark:bg-gray-800">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <UserIcon className="h-4 w-4" />
@@ -435,7 +436,7 @@ export function BookingSettingsManagement({
                     <Label htmlFor="require_customer_info">
                       Require Customer Information
                     </Label>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       Customers must provide personal details
                     </p>
                   </div>
@@ -453,7 +454,7 @@ export function BookingSettingsManagement({
                     <Label htmlFor="require_phone_number">
                       Require Phone Number
                     </Label>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       Phone number is mandatory for booking
                     </p>
                   </div>
@@ -471,7 +472,7 @@ export function BookingSettingsManagement({
                     <Label htmlFor="require_email_confirmation">
                       Require Email Confirmation
                     </Label>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       Send email confirmation for bookings
                     </p>
                   </div>
@@ -489,7 +490,7 @@ export function BookingSettingsManagement({
                     <Label htmlFor="online_booking_enabled">
                       Online Booking Enabled
                     </Label>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       Allow customers to book online
                     </p>
                   </div>
@@ -505,7 +506,7 @@ export function BookingSettingsManagement({
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="show_staff_names">Show Staff Names</Label>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       Display staff names to customers
                     </p>
                   </div>
@@ -521,7 +522,7 @@ export function BookingSettingsManagement({
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="show_prices">Show Prices</Label>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       Display service prices during booking
                     </p>
                   </div>
@@ -539,7 +540,7 @@ export function BookingSettingsManagement({
                     <Label htmlFor="allow_service_selection">
                       Allow Service Selection
                     </Label>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       Customers can choose services during booking
                     </p>
                   </div>
@@ -554,7 +555,7 @@ export function BookingSettingsManagement({
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="dark:bg-gray-800">
               <CardHeader>
                 <CardTitle>Cancellation & Rescheduling</CardTitle>
               </CardHeader>
@@ -564,7 +565,7 @@ export function BookingSettingsManagement({
                     <Label htmlFor="allow_customer_cancellation">
                       Allow Customer Cancellation
                     </Label>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       Customers can cancel their own appointments
                     </p>
                   </div>
@@ -595,7 +596,7 @@ export function BookingSettingsManagement({
                       min="0"
                       max="168"
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       Required notice for cancellation
                     </p>
                   </div>
@@ -606,7 +607,7 @@ export function BookingSettingsManagement({
                     <Label htmlFor="allow_customer_reschedule">
                       Allow Customer Rescheduling
                     </Label>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       Customers can reschedule appointments
                     </p>
                   </div>
@@ -637,7 +638,7 @@ export function BookingSettingsManagement({
                       min="0"
                       max="168"
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       Required notice for rescheduling
                     </p>
                   </div>
@@ -648,7 +649,7 @@ export function BookingSettingsManagement({
 
           {/* Notifications Tab */}
           <TabsContent value="notifications" className="space-y-6">
-            <Card>
+            <Card className="dark:bg-gray-800">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <MailIcon className="h-4 w-4" />
@@ -661,7 +662,7 @@ export function BookingSettingsManagement({
                     <Label htmlFor="send_booking_confirmation">
                       Send Booking Confirmation
                     </Label>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       Email confirmation when booking is made
                     </p>
                   </div>
@@ -679,7 +680,7 @@ export function BookingSettingsManagement({
                     <Label htmlFor="send_reminder_email">
                       Send Reminder Emails
                     </Label>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       Automatic reminder emails before appointments
                     </p>
                   </div>
@@ -710,7 +711,7 @@ export function BookingSettingsManagement({
                       min="1"
                       max="168"
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       Send reminder X hours before appointment
                     </p>
                   </div>
@@ -721,7 +722,7 @@ export function BookingSettingsManagement({
                     <Label htmlFor="send_sms_reminders">
                       Send SMS Reminders
                     </Label>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       Text message reminders (requires SMS service)
                     </p>
                   </div>
@@ -739,7 +740,7 @@ export function BookingSettingsManagement({
 
           {/* Policies Tab */}
           <TabsContent value="policies" className="space-y-6">
-            <Card>
+            <Card className="dark:bg-gray-800">
               <CardHeader>
                 <CardTitle>Payment & Deposit Settings</CardTitle>
               </CardHeader>
@@ -747,7 +748,7 @@ export function BookingSettingsManagement({
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="require_deposit">Require Deposit</Label>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       Require payment deposit for bookings
                     </p>
                   </div>
@@ -779,7 +780,7 @@ export function BookingSettingsManagement({
                       max="100"
                       step="0.01"
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       Percentage of service price required as deposit
                     </p>
                   </div>
@@ -787,7 +788,7 @@ export function BookingSettingsManagement({
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="dark:bg-gray-800">
               <CardHeader>
                 <CardTitle>Customer Instructions & Terms</CardTitle>
               </CardHeader>
@@ -805,7 +806,7 @@ export function BookingSettingsManagement({
                     placeholder="Special instructions shown to customers during booking..."
                     rows={3}
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     Instructions displayed during booking process
                   </p>
                 </div>
@@ -823,7 +824,7 @@ export function BookingSettingsManagement({
                     placeholder="Terms and conditions customers must agree to..."
                     rows={4}
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     Terms customers must agree to when booking
                   </p>
                 </div>

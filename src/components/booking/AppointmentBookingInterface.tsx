@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { AuthenticatedApiClient } from '@/lib/api-client';
+import { toast } from 'sonner';
 import {
   Card,
   CardContent,
@@ -117,7 +119,7 @@ export function AppointmentBookingInterface({
   const loadAppointmentTypes = async () => {
     setLoading(true);
     try {
-      const response = await fetch(
+      const response = await AuthenticatedApiClient.get(
         `/api/appointment-types?business_id=${businessId}&is_active=true&online_booking_enabled=true`
       );
       if (response.ok) {
@@ -136,7 +138,7 @@ export function AppointmentBookingInterface({
 
     setLoading(true);
     try {
-      const response = await fetch(
+      const response = await AuthenticatedApiClient.get(
         `/api/business/available-time-slots?business_id=${businessId}&date=${selectedDate}&appointment_type_id=${selectedType.id}`
       );
       if (response.ok) {
@@ -203,7 +205,7 @@ export function AppointmentBookingInterface({
 
       // Try to find existing customer by email (if provided)
       if (customerForm.email) {
-        const customerSearchResponse = await fetch(
+        const customerSearchResponse = await AuthenticatedApiClient.get(
           `/api/customers?business_id=${businessId}&search=${customerForm.email}`
         );
 
@@ -222,17 +224,14 @@ export function AppointmentBookingInterface({
 
       if (!customerId) {
         // Create new customer
-        const createCustomerResponse = await fetch('/api/customers', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
+        const createCustomerResponse = await AuthenticatedApiClient.post(
+          '/api/customers',
+          {
             business_id: businessId,
             user_id: businessId, // Assuming business_id maps to user_id
             ...customerForm,
-          }),
-        });
+          }
+        );
 
         if (createCustomerResponse.ok) {
           const customerData = await createCustomerResponse.json();
@@ -243,12 +242,9 @@ export function AppointmentBookingInterface({
       }
 
       // Create the appointment
-      const appointmentResponse = await fetch('/api/appointments', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const appointmentResponse = await AuthenticatedApiClient.post(
+        '/api/appointments',
+        {
           business_id: businessId,
           user_id: businessId, // Assuming business_id maps to user_id
           customer_id: customerId,
@@ -261,8 +257,8 @@ export function AppointmentBookingInterface({
           title: `${selectedType.name} - ${customerForm.first_name} ${customerForm.last_name}`,
           customer_notes: customerForm.note || '',
           booking_source: 'online',
-        }),
-      });
+        }
+      );
 
       if (appointmentResponse.ok) {
         const appointmentData = await appointmentResponse.json();
@@ -278,7 +274,7 @@ export function AppointmentBookingInterface({
       }
     } catch (error) {
       console.error('Failed to create appointment:', error);
-      alert('Failed to book appointment. Please try again.');
+      toast.error('Failed to book appointment. Please try again.');
     } finally {
       setLoading(false);
     }

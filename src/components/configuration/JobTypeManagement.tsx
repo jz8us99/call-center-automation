@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
+import { AuthenticatedApiClient } from '@/lib/api-client';
+import { toast } from 'sonner';
+import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import {
   Card,
   CardContent,
@@ -62,6 +65,7 @@ export function JobTypeManagement({
   serviceTypeCode,
   onJobTypesUpdate,
 }: JobTypeManagementProps) {
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const [jobTypes, setJobTypes] = useState<JobType[]>([]);
   const [categories, setCategories] = useState<JobCategory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -96,7 +100,7 @@ export function JobTypeManagement({
 
   const loadJobTypes = async () => {
     try {
-      const response = await fetch(
+      const response = await AuthenticatedApiClient.get(
         `/api/business/job-types?service_type_code=${serviceTypeCode}&user_id=${user.id}`
       );
       if (response.ok) {
@@ -112,7 +116,7 @@ export function JobTypeManagement({
 
   const loadCategories = async () => {
     try {
-      const response = await fetch(
+      const response = await AuthenticatedApiClient.get(
         `/api/business/job-categories?service_type_code=${serviceTypeCode}`
       );
       if (response.ok) {
@@ -126,18 +130,15 @@ export function JobTypeManagement({
 
   const handleAddJobType = async () => {
     if (!formData.job_name.trim()) {
-      alert('Job name is required');
+      toast.error('Job name is required');
       return;
     }
 
     setSaving(true);
     try {
-      const response = await fetch('/api/business/job-types', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const response = await AuthenticatedApiClient.post(
+        '/api/business/job-types',
+        {
           service_type_code: serviceTypeCode,
           category_id: formData.category_id || null,
           user_id: user.id,
@@ -149,8 +150,8 @@ export function JobTypeManagement({
             ? parseFloat(formData.default_price)
             : null,
           price_currency: formData.price_currency,
-        }),
-      });
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -160,11 +161,11 @@ export function JobTypeManagement({
         onJobTypesUpdate?.(jobTypes);
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to add job type');
+        toast.error(errorData.error || 'Failed to add job type');
       }
     } catch (error) {
       console.error('Failed to add job type:', error);
-      alert('Failed to add job type. Please try again.');
+      toast.error('Failed to add job type. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -172,18 +173,15 @@ export function JobTypeManagement({
 
   const handleUpdateJobType = async () => {
     if (!editingJobType || !formData.job_name.trim()) {
-      alert('Job name is required');
+      toast.error('Job name is required');
       return;
     }
 
     setSaving(true);
     try {
-      const response = await fetch('/api/business/job-types', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const response = await AuthenticatedApiClient.put(
+        '/api/business/job-types',
+        {
           id: editingJobType.id,
           job_name: formData.job_name.trim(),
           job_description: formData.job_description.trim() || null,
@@ -194,8 +192,8 @@ export function JobTypeManagement({
             : null,
           price_currency: formData.price_currency,
           is_active: true,
-        }),
-      });
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -208,11 +206,11 @@ export function JobTypeManagement({
         onJobTypesUpdate?.(jobTypes);
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to update job type');
+        toast.error(errorData.error || 'Failed to update job type');
       }
     } catch (error) {
       console.error('Failed to update job type:', error);
-      alert('Failed to update job type. Please try again.');
+      toast.error('Failed to update job type. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -220,29 +218,37 @@ export function JobTypeManagement({
 
   const handleDeleteJobType = async (jobType: JobType) => {
     if (jobType.is_system_default) {
-      alert('Cannot delete system default job types');
+      toast.error('Cannot delete system default job types');
       return;
     }
 
-    if (!confirm(`Are you sure you want to delete "${jobType.job_name}"?`)) {
+    const confirmed = await confirm({
+      title: 'Delete Job Type',
+      description: `Are you sure you want to delete "${jobType.job_name}"?`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+    });
+
+    if (!confirmed) {
       return;
     }
 
     try {
-      const response = await fetch(`/api/business/job-types?id=${jobType.id}`, {
-        method: 'DELETE',
-      });
+      const response = await AuthenticatedApiClient.delete(
+        `/api/business/job-types?id=${jobType.id}`
+      );
 
       if (response.ok) {
         setJobTypes(prev => prev.filter(jt => jt.id !== jobType.id));
         onJobTypesUpdate?.(jobTypes.filter(jt => jt.id !== jobType.id));
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to delete job type');
+        toast.error(errorData.error || 'Failed to delete job type');
       }
     } catch (error) {
       console.error('Failed to delete job type:', error);
-      alert('Failed to delete job type. Please try again.');
+      toast.error('Failed to delete job type. Please try again.');
     }
   };
 
@@ -624,6 +630,8 @@ export function JobTypeManagement({
           </CardContent>
         </Card>
       )}
+
+      <ConfirmDialog />
     </div>
   );
 }

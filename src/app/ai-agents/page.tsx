@@ -12,6 +12,8 @@ import { AgentDashboard } from '@/components/ai-agents/AgentDashboard';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { HelpButton } from '@/components/modals/HelpDialog';
+import { toast } from 'sonner';
+import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 
 // Types
 import {
@@ -32,6 +34,7 @@ interface AgentConfigState {
 }
 
 export default function AIAgentsPage() {
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>('getting-started');
@@ -122,12 +125,8 @@ export default function AIAgentsPage() {
 
   const handleDuplicateAgent = async (agent: AIAgent) => {
     try {
-      // Show language selection dialog (simplified for now)
-      const targetLanguage = prompt(
-        'Enter target language (es, zh-CN, it):',
-        'es'
-      );
-      if (!targetLanguage) return;
+      // For now, default to Spanish (es) - TODO: implement proper language selection dialog
+      const targetLanguage = 'es';
 
       const token = await supabase.auth
         .getSession()
@@ -155,21 +154,26 @@ export default function AIAgentsPage() {
 
       // Reload dashboard data
       await loadDashboardData();
-      alert('Agent duplicated successfully!');
+      toast.success('代理复制成功!');
     } catch (error) {
       console.error('Error duplicating agent:', error);
-      alert(
-        `Error: ${error instanceof Error ? error.message : 'Failed to duplicate agent'}`
+      toast.error(
+        `错误: ${error instanceof Error ? error.message : '复制代理失败'}`
       );
     }
   };
 
   const handleDeleteAgent = async (agentId: string) => {
-    if (
-      !confirm(
-        'Are you sure you want to delete this agent? This action cannot be undone.'
-      )
-    ) {
+    const confirmed = await confirm({
+      title: 'Delete AI Agent',
+      description:
+        'Are you sure you want to delete this agent? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -192,11 +196,11 @@ export default function AIAgentsPage() {
 
       // Reload dashboard data
       await loadDashboardData();
-      alert('Agent deleted successfully');
+      toast.success('代理删除成功');
     } catch (error) {
       console.error('Error deleting agent:', error);
-      alert(
-        `Error: ${error instanceof Error ? error.message : 'Failed to delete agent'}`
+      toast.error(
+        `错误: ${error instanceof Error ? error.message : '删除代理失败'}`
       );
     }
   };
@@ -225,8 +229,8 @@ export default function AIAgentsPage() {
       await loadDashboardData();
     } catch (error) {
       console.error('Error updating agent status:', error);
-      alert(
-        `Error: ${error instanceof Error ? error.message : 'Failed to update agent status'}`
+      toast.error(
+        `错误: ${error instanceof Error ? error.message : '更新代理状态失败'}`
       );
     }
   };
@@ -234,7 +238,7 @@ export default function AIAgentsPage() {
   const handleViewAgent = (agent: AIAgent) => {
     // TODO: Implement agent detail view
     console.log('View agent:', agent);
-    alert('Agent detail view not implemented yet');
+    toast.info('代理详情视图尚未实现');
   };
 
   const handleBackToDashboard = () => {
@@ -437,6 +441,7 @@ export default function AIAgentsPage() {
 
       {/* Help Button */}
       <HelpButton currentPage="ai-agents" />
+      <ConfirmDialog />
     </div>
   );
 }

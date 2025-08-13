@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AppointmentBookingInterface } from '@/components/booking/AppointmentBookingInterface';
 import { AppointmentManagementDashboard } from '@/components/appointments/AppointmentManagementDashboard';
-import { Step5AppointmentSystem } from '@/components/appointments/Step5AppointmentSystem';
+import { AppointmentSystem } from '@/components/appointments/AppointmentSystem';
 import { CalendarIcon, UserIcon, ClockIcon } from '@/components/icons';
 
 export default function AppointmentsPage() {
@@ -269,7 +269,7 @@ export default function AppointmentsPage() {
           </TabsContent>
 
           <TabsContent value="step5-config" className="space-y-6">
-            <Step5AppointmentSystem user={user} businessId={user.id} />
+            <AppointmentSystem user={user} businessId={user.id} />
           </TabsContent>
         </Tabs>
 

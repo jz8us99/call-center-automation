@@ -3,7 +3,7 @@ import { BusinessInformationStep } from '@/components/configuration/BusinessInfo
 import { BusinessProducts } from '@/components/configuration/BusinessProducts';
 import { BusinessServices } from '@/components/configuration/BusinessServices';
 import { StaffManagement } from '@/components/configuration/StaffManagement';
-import { AppointmentSystem } from '@/components/configuration/AppointmentSystem';
+import { AppointmentSystemConfig } from '@/components/configuration/AppointmentSystemConfig';
 import { AIAgentsStep } from '@/components/configuration/AIAgentsStep';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -161,7 +161,7 @@ export function StepContent({
             </p>
           </div>
           {workflowState.appointmentSystem.canAccess ? (
-            <AppointmentSystem
+            <AppointmentSystemConfig
               user={user}
               onAppointmentUpdate={onAppointmentUpdate}
             />

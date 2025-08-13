@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { AgentType, AGENT_TYPE_CONFIGS } from '@/types/agent-types';
+import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 
 interface AgentConfig {
   id?: string;
@@ -92,6 +93,7 @@ export function CallScriptEditor({
   agentType,
   onSave,
 }: CallScriptEditorProps) {
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const agentConfig = AGENT_TYPE_CONFIGS[agentType];
   const [scripts, setScripts] = useState<CallScript[]>([
     {
@@ -170,8 +172,16 @@ export function CallScriptEditor({
     setShowAddScript(false);
   };
 
-  const handleDeleteScript = (scriptType: string) => {
-    if (!confirm('Are you sure you want to delete this script?')) return;
+  const handleDeleteScript = async (scriptType: string) => {
+    const confirmed = await confirm({
+      title: 'Delete Script',
+      description: 'Are you sure you want to delete this script?',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+    });
+
+    if (!confirmed) return;
 
     setScripts(prev =>
       prev.filter(script => script.script_type !== scriptType)
@@ -180,7 +190,7 @@ export function CallScriptEditor({
 
   if (editingScript) {
     return (
-      <Card>
+      <Card className="dark:bg-gray-800">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -194,10 +204,10 @@ export function CallScriptEditor({
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-6 dark:bg-gray-800">
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Script Name
               </label>
               <Input
@@ -211,7 +221,7 @@ export function CallScriptEditor({
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Script Type
               </label>
               <Select
@@ -242,7 +252,7 @@ export function CallScriptEditor({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Script Content
             </label>
             <textarea
@@ -252,10 +262,10 @@ export function CallScriptEditor({
                   prev ? { ...prev, script_content: e.target.value } : null
                 )
               }
-              className="w-full h-64 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 font-mono text-sm"
+              className="w-full h-64 px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder:text-gray-400 rounded-md focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500 font-mono text-sm"
               placeholder="Enter your script content here..."
             />
-            <div className="mt-2 text-xs text-gray-500">
+            <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
               <p className="font-semibold mb-1">Available placeholders:</p>
               <div className="grid md:grid-cols-2 gap-2">
                 <div>
@@ -303,7 +313,7 @@ export function CallScriptEditor({
             </label>
           </div>
 
-          <div className="flex items-center justify-end space-x-4 pt-6 border-t">
+          <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200 dark:border-gray-600">
             <Button variant="outline" onClick={() => setEditingScript(null)}>
               Cancel
             </Button>
@@ -316,7 +326,7 @@ export function CallScriptEditor({
 
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="dark:bg-gray-800">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -332,17 +342,19 @@ export function CallScriptEditor({
             <Button onClick={handleAddScript}>+ Add Custom Script</Button>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="dark:bg-gray-800">
           <div className="space-y-4">
             {scripts.map(script => (
               <div
                 key={script.script_type}
-                className="border border-gray-200 rounded-lg p-4 hover:border-gray-300 transition-colors"
+                className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:border-gray-300 dark:hover:border-gray-500 transition-colors dark:bg-gray-700"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-2">
-                      <h3 className="font-semibold">{script.script_name}</h3>
+                      <h3 className="font-semibold dark:text-gray-100">
+                        {script.script_name}
+                      </h3>
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                         {script.script_type}
                       </span>
@@ -357,7 +369,7 @@ export function CallScriptEditor({
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600 line-clamp-3">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3">
                       {script.script_content}
                     </p>
                   </div>
@@ -374,7 +386,7 @@ export function CallScriptEditor({
                         variant="outline"
                         size="sm"
                         onClick={() => handleDeleteScript(script.script_type)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20"
                       >
                         Delete
                       </Button>
@@ -387,7 +399,7 @@ export function CallScriptEditor({
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="dark:bg-gray-800">
         <CardHeader>
           <CardTitle>Script Testing</CardTitle>
           <CardDescription>
@@ -423,6 +435,7 @@ export function CallScriptEditor({
           </div>
         </CardContent>
       </Card>
+      <ConfirmDialog />
     </div>
   );
 }

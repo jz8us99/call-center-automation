@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { User } from '@supabase/supabase-js';
 import { authenticatedFetch } from '@/lib/api-client';
+import { toast } from 'sonner';
+import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import {
   Card,
   CardContent,
@@ -72,6 +74,7 @@ export function BusinessServices({
   onServicesUpdate,
 }: BusinessServicesProps) {
   const t = useTranslations('businessServices');
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const [businessProfile, setBusinessProfile] =
     useState<BusinessProfile | null>(null);
   const [jobCategories, setJobCategories] = useState<JobCategory[]>([]);
@@ -182,23 +185,28 @@ export function BusinessServices({
 
   const handleAddCategory = async () => {
     if (!categoryForm.category_name || !businessProfile?.business_type) {
-      alert('Category name is required and business type must be configured');
+      toast.error(
+        'Category name is required and business type must be configured'
+      );
       return;
     }
 
     setSaving(true);
     try {
-      const response = await authenticatedFetch('/api/business/job-categories', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          service_type_code: businessProfile.business_type,
-          category_name: categoryForm.category_name,
-          description: categoryForm.description,
-        }),
-      });
+      const response = await authenticatedFetch(
+        '/api/business/job-categories',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            service_type_code: businessProfile.business_type,
+            category_name: categoryForm.category_name,
+            description: categoryForm.description,
+          }),
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -208,11 +216,11 @@ export function BusinessServices({
         setHasUnsavedChanges(true);
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to add category');
+        toast.error(errorData.error || 'Failed to add category');
       }
     } catch (error) {
       console.error('Failed to add category:', error);
-      alert('Failed to add category. Please try again.');
+      toast.error('Failed to add category. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -220,23 +228,26 @@ export function BusinessServices({
 
   const handleUpdateCategory = async () => {
     if (!editingCategory || !categoryForm.category_name) {
-      alert('Category name is required');
+      toast.error('Category name is required');
       return;
     }
 
     setSaving(true);
     try {
-      const response = await authenticatedFetch('/api/business/job-categories', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          id: editingCategory.id,
-          category_name: categoryForm.category_name,
-          description: categoryForm.description,
-        }),
-      });
+      const response = await authenticatedFetch(
+        '/api/business/job-categories',
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            id: editingCategory.id,
+            category_name: categoryForm.category_name,
+            description: categoryForm.description,
+          }),
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -249,29 +260,37 @@ export function BusinessServices({
         setHasUnsavedChanges(true);
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to update category');
+        toast.error(errorData.error || 'Failed to update category');
       }
     } catch (error) {
       console.error('Failed to update category:', error);
-      alert('Failed to update category. Please try again.');
+      toast.error('Failed to update category. Please try again.');
     } finally {
       setSaving(false);
     }
   };
 
   const handleDeleteCategory = async (id: string) => {
-    if (
-      !confirm(
-        'Are you sure you want to delete this category? This will also affect any associated services.'
-      )
-    ) {
+    const confirmed = await confirm({
+      title: 'Delete Category',
+      description:
+        'Are you sure you want to delete this category? This will also affect any associated services.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+    });
+
+    if (!confirmed) {
       return;
     }
 
     try {
-      const response = await authenticatedFetch(`/api/business/job-categories?id=${id}`, {
-        method: 'DELETE',
-      });
+      const response = await authenticatedFetch(
+        `/api/business/job-categories?id=${id}`,
+        {
+          method: 'DELETE',
+        }
+      );
 
       if (response.ok) {
         setJobCategories(prev => prev.filter(c => c.id !== id));
@@ -282,11 +301,11 @@ export function BusinessServices({
         setHasUnsavedChanges(true);
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to delete category');
+        toast.error(errorData.error || 'Failed to delete category');
       }
     } catch (error) {
       console.error('Failed to delete category:', error);
-      alert('Failed to delete category. Please try again.');
+      toast.error('Failed to delete category. Please try again.');
     }
   };
 
@@ -327,7 +346,9 @@ export function BusinessServices({
 
   const handleAddJobType = async () => {
     if (!jobTypeForm.job_name || !businessProfile?.business_type) {
-      alert('Service name is required and business type must be configured');
+      toast.error(
+        'Service name is required and business type must be configured'
+      );
       return;
     }
 
@@ -363,11 +384,11 @@ export function BusinessServices({
         setShowJobTypeForm(false);
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to add service');
+        toast.error(errorData.error || 'Failed to add service');
       }
     } catch (error) {
       console.error('Failed to add service:', error);
-      alert('Failed to add service. Please try again.');
+      toast.error('Failed to add service. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -406,7 +427,7 @@ export function BusinessServices({
 
   const handleUpdateJobType = async () => {
     if (!editingJobType || !jobTypeForm.job_name) {
-      alert('Service name is required');
+      toast.error('Service name is required');
       return;
     }
 
@@ -443,35 +464,46 @@ export function BusinessServices({
         setShowJobTypeForm(false);
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to update service');
+        toast.error(errorData.error || 'Failed to update service');
       }
     } catch (error) {
       console.error('Failed to update service:', error);
-      alert('Failed to update service. Please try again.');
+      toast.error('Failed to update service. Please try again.');
     } finally {
       setSaving(false);
     }
   };
 
   const handleDeleteJobType = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this service?')) {
+    const confirmed = await confirm({
+      title: 'Delete Service',
+      description: 'Are you sure you want to delete this service?',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+    });
+
+    if (!confirmed) {
       return;
     }
 
     try {
-      const response = await authenticatedFetch(`/api/business/job-types?id=${id}`, {
-        method: 'DELETE',
-      });
+      const response = await authenticatedFetch(
+        `/api/business/job-types?id=${id}`,
+        {
+          method: 'DELETE',
+        }
+      );
 
       if (response.ok) {
         setJobTypes(prev => prev.filter(jt => jt.id !== id));
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to delete service');
+        toast.error(errorData.error || 'Failed to delete service');
       }
     } catch (error) {
       console.error('Failed to delete service:', error);
-      alert('Failed to delete service. Please try again.');
+      toast.error('Failed to delete service. Please try again.');
     }
   };
 
@@ -505,7 +537,7 @@ export function BusinessServices({
 
   const saveInlineService = async (categoryId: string) => {
     if (!inlineForm.job_name.trim()) {
-      alert('Service name is required');
+      toast.error('Service name is required');
       return;
     }
 
@@ -537,11 +569,11 @@ export function BusinessServices({
         cancelInlineAdd();
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to add service');
+        toast.error(errorData.error || 'Failed to add service');
       }
     } catch (error) {
       console.error('Failed to add service:', error);
-      alert('Failed to add service. Please try again.');
+      toast.error('Failed to add service. Please try again.');
     } finally {
       setInlineSaving(false);
     }
@@ -746,21 +778,21 @@ export function BusinessServices({
                 return (
                   <div
                     key={category.id}
-                    className="border border-gray-200 rounded-lg overflow-hidden"
+                    className="border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden"
                   >
                     {/* Category Header */}
-                    <div className="bg-blue-50 border-b border-gray-200">
+                    <div className="bg-blue-50 dark:bg-blue-900/20 border-b border-gray-200 dark:border-gray-600">
                       <div className="flex items-center justify-between px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <h4 className="font-semibold text-blue-800">
+                          <h4 className="font-semibold text-blue-800 dark:text-blue-200">
                             {category.category_name}
                           </h4>
                           {category.description && (
-                            <span className="text-sm text-blue-600">
+                            <span className="text-sm text-blue-600 dark:text-blue-300">
                               - {category.description}
                             </span>
                           )}
-                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                          <span className="text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-200 px-2 py-1 rounded">
                             {categoryJobTypes.length} services
                           </span>
                         </div>
@@ -769,7 +801,7 @@ export function BusinessServices({
                             variant="ghost"
                             size="sm"
                             onClick={() => startEditCategory(category)}
-                            className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-100"
+                            className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-100 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/30"
                           >
                             <EditIcon className="h-3 w-3" />
                           </Button>
@@ -777,7 +809,7 @@ export function BusinessServices({
                             variant="ghost"
                             size="sm"
                             onClick={() => handleDeleteCategory(category.id)}
-                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-100"
+                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-100 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/30"
                           >
                             <TrashIcon className="h-3 w-3" />
                           </Button>
@@ -798,8 +830,8 @@ export function BusinessServices({
                     {categoryJobTypes.length > 0 ? (
                       <>
                         {/* Services Header */}
-                        <div className="bg-gray-50 border-b border-gray-200">
-                          <div className="grid grid-cols-12 gap-4 px-4 py-2 text-xs font-medium text-gray-700">
+                        <div className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+                          <div className="grid grid-cols-12 gap-4 px-4 py-2 text-xs font-medium text-gray-700 dark:text-gray-300">
                             <div className="col-span-4">Service Name</div>
                             <div className="col-span-4">Description</div>
                             <div className="col-span-2">Duration</div>
@@ -812,28 +844,28 @@ export function BusinessServices({
                         {categoryJobTypes.map((jobType, index) => (
                           <div
                             key={jobType.id}
-                            className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-gray-200 bg-white hover:bg-gray-50"
+                            className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
                           >
-                            <div className="col-span-4 font-medium text-black">
+                            <div className="col-span-4 font-medium text-black dark:text-white">
                               {jobType.job_name}
                             </div>
-                            <div className="col-span-4 text-sm text-black">
+                            <div className="col-span-4 text-sm text-black dark:text-gray-300">
                               {jobType.job_description || '-'}
                             </div>
-                            <div className="col-span-2 text-sm text-black">
+                            <div className="col-span-2 text-sm text-black dark:text-gray-300">
                               {jobType.default_duration_minutes}min
                             </div>
-                            <div className="col-span-1 text-sm text-black">
+                            <div className="col-span-1 text-sm text-black dark:text-gray-300">
                               {jobType.default_price
                                 ? `${jobType.price_currency} ${jobType.default_price}`
                                 : '-'}
                             </div>
-                            <div className="col-span-1 flex items-center justify-end gap-1">
+                            <div className="col-span-1 flex items-center justify-end gap-1 bg-transparent dark:bg-gray-800">
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => startEditJobType(jobType)}
-                                className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/30"
                               >
                                 <EditIcon className="h-3 w-3" />
                               </Button>
@@ -841,7 +873,7 @@ export function BusinessServices({
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleDeleteJobType(jobType.id)}
-                                className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/30"
                               >
                                 <TrashIcon className="h-3 w-3" />
                               </Button>
@@ -851,7 +883,7 @@ export function BusinessServices({
 
                         {/* Inline Add Row */}
                         {addingToCategory === category.id && (
-                          <div className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-gray-200 bg-yellow-50">
+                          <div className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-gray-200 dark:border-gray-600 bg-yellow-50 dark:bg-yellow-900/20">
                             <div className="col-span-4">
                               <Input
                                 value={inlineForm.job_name}
@@ -957,8 +989,8 @@ export function BusinessServices({
                         {addingToCategory === category.id ? (
                           <>
                             {/* Services Header */}
-                            <div className="bg-gray-50 border-b border-gray-200">
-                              <div className="grid grid-cols-12 gap-4 px-4 py-2 text-xs font-medium text-gray-700">
+                            <div className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+                              <div className="grid grid-cols-12 gap-4 px-4 py-2 text-xs font-medium text-gray-700 dark:text-gray-300">
                                 <div className="col-span-4">Service Name</div>
                                 <div className="col-span-4">Description</div>
                                 <div className="col-span-2">Duration</div>
@@ -969,7 +1001,7 @@ export function BusinessServices({
                               </div>
                             </div>
                             {/* Inline Add Row for empty category */}
-                            <div className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-gray-200 bg-yellow-50">
+                            <div className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-gray-200 dark:border-gray-600 bg-yellow-50 dark:bg-yellow-900/20">
                               <div className="col-span-4">
                                 <Input
                                   value={inlineForm.job_name}
@@ -1092,15 +1124,15 @@ export function BusinessServices({
                 if (uncategorizedJobTypes.length === 0) return null;
 
                 return (
-                  <div className="border border-gray-200 rounded-lg overflow-hidden">
+                  <div className="border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
                     {/* Uncategorized Header */}
-                    <div className="bg-amber-50 border-b border-gray-200">
+                    <div className="bg-amber-50 dark:bg-amber-900/20 border-b border-gray-200 dark:border-gray-600">
                       <div className="flex items-center justify-between px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <h4 className="font-semibold text-amber-800">
+                          <h4 className="font-semibold text-amber-800 dark:text-amber-200">
                             Uncategorized Services
                           </h4>
-                          <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded">
+                          <span className="text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-200 px-2 py-1 rounded">
                             {uncategorizedJobTypes.length} services
                           </span>
                         </div>
@@ -1108,8 +1140,8 @@ export function BusinessServices({
                     </div>
 
                     {/* Services Header */}
-                    <div className="bg-gray-50 border-b border-gray-200">
-                      <div className="grid grid-cols-12 gap-4 px-4 py-2 text-xs font-medium text-gray-700">
+                    <div className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+                      <div className="grid grid-cols-12 gap-4 px-4 py-2 text-xs font-medium text-gray-700 dark:text-gray-300">
                         <div className="col-span-4">Service Name</div>
                         <div className="col-span-4">Description</div>
                         <div className="col-span-2">Duration</div>
@@ -1122,28 +1154,28 @@ export function BusinessServices({
                     {uncategorizedJobTypes.map((jobType, index) => (
                       <div
                         key={jobType.id}
-                        className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-gray-200 bg-white hover:bg-gray-50"
+                        className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
                       >
-                        <div className="col-span-4 font-medium text-black">
+                        <div className="col-span-4 font-medium text-black dark:text-white">
                           {jobType.job_name}
                         </div>
-                        <div className="col-span-4 text-sm text-black">
+                        <div className="col-span-4 text-sm text-black dark:text-gray-300">
                           {jobType.job_description || '-'}
                         </div>
-                        <div className="col-span-2 text-sm text-black">
+                        <div className="col-span-2 text-sm text-black dark:text-gray-300">
                           {jobType.default_duration_minutes}min
                         </div>
-                        <div className="col-span-1 text-sm text-black">
+                        <div className="col-span-1 text-sm text-black dark:text-gray-300">
                           {jobType.default_price
                             ? `${jobType.price_currency} ${jobType.default_price}`
                             : '-'}
                         </div>
-                        <div className="col-span-1 flex items-center justify-end gap-1">
+                        <div className="col-span-1 flex items-center justify-end gap-1 bg-transparent dark:bg-gray-800">
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => startEditJobType(jobType)}
-                            className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/30"
                           >
                             <EditIcon className="h-3 w-3" />
                           </Button>
@@ -1151,7 +1183,7 @@ export function BusinessServices({
                             variant="ghost"
                             size="sm"
                             onClick={() => handleDeleteJobType(jobType.id)}
-                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/30"
                           >
                             <TrashIcon className="h-3 w-3" />
                           </Button>
@@ -1372,15 +1404,17 @@ export function BusinessServices({
       )}
 
       {/* Status Summary */}
-      <Card className="bg-blue-50 border-blue-200">
+      <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-              <ClockIcon className="h-4 w-4 text-blue-600" />
+            <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+              <ClockIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <p className="font-medium text-blue-900">Services Status</p>
-              <p className="text-sm text-blue-700">
+              <p className="font-medium text-blue-900 dark:text-blue-200">
+                Services Status
+              </p>
+              <p className="text-sm text-blue-700 dark:text-blue-300">
                 Business Type: <strong>{businessProfile.business_type}</strong>{' '}
                 | Categories: <strong>{jobCategories.length}</strong> |
                 Services: <strong>{jobTypes.length}</strong>
@@ -1394,6 +1428,8 @@ export function BusinessServices({
           </div>
         </CardContent>
       </Card>
+
+      <ConfirmDialog />
     </div>
   );
 }

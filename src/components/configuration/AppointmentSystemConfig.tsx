@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { User } from '@supabase/supabase-js';
 import { authenticatedFetch } from '@/lib/api-client';
+import { toast } from 'sonner';
+import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import {
   Card,
   CardContent,
@@ -82,11 +84,12 @@ interface Holiday {
   is_recurring?: boolean;
 }
 
-export function AppointmentSystem({
+export function AppointmentSystemConfig({
   user,
   onAppointmentUpdate,
 }: AppointmentSystemProps) {
   const t = useTranslations('appointmentSystem');
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const [appointmentTypes, setAppointmentTypes] = useState<AppointmentType[]>(
     []
   );
@@ -285,16 +288,16 @@ export function AppointmentSystem({
       });
 
       if (response.ok) {
-        alert('Business hours saved successfully!');
+        toast.success('Business hours saved successfully!');
         setEditingHours(false);
         await loadOfficeHours();
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to save business hours');
+        toast.error(errorData.error || 'Failed to save business hours');
       }
     } catch (error) {
       console.error('Failed to save business hours:', error);
-      alert('Failed to save business hours. Please try again.');
+      toast.error('Failed to save business hours. Please try again.');
     } finally {
       setSavingHours(false);
     }
@@ -398,7 +401,7 @@ export function AppointmentSystem({
 
   const saveBankHolidays = async () => {
     if (selectedBankHolidays.length === 0) {
-      alert('Please select at least one holiday to add.');
+      toast.error('Please select at least one holiday to add.');
       return;
     }
 
@@ -438,21 +441,27 @@ export function AppointmentSystem({
       await loadHolidays();
       setShowBankHolidaysDialog(false);
       setSelectedBankHolidays([]);
-      alert(
+      toast.success(
         `Successfully added ${addedCount} holiday${addedCount !== 1 ? 's' : ''}!`
       );
     } catch (error) {
       console.error('Failed to add bank holidays:', error);
-      alert('Failed to add bank holidays. Please try again.');
+      toast.error('Failed to add bank holidays. Please try again.');
     } finally {
       setSavingBankHolidays(false);
     }
   };
 
   const deleteHoliday = async (holiday: Holiday) => {
-    if (
-      !confirm(`Are you sure you want to delete "${holiday.holiday_name}"?`)
-    ) {
+    const confirmed = await confirm({
+      title: 'Delete Holiday',
+      description: `Are you sure you want to delete "${holiday.holiday_name}"?`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -466,14 +475,14 @@ export function AppointmentSystem({
 
       if (response.ok) {
         await loadHolidays();
-        alert('Holiday deleted successfully!');
+        toast.success('Holiday deleted successfully!');
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to delete holiday');
+        toast.error(errorData.error || 'Failed to delete holiday');
       }
     } catch (error) {
       console.error('Failed to delete holiday:', error);
-      alert('Failed to delete holiday. Please try again.');
+      toast.error('Failed to delete holiday. Please try again.');
     }
   };
 
@@ -525,9 +534,15 @@ export function AppointmentSystem({
     const appointmentToDelete = appointmentTypes.find(a => a.id === id);
     if (!appointmentToDelete) return;
 
-    if (
-      !confirm(`Are you sure you want to delete "${appointmentToDelete.name}"?`)
-    ) {
+    const confirmed = await confirm({
+      title: 'Delete Appointment Type',
+      description: `Are you sure you want to delete "${appointmentToDelete.name}"?`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -590,7 +605,7 @@ export function AppointmentSystem({
       // if (response.ok) {
       setOriginalAppointmentTypes([...appointmentTypes]);
       setHasUnsavedChanges(false);
-      alert('All appointment types saved successfully!');
+      toast.success('All appointment types saved successfully!');
       // } else {
       //   throw new Error('Failed to save appointment types');
       // }
@@ -598,20 +613,24 @@ export function AppointmentSystem({
       console.log('Saved appointment types:', appointmentTypes);
     } catch (error) {
       console.error('Failed to save appointment types:', error);
-      alert('Failed to save appointment types. Please try again.');
+      toast.error('Failed to save appointment types. Please try again.');
     } finally {
       setSavingAppointmentTypes(false);
     }
   };
 
-  const cancelAllAppointmentChanges = () => {
+  const cancelAllAppointmentChanges = async () => {
     if (!hasUnsavedChanges) return;
 
-    if (
-      confirm(
-        'Are you sure you want to cancel all changes? This will reset all appointment types to their last saved state.'
-      )
-    ) {
+    const confirmed = await confirm({
+      title: 'Cancel Changes',
+      description:
+        'Are you sure you want to cancel all changes? This will reset all appointment types to their last saved state.',
+      confirmText: 'Yes, Cancel Changes',
+      cancelText: 'Keep Editing',
+    });
+
+    if (confirmed) {
       setAppointmentTypes([...originalAppointmentTypes]);
       setHasUnsavedChanges(false);
       setEditingAppointmentId(null);
@@ -697,7 +716,7 @@ export function AppointmentSystem({
   if (loading) {
     return (
       <Card>
-        <CardContent className="p-6">
+        <CardContent className="p-6 dark:bg-gray-800">
           <div className="text-center">
             <div className="w-8 h-8 border-4 border-blue-300 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
             <p className="text-gray-600">
@@ -714,7 +733,7 @@ export function AppointmentSystem({
     console.warn('Office hours data is missing or empty');
     return (
       <Card>
-        <CardContent className="p-6">
+        <CardContent className="p-6 dark:bg-gray-800">
           <div className="text-center">
             <p className="text-red-600">
               Error loading office hours data. Please refresh the page.
@@ -730,13 +749,13 @@ export function AppointmentSystem({
 
   return (
     <div className="space-y-6">
-      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/40 dark:to-purple-900/40 border-blue-200 dark:border-blue-800">
         <CardHeader>
-          <CardTitle className="text-blue-900 flex items-center gap-2">
+          <CardTitle className="text-blue-900 dark:text-blue-100 flex items-center gap-2">
             <CalendarIcon className="h-6 w-6" />
             {t('title')}
           </CardTitle>
-          <CardDescription className="text-blue-700">
+          <CardDescription className="text-blue-700 dark:text-blue-300">
             {t('description')}
           </CardDescription>
         </CardHeader>
@@ -749,28 +768,31 @@ export function AppointmentSystem({
       >
         <Card>
           <CardHeader>
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-4 bg-muted dark:bg-gray-800">
               <TabsTrigger
                 value="appointment-types"
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:text-foreground dark:data-[state=active]:bg-gray-900 dark:data-[state=active]:text-white dark:text-gray-300 dark:hover:text-white"
               >
                 <CalendarIcon className="h-4 w-4" />
                 {t('tabs.appointmentTypes')}
               </TabsTrigger>
               <TabsTrigger
                 value="business-hours"
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:text-foreground dark:data-[state=active]:bg-gray-900 dark:data-[state=active]:text-white dark:text-gray-300 dark:hover:text-white"
               >
                 <ClockIcon className="h-4 w-4" />
                 {t('tabs.businessHours')}
               </TabsTrigger>
-              <TabsTrigger value="holidays" className="flex items-center gap-2">
+              <TabsTrigger
+                value="holidays"
+                className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:text-foreground dark:data-[state=active]:bg-gray-900 dark:data-[state=active]:text-white dark:text-gray-300 dark:hover:text-white"
+              >
                 <CalendarIcon className="h-4 w-4" />
                 {t('tabs.holidays')}
               </TabsTrigger>
               <TabsTrigger
                 value="booking-settings"
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 data-[state=active]:bg-background data-[state=active]:text-foreground dark:data-[state=active]:bg-gray-900 dark:data-[state=active]:text-white dark:text-gray-300 dark:hover:text-white"
               >
                 <SettingsIcon className="h-4 w-4" />
                 {t('tabs.bookingSettings')}
@@ -831,7 +853,7 @@ export function AppointmentSystem({
               </div>
             </CardHeader>
 
-            <CardContent>
+            <CardContent className="dark:bg-gray-800">
               {appointmentTypes.length === 0 ? (
                 <div className="text-center py-8">
                   <CalendarIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -848,22 +870,24 @@ export function AppointmentSystem({
                   <div
                     className={`border rounded-lg p-4 ${
                       hasUnsavedChanges
-                        ? 'bg-amber-50 border-amber-200'
-                        : 'bg-blue-50 border-blue-200'
+                        ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
+                        : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
                     }`}
                   >
                     <div className="flex items-start gap-3">
                       <CalendarIcon
                         className={`h-5 w-5 mt-0.5 ${
-                          hasUnsavedChanges ? 'text-amber-600' : 'text-blue-600'
+                          hasUnsavedChanges
+                            ? 'text-amber-600 dark:text-amber-400'
+                            : 'text-blue-600 dark:text-blue-400'
                         }`}
                       />
                       <div>
                         <h4
                           className={`font-medium ${
                             hasUnsavedChanges
-                              ? 'text-amber-900'
-                              : 'text-blue-900'
+                              ? 'text-amber-900 dark:text-amber-200'
+                              : 'text-blue-900 dark:text-blue-200'
                           }`}
                         >
                           {hasUnsavedChanges
@@ -873,8 +897,8 @@ export function AppointmentSystem({
                         <p
                           className={`text-sm mt-1 ${
                             hasUnsavedChanges
-                              ? 'text-amber-800'
-                              : 'text-blue-800'
+                              ? 'text-amber-800 dark:text-amber-300'
+                              : 'text-blue-800 dark:text-blue-300'
                           }`}
                         >
                           {hasUnsavedChanges
@@ -882,7 +906,7 @@ export function AppointmentSystem({
                             : "We've added common appointment types to get you started. You can customize these templates, remove ones you don't need, or add new appointment types specific to your business."}
                         </p>
                         {!hasUnsavedChanges && (
-                          <ul className="text-sm text-blue-700 mt-2 space-y-1">
+                          <ul className="text-sm text-blue-700 dark:text-blue-300 mt-2 space-y-1">
                             <li>
                               • <strong>Edit:</strong> Click the edit icon (✏️)
                               to modify names and durations
@@ -902,7 +926,7 @@ export function AppointmentSystem({
                           </ul>
                         )}
                         {hasUnsavedChanges && (
-                          <ul className="text-sm text-amber-700 mt-2 space-y-1">
+                          <ul className="text-sm text-amber-700 dark:text-amber-300 mt-2 space-y-1">
                             <li>
                               • <strong>💾 Save Changes:</strong> Permanently
                               save all your modifications
@@ -922,7 +946,7 @@ export function AppointmentSystem({
                   </div>
 
                   {/* Header Row */}
-                  <div className="grid grid-cols-12 gap-4 px-4 py-2 bg-gray-50 rounded-lg text-sm font-medium text-gray-700">
+                  <div className="grid grid-cols-12 gap-4 px-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300">
                     <div className="col-span-4">
                       {t('appointmentTypes.table.appointmentType')}
                     </div>
@@ -944,7 +968,7 @@ export function AppointmentSystem({
                   {appointmentTypes.map(appointment => (
                     <div
                       key={appointment.id}
-                      className="grid grid-cols-12 gap-4 px-4 py-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                      className="grid grid-cols-12 gap-4 px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                     >
                       {/* Appointment Name */}
                       <div className="col-span-4 flex items-center">
@@ -963,11 +987,11 @@ export function AppointmentSystem({
                           />
                         ) : (
                           <div>
-                            <div className="font-medium text-gray-900">
+                            <div className="font-medium text-gray-900 dark:text-white">
                               {appointment.name}
                             </div>
                             {appointment.description && (
-                              <div className="text-xs text-gray-500 mt-1">
+                              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                 {appointment.description}
                               </div>
                             )}
@@ -993,10 +1017,12 @@ export function AppointmentSystem({
                               min="5"
                               max="480"
                             />
-                            <span className="text-xs text-gray-500">min</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              min
+                            </span>
                           </div>
                         ) : (
-                          <span className="text-sm text-gray-700">
+                          <span className="text-sm text-gray-700 dark:text-gray-300">
                             {appointment.duration} minutes
                           </span>
                         )}
@@ -1016,7 +1042,7 @@ export function AppointmentSystem({
                             }
                             disabled={editingAppointmentId === appointment.id}
                           />
-                          <span className="text-sm text-gray-600">
+                          <span className="text-sm text-gray-600 dark:text-gray-300">
                             {appointment.isActive ? 'Active' : 'Inactive'}
                           </span>
                         </div>
@@ -1025,7 +1051,7 @@ export function AppointmentSystem({
                       {/* Color */}
                       <div className="col-span-1 flex items-center">
                         <div
-                          className="w-6 h-6 rounded-full border-2 border-gray-300"
+                          className="w-6 h-6 rounded-full border-2 border-gray-300 dark:border-gray-600"
                           style={{ backgroundColor: appointment.color }}
                         />
                       </div>
@@ -1143,7 +1169,7 @@ export function AppointmentSystem({
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 dark:bg-gray-800">
               {DAYS_OF_WEEK.map((day, index) => {
                 const dayHours = officeHours[index];
                 if (!dayHours) {
@@ -1156,10 +1182,12 @@ export function AppointmentSystem({
                 return (
                   <div
                     key={day.value}
-                    className={`flex items-center gap-4 p-4 border rounded-lg ${dayHours.is_active ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}
+                    className={`flex items-center gap-4 p-4 border rounded-lg ${dayHours.is_active ? 'bg-blue-50 dark:bg-gray-700 border-blue-200 dark:border-gray-600' : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600'}`}
                   >
                     <div className="w-24">
-                      <Label className="font-medium text-lg">{day.label}</Label>
+                      <Label className="font-medium text-lg text-gray-900 dark:text-white">
+                        {day.label}
+                      </Label>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -1171,7 +1199,7 @@ export function AppointmentSystem({
                         }
                         disabled={!editingHours}
                       />
-                      <span className="text-sm text-gray-600 min-w-[40px]">
+                      <span className="text-sm text-gray-600 dark:text-gray-300 min-w-[40px]">
                         {dayHours.is_active ? 'Open' : 'Closed'}
                       </span>
                     </div>
@@ -1232,14 +1260,14 @@ export function AppointmentSystem({
                 );
               })}
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4 mt-6">
                 <div className="flex items-start gap-3">
-                  <ClockIcon className="h-5 w-5 text-blue-600 mt-0.5" />
+                  <ClockIcon className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
                   <div>
-                    <h4 className="font-medium text-blue-900">
+                    <h4 className="font-medium text-blue-900 dark:text-blue-100">
                       Business Hours Configuration
                     </h4>
-                    <ul className="text-sm text-blue-800 mt-2 space-y-1">
+                    <ul className="text-sm text-blue-800 dark:text-blue-200 mt-2 space-y-1">
                       <li>
                         • <strong>All days are customizable</strong> - Enable
                         weekends or any day you operate
@@ -1305,7 +1333,7 @@ export function AppointmentSystem({
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="dark:bg-gray-800">
               {holidays.length === 0 ? (
                 <div className="text-center py-8">
                   <CalendarIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
@@ -1334,10 +1362,10 @@ export function AppointmentSystem({
                     {holidays.map(holiday => (
                       <div
                         key={holiday.id}
-                        className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow bg-white"
+                        className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:shadow-md transition-shadow bg-white dark:bg-gray-700"
                       >
                         <div className="flex items-center justify-between mb-2">
-                          <h3 className="font-semibold text-gray-900 text-sm">
+                          <h3 className="font-semibold text-gray-900 dark:text-white text-sm">
                             {holiday.holiday_name}
                           </h3>
                           <Button
@@ -1351,7 +1379,7 @@ export function AppointmentSystem({
                         </div>
 
                         <div className="flex items-center gap-2 mb-2">
-                          <span className="text-sm font-medium text-blue-600">
+                          <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
                             {formatDate(holiday.holiday_date)}
                           </span>
                           {holiday.is_recurring && (
@@ -1367,7 +1395,7 @@ export function AppointmentSystem({
                         </div>
 
                         {holiday.description && (
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
                             {holiday.description}
                           </p>
                         )}
@@ -1406,7 +1434,7 @@ export function AppointmentSystem({
                 Configure appointment booking rules and customer policies
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 dark:bg-gray-800">
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="advance-days">
@@ -1532,7 +1560,7 @@ export function AppointmentSystem({
               requirements.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 dark:bg-gray-800">
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="appointment-name">Appointment Name *</Label>
@@ -1666,16 +1694,16 @@ export function AppointmentSystem({
 
       {/* Completion Status */}
       <Card className="bg-green-50 border-green-200">
-        <CardContent className="p-4">
+        <CardContent className="p-4 dark:bg-gray-800">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
               <CalendarIcon className="h-4 w-4 text-green-600" />
             </div>
             <div>
-              <p className="font-medium text-green-900">
+              <p className="font-medium text-green-900 dark:text-green-100">
                 Appointment System Status
               </p>
-              <p className="text-sm text-green-700">
+              <p className="text-sm text-green-700 dark:text-green-300">
                 {appointmentTypes.length > 0
                   ? `${appointmentTypes.length} appointment type${appointmentTypes.length > 1 ? 's' : ''} ready for your business. Business hours and holidays are configured. The AI agent can now handle comprehensive appointment booking requests with these service options.`
                   : 'Setting up default appointment types to enable booking functionality for the AI agent.'}
@@ -1690,9 +1718,11 @@ export function AppointmentSystem({
         open={showBankHolidaysDialog}
         onOpenChange={setShowBankHolidaysDialog}
       >
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto dark:bg-gray-800">
           <DialogHeader>
-            <DialogTitle>Select Bank Holidays for {selectedYear}</DialogTitle>
+            <DialogTitle className="dark:text-gray-100">
+              Select Bank Holidays for {selectedYear}
+            </DialogTitle>
             <DialogDescription>
               Choose from federal holidays and common business closures to add
               to your calendar
@@ -1701,14 +1731,14 @@ export function AppointmentSystem({
 
           <div className="space-y-6">
             {/* Summary */}
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+            <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h4 className="font-medium text-purple-900">
+                  <h4 className="font-medium text-purple-900 dark:text-purple-100">
                     {selectedBankHolidays.length} holiday
                     {selectedBankHolidays.length !== 1 ? 's' : ''} selected
                   </h4>
-                  <p className="text-sm text-purple-700">
+                  <p className="text-sm text-purple-700 dark:text-purple-300">
                     Select multiple holidays and save them all at once
                   </p>
                 </div>
@@ -1736,7 +1766,7 @@ export function AppointmentSystem({
 
             {/* Federal Holidays */}
             <div>
-              <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
                 🇺🇸 Federal Holidays
                 <Badge variant="secondary">Official US holidays</Badge>
               </h4>
@@ -1756,10 +1786,10 @@ export function AppointmentSystem({
                         key={holiday.date}
                         className={`flex items-center space-x-3 p-3 border rounded-lg ${
                           isExisting
-                            ? 'bg-gray-50 border-gray-200'
+                            ? 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600'
                             : isSelected
-                              ? 'bg-green-50 border-green-200'
-                              : 'bg-white border-gray-200'
+                              ? 'bg-blue-50 dark:bg-gray-700 border-blue-200 dark:border-gray-600'
+                              : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600'
                         }`}
                       >
                         <Checkbox
@@ -1774,11 +1804,11 @@ export function AppointmentSystem({
                           <div className="flex items-center justify-between">
                             <Label
                               htmlFor={holiday.date}
-                              className={`font-medium ${isExisting ? 'text-gray-500' : 'text-gray-900'}`}
+                              className={`font-medium ${isExisting ? 'text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-gray-100'}`}
                             >
                               {holiday.name}
                             </Label>
-                            <span className="text-sm text-gray-500">
+                            <span className="text-sm text-gray-500 dark:text-gray-400">
                               {new Date(holiday.date).toLocaleDateString(
                                 'en-US',
                                 { month: 'short', day: 'numeric' }
@@ -1786,7 +1816,7 @@ export function AppointmentSystem({
                             </span>
                           </div>
                           <p
-                            className={`text-sm ${isExisting ? 'text-gray-400' : 'text-gray-600'}`}
+                            className={`text-sm ${isExisting ? 'text-gray-400 dark:text-gray-500' : 'text-gray-600 dark:text-gray-300'}`}
                           >
                             {holiday.description}
                             {isExisting && ' (Already added)'}
@@ -1800,7 +1830,7 @@ export function AppointmentSystem({
 
             {/* Common Business Closures */}
             <div>
-              <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
                 🏢 Common Business Closures
                 <Badge variant="outline">Optional closures</Badge>
               </h4>
@@ -1820,10 +1850,10 @@ export function AppointmentSystem({
                         key={holiday.date}
                         className={`flex items-center space-x-3 p-3 border rounded-lg ${
                           isExisting
-                            ? 'bg-gray-50 border-gray-200'
+                            ? 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600'
                             : isSelected
-                              ? 'bg-green-50 border-green-200'
-                              : 'bg-white border-gray-200'
+                              ? 'bg-blue-50 dark:bg-gray-700 border-blue-200 dark:border-gray-600'
+                              : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600'
                         }`}
                       >
                         <Checkbox
@@ -1838,11 +1868,11 @@ export function AppointmentSystem({
                           <div className="flex items-center justify-between">
                             <Label
                               htmlFor={holiday.date}
-                              className={`font-medium ${isExisting ? 'text-gray-500' : 'text-gray-900'}`}
+                              className={`font-medium ${isExisting ? 'text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-gray-100'}`}
                             >
                               {holiday.name}
                             </Label>
-                            <span className="text-sm text-gray-500">
+                            <span className="text-sm text-gray-500 dark:text-gray-400">
                               {new Date(holiday.date).toLocaleDateString(
                                 'en-US',
                                 { month: 'short', day: 'numeric' }
@@ -1850,7 +1880,7 @@ export function AppointmentSystem({
                             </span>
                           </div>
                           <p
-                            className={`text-sm ${isExisting ? 'text-gray-400' : 'text-gray-600'}`}
+                            className={`text-sm ${isExisting ? 'text-gray-400 dark:text-gray-500' : 'text-gray-600 dark:text-gray-300'}`}
                           >
                             {holiday.description}
                             {isExisting && ' (Already added)'}
@@ -1894,6 +1924,8 @@ export function AppointmentSystem({
           </div>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog />
     </div>
   );
 }

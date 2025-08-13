@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { User } from '@supabase/supabase-js';
+import { toast } from 'sonner';
+import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import { authenticatedFetch } from '@/lib/api-client';
 import {
   Card,
@@ -32,6 +34,9 @@ import {
   UsersIcon as UserIcon,
   MicIcon,
 } from '@/components/icons';
+import { AgentTypeCallScripts } from '../ai-agents/AgentTypeCallScripts';
+import { AgentTypeVoiceSettings } from '../ai-agents/AgentTypeVoiceSettings';
+import { AgentTypeCallRouting } from '../ai-agents/AgentTypeCallRouting';
 import { AgentType, AGENT_TYPE_CONFIGS } from '@/types/agent-types';
 
 interface AIAgent {
@@ -113,6 +118,7 @@ export function AIAgentsStep({
   user,
   onConfigurationUpdate,
 }: AIAgentsStepProps) {
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const t = useTranslations('aiAgents');
   const [agents, setAgents] = useState<AIAgent[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -164,7 +170,9 @@ export function AIAgentsStep({
 
   const loadBusinessInfo = async () => {
     try {
-      const response = await authenticatedFetch(`/api/business/profile?user_id=${user.id}`);
+      const response = await authenticatedFetch(
+        `/api/business/profile?user_id=${user.id}`
+      );
       if (response.ok) {
         const data = await response.json();
         setBusinessInfo(data.profile);
@@ -286,7 +294,7 @@ export function AIAgentsStep({
 
   const generatePrompt = async () => {
     if (!formData.agent_type || !formData.agent_personality) {
-      alert(
+      toast.error(
         'Please select agent type and personality before generating prompt'
       );
       return;
@@ -323,12 +331,12 @@ export function AIAgentsStep({
       }));
 
       // Show success message
-      alert(
-        `✅ Generated comprehensive prompts using your business data:\n• Greeting Message\n• Basic Information Prompt\n• Custom Instructions\n\nUsing data from: ${basicPromptData.business_data_used.business_name}`
+      toast.success(
+        `Generated comprehensive prompts using your business data:\n• Greeting Message\n• Basic Information Prompt\n• Custom Instructions\n\nUsing data from: ${basicPromptData.business_data_used.business_name}`
       );
     } catch (error) {
       console.error('Error generating prompt:', error);
-      alert(
+      toast.error(
         'Failed to generate prompt. Please ensure you have completed:\n\n• Business Information (Step 1)\n• Products & Services (Step 2-3) \n• Staff Management (Step 4)\n• Business Locations (if applicable)\n• Insurance Setup (for healthcare)\n\nThen try generating the prompt again.'
       );
     } finally {
@@ -337,7 +345,15 @@ export function AIAgentsStep({
   };
 
   const handleDeleteAgent = async (agentId: string) => {
-    if (!confirm('Are you sure you want to delete this AI agent?')) {
+    const confirmed = await confirm({
+      title: 'Delete AI Agent',
+      description: 'Are you sure you want to delete this AI agent?',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -409,7 +425,7 @@ export function AIAgentsStep({
     section: 'basic' | 'scripts' | 'voice' | 'routing' | 'all'
   ) => {
     if (!formData.agent_type || !formData.agent_name) {
-      alert('Please fill in agent name and type before saving');
+      toast.error('Please fill in agent name and type before saving');
       return;
     }
 
@@ -491,13 +507,16 @@ export function AIAgentsStep({
 
       console.log('Saving agent configuration:', saveData);
 
-      const response = await authenticatedFetch('/api/business/agent-configurations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(saveData),
-      });
+      const response = await authenticatedFetch(
+        '/api/business/agent-configurations',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(saveData),
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -528,7 +547,7 @@ export function AIAgentsStep({
     } catch (error) {
       console.error(`Error saving ${section} configuration:`, error);
       setSaveStatus(prev => ({ ...prev, [section]: 'error' }));
-      alert(
+      toast.error(
         `Error saving ${section} configuration: ${(error as Error).message}`
       );
     } finally {
@@ -590,7 +609,9 @@ export function AIAgentsStep({
     return (
       <div className="flex items-center justify-center py-12">
         <div className="w-8 h-8 border-2 border-orange-300 border-t-transparent rounded-full animate-spin"></div>
-        <span className="ml-3 text-gray-600">Loading AI agents...</span>
+        <span className="ml-3 text-gray-600 dark:text-gray-400">
+          Loading AI agents...
+        </span>
       </div>
     );
   }
@@ -598,7 +619,7 @@ export function AIAgentsStep({
   return (
     <div className="space-y-6">
       {/* Agents List */}
-      <Card>
+      <Card className="dark:bg-gray-800">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -618,14 +639,14 @@ export function AIAgentsStep({
           </div>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="dark:bg-gray-800">
           {agents.length === 0 ? (
             <div className="text-center py-12">
               <SettingsIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
                 No AI Agents Created
               </h3>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
                 Create your first AI agent to start handling calls
                 automatically. You can create multiple agents for different
                 purposes.
@@ -640,19 +661,19 @@ export function AIAgentsStep({
               {agents.map(agent => (
                 <div
                   key={agent.id}
-                  className="border border-gray-200 rounded-lg p-6"
+                  className="border border-gray-200 dark:border-gray-600 rounded-lg p-6 dark:bg-gray-700"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-3">
-                        <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                          <MicIcon className="h-5 w-5 text-orange-600" />
+                        <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center">
+                          <MicIcon className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                         </div>
                         <div>
-                          <h4 className="font-semibold text-gray-900 text-lg">
+                          <h4 className="font-semibold text-gray-900 dark:text-white text-lg">
                             {agent.agent_name}
                           </h4>
-                          <p className="text-sm text-gray-600">
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
                             {AGENT_TYPES[agent.agent_type as AgentType]?.name ||
                               AGENT_TYPE_CONFIGS[agent.agent_type as AgentType]
                                 ?.name ||
@@ -666,14 +687,18 @@ export function AIAgentsStep({
 
                       <div className="grid md:grid-cols-2 gap-4 mb-4">
                         <div>
-                          <p className="text-sm text-gray-600">Personality</p>
-                          <p className="text-sm font-medium capitalize">
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Personality
+                          </p>
+                          <p className="text-sm font-medium capitalize dark:text-gray-300">
                             {agent.agent_personality}
                           </p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-600">Created</p>
-                          <p className="text-sm font-medium">
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Created
+                          </p>
+                          <p className="text-sm font-medium dark:text-gray-300">
                             {new Date(agent.created_at).toLocaleDateString()}
                           </p>
                         </div>
@@ -681,10 +706,10 @@ export function AIAgentsStep({
 
                       {agent.greeting_message && (
                         <div className="mb-4">
-                          <p className="text-sm text-gray-600 mb-1">
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
                             Greeting Message
                           </p>
-                          <p className="text-sm bg-gray-50 p-3 rounded-lg">
+                          <p className="text-sm bg-gray-50 dark:bg-gray-600 dark:text-gray-300 p-3 rounded-lg">
                             {agent.greeting_message}
                           </p>
                         </div>
@@ -692,10 +717,10 @@ export function AIAgentsStep({
 
                       {agent.retell_agent_id && (
                         <div className="mb-4">
-                          <p className="text-sm text-gray-600">
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
                             Retell Agent ID
                           </p>
-                          <p className="text-sm font-mono bg-gray-50 p-2 rounded">
+                          <p className="text-sm font-mono bg-gray-50 dark:bg-gray-600 dark:text-gray-300 p-2 rounded">
                             {agent.retell_agent_id}
                           </p>
                         </div>
@@ -752,7 +777,7 @@ export function AIAgentsStep({
 
       {/* Create/Edit Agent Form */}
       {showCreateForm && (
-        <Card>
+        <Card className="dark:bg-gray-800">
           <CardHeader>
             <CardTitle>
               {editingAgent
@@ -766,9 +791,9 @@ export function AIAgentsStep({
               and staff.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="dark:bg-gray-800">
             {/* Section Navigation */}
-            <div className="flex space-x-1 mb-6 bg-gray-100 rounded-lg p-1">
+            <div className="flex space-x-1 mb-6 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
               {[
                 { id: 'basic', label: 'Basic Info' },
                 { id: 'scripts', label: 'Call Scripts' },
@@ -780,8 +805,8 @@ export function AIAgentsStep({
                   onClick={() => setActiveSection(section.id as any)}
                   className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
                     activeSection === section.id
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
+                      ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                   }`}
                 >
                   {section.label}
@@ -964,6 +989,7 @@ export function AIAgentsStep({
                     }
                     placeholder="Hello! Thank you for calling [Business Name]. How can I help you today?"
                     rows={3}
+                    className="dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-400"
                   />
                 </div>
 
@@ -982,8 +1008,9 @@ export function AIAgentsStep({
                     }
                     placeholder="You are a professional [Agent Type] for [Business Name]. Your role is to..."
                     rows={6}
+                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder:text-gray-400"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     This prompt defines the agent's core identity and includes
                     all your business information from previous steps.
                   </p>
@@ -1005,14 +1032,14 @@ export function AIAgentsStep({
                     placeholder="Instructions for escalation, when to transfer calls, how to handle difficult situations..."
                     rows={4}
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     Specific instructions for handling situations, escalation
                     procedures, and behavioral guidelines.
                   </p>
                 </div>
 
                 {/* Save Button for Basic Info */}
-                <div className="flex justify-end pt-4 border-t">
+                <div className="flex justify-end pt-4 border-t border-gray-200 dark:border-gray-600">
                   <div className="flex items-center gap-3">
                     {saveStatus.basic === 'success' && (
                       <span className="text-green-600 text-sm">
@@ -1051,30 +1078,53 @@ export function AIAgentsStep({
             {/* Call Scripts */}
             {activeSection === 'scripts' && (
               <div className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Call Scripts Configuration</CardTitle>
-                    <CardDescription>
-                      Configure custom call scripts for your AI agent (Coming
-                      soon)
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-center py-8">
-                      <SettingsIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                        Call Scripts Configuration
-                      </h3>
-                      <p className="text-gray-600">
-                        Advanced call script configuration will be available in
-                        a future update.
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+                <AgentTypeCallScripts
+                  agentType={formData.agent_type as any}
+                  initialScripts={(formData as any).call_scripts}
+                  initialPrompt={formData.call_scripts_prompt}
+                  onSave={async (scripts: any) => {
+                    // Handle different script formats
+                    let scriptData = {};
+                    let scriptPrompt = '';
+
+                    if (Array.isArray(scripts)) {
+                      const firstScript = scripts[0];
+                      scriptData = {
+                        greeting_script: firstScript?.greeting_script || '',
+                        main_script: firstScript?.main_script || '',
+                        closing_script: firstScript?.closing_script || '',
+                        escalation_script: firstScript?.escalation_script || '',
+                      };
+                      scriptPrompt =
+                        firstScript?.main_script ||
+                        firstScript?.greeting_script ||
+                        '';
+                    } else {
+                      scriptData = scripts;
+                      scriptPrompt =
+                        scripts?.main_script || scripts?.greeting_script || '';
+                    }
+
+                    setFormData(prev => ({
+                      ...prev,
+                      call_scripts: scriptData,
+                      call_scripts_prompt: scriptPrompt,
+                    }));
+
+                    // Auto-save to database when scripts are generated
+                    setTimeout(async () => {
+                      try {
+                        await saveAgentConfiguration('scripts');
+                      } catch (error) {
+                        console.error('Failed to auto-save scripts:', error);
+                      }
+                    }, 100);
+                  }}
+                  businessInfo={{ ...businessInfo, user_id: user.id }}
+                />
 
                 {/* Save Button for Call Scripts */}
-                <div className="flex justify-end pt-4 border-t">
+                <div className="flex justify-end pt-4 border-t border-gray-200 dark:border-gray-600">
                   <div className="flex items-center gap-3">
                     {saveStatus.scripts === 'success' && (
                       <span className="text-green-600 text-sm">
@@ -1113,29 +1163,32 @@ export function AIAgentsStep({
             {/* Voice Settings */}
             {activeSection === 'voice' && (
               <div className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Voice Settings Configuration</CardTitle>
-                    <CardDescription>
-                      Configure voice settings for your AI agent (Coming soon)
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-center py-8">
-                      <SettingsIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                        Voice Settings Configuration
-                      </h3>
-                      <p className="text-gray-600">
-                        Advanced voice configuration will be available in a
-                        future update.
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+                <AgentTypeVoiceSettings
+                  agentType={formData.agent_type as any}
+                  initialVoiceSettings={formData.voice_settings as any}
+                  businessInfo={{ ...businessInfo, user_id: user.id }}
+                  onSave={async (voiceProfile: any) => {
+                    setFormData(prev => ({
+                      ...prev,
+                      voice_settings: voiceProfile.voice_settings,
+                    }));
+
+                    // Auto-save to database
+                    setTimeout(async () => {
+                      try {
+                        await saveAgentConfiguration('voice');
+                      } catch (error) {
+                        console.error(
+                          'Failed to auto-save voice settings:',
+                          error
+                        );
+                      }
+                    }, 100);
+                  }}
+                />
 
                 {/* Save Button for Voice Settings */}
-                <div className="flex justify-end pt-4 border-t">
+                <div className="flex justify-end pt-4 border-t border-gray-200 dark:border-gray-600">
                   <div className="flex items-center gap-3">
                     {saveStatus.voice === 'success' && (
                       <span className="text-green-600 text-sm">
@@ -1174,29 +1227,19 @@ export function AIAgentsStep({
             {/* Call Routing */}
             {activeSection === 'routing' && (
               <div className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Call Routing Configuration</CardTitle>
-                    <CardDescription>
-                      Configure call routing for your AI agent (Coming soon)
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-center py-8">
-                      <SettingsIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                        Call Routing Configuration
-                      </h3>
-                      <p className="text-gray-600">
-                        Advanced call routing will be available in a future
-                        update.
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+                <AgentTypeCallRouting
+                  agentType={formData.agent_type as any}
+                  businessInfo={{ ...businessInfo, user_id: user.id }}
+                  onSave={async (routing: any) => {
+                    setFormData(prev => ({
+                      ...prev,
+                      call_routing: routing,
+                    }));
+                  }}
+                />
 
                 {/* Save Button for Call Routing */}
-                <div className="flex justify-end pt-4 border-t">
+                <div className="flex justify-end pt-4 border-t border-gray-200 dark:border-gray-600">
                   <div className="flex items-center gap-3">
                     {saveStatus.routing === 'success' && (
                       <span className="text-green-600 text-sm">
@@ -1233,7 +1276,7 @@ export function AIAgentsStep({
             )}
 
             {/* Form Actions */}
-            <div className="flex justify-between pt-6 border-t">
+            <div className="flex justify-between pt-6 border-t border-gray-200 dark:border-gray-600">
               <Button
                 variant="outline"
                 onClick={() => {
@@ -1287,17 +1330,17 @@ export function AIAgentsStep({
       )}
 
       {/* Completion Status */}
-      <Card className="bg-purple-50 border-purple-200">
-        <CardContent className="p-4">
+      <Card className="bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-700">
+        <CardContent className="p-4 dark:bg-gray-800">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-              <SettingsIcon className="h-4 w-4 text-purple-600" />
+            <div className="w-8 h-8 bg-purple-100 dark:bg-purple-800 rounded-full flex items-center justify-center">
+              <SettingsIcon className="h-4 w-4 text-purple-600 dark:text-purple-400" />
             </div>
             <div>
-              <p className="font-medium text-purple-900">
+              <p className="font-medium text-purple-900 dark:text-purple-100">
                 AI Agents Configuration
               </p>
-              <p className="text-sm text-purple-700">
+              <p className="text-sm text-purple-700 dark:text-purple-200">
                 {agents.length > 0
                   ? `${agents.length} AI agent${agents.length > 1 ? 's' : ''} configured. You can create additional agents anytime.`
                   : 'Create your first AI agent to complete the setup process.'}
@@ -1306,6 +1349,7 @@ export function AIAgentsStep({
           </div>
         </CardContent>
       </Card>
+      <ConfirmDialog />
     </div>
   );
 }

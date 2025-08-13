@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
+import { AuthenticatedApiClient } from '@/lib/api-client';
+import { toast } from 'sonner';
 import {
   Card,
   CardContent,
@@ -71,7 +73,7 @@ export function HolidaysManagement({
   const loadHolidays = async () => {
     try {
       setLoading(true);
-      const response = await fetch(
+      const response = await AuthenticatedApiClient.get(
         `/api/business/holidays?user_id=${user.id}&business_id=${businessId}&year=${selectedYear}`
       );
 
@@ -120,7 +122,7 @@ export function HolidaysManagement({
   const saveHoliday = async () => {
     try {
       if (!formData.holiday_date || !formData.holiday_name) {
-        alert('Holiday date and name are required');
+        toast.error('Holiday date and name are required');
         return;
       }
 
@@ -135,29 +137,25 @@ export function HolidaysManagement({
         body.id = editingHoliday.id;
       }
 
-      const response = await fetch('/api/business/holidays', {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-      });
+      const response = editingHoliday
+        ? await AuthenticatedApiClient.put('/api/business/holidays', body)
+        : await AuthenticatedApiClient.post('/api/business/holidays', body);
 
       if (response.ok) {
         await loadHolidays();
         closeDialog();
-        alert(
+        toast.success(
           editingHoliday
             ? 'Holiday updated successfully!'
             : 'Holiday added successfully!'
         );
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to save holiday');
+        toast.error(errorData.error || 'Failed to save holiday');
       }
     } catch (error) {
       console.error('Failed to save holiday:', error);
-      alert('Failed to save holiday. Please try again.');
+      toast.error('Failed to save holiday. Please try again.');
     }
   };
 
@@ -169,23 +167,20 @@ export function HolidaysManagement({
     }
 
     try {
-      const response = await fetch(
-        `/api/business/holidays?id=${holiday.id}&user_id=${user.id}`,
-        {
-          method: 'DELETE',
-        }
+      const response = await AuthenticatedApiClient.delete(
+        `/api/business/holidays?id=${holiday.id}&user_id=${user.id}`
       );
 
       if (response.ok) {
         await loadHolidays();
-        alert('Holiday deleted successfully!');
+        toast.success('Holiday deleted successfully!');
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to delete holiday');
+        toast.error(errorData.error || 'Failed to delete holiday');
       }
     } catch (error) {
       console.error('Failed to delete holiday:', error);
-      alert('Failed to delete holiday. Please try again.');
+      toast.error('Failed to delete holiday. Please try again.');
     }
   };
 
@@ -299,7 +294,7 @@ export function HolidaysManagement({
 
   const saveNationalHolidays = async () => {
     if (selectedNationalHolidays.length === 0) {
-      alert('Please select at least one holiday to add.');
+      toast.error('Please select at least one holiday to add.');
       return;
     }
 
@@ -316,20 +311,17 @@ export function HolidaysManagement({
         const exists = holidays.some(h => h.holiday_date === holiday.date);
         if (exists) continue;
 
-        const response = await fetch('/api/business/holidays', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
+        const response = await AuthenticatedApiClient.post(
+          '/api/business/holidays',
+          {
             user_id: user.id,
             business_id: businessId,
             holiday_date: holiday.date,
             holiday_name: holiday.name,
             description: holiday.description,
             is_recurring: holiday.category === 'federal',
-          }),
-        });
+          }
+        );
 
         if (response.ok) {
           addedCount++;
@@ -338,12 +330,12 @@ export function HolidaysManagement({
 
       await loadHolidays();
       setShowNationalHolidaysDialog(false);
-      alert(
+      toast.success(
         `Successfully added ${addedCount} holiday${addedCount !== 1 ? 's' : ''}!`
       );
     } catch (error) {
       console.error('Failed to add national holidays:', error);
-      alert('Failed to add national holidays. Please try again.');
+      toast.error('Failed to add national holidays. Please try again.');
     } finally {
       setSavingNationalHolidays(false);
     }
@@ -380,20 +372,17 @@ export function HolidaysManagement({
         const exists = holidays.some(h => h.holiday_date === holiday.date);
         if (exists) continue;
 
-        const response = await fetch('/api/business/holidays', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
+        const response = await AuthenticatedApiClient.post(
+          '/api/business/holidays',
+          {
             user_id: user.id,
             business_id: businessId,
             holiday_date: holiday.date,
             holiday_name: holiday.name,
             description: holiday.description,
             is_recurring: true,
-          }),
-        });
+          }
+        );
 
         if (response.ok) {
           addedCount++;
@@ -401,12 +390,12 @@ export function HolidaysManagement({
       }
 
       await loadHolidays();
-      alert(
+      toast.success(
         `Added ${addedCount} common holiday${addedCount !== 1 ? 's' : ''}!`
       );
     } catch (error) {
       console.error('Failed to add common holidays:', error);
-      alert('Failed to add common holidays. Please try again.');
+      toast.error('Failed to add common holidays. Please try again.');
     }
   };
 
@@ -425,11 +414,13 @@ export function HolidaysManagement({
 
   if (loading) {
     return (
-      <Card>
+      <Card className="dark:bg-gray-800">
         <CardContent className="p-6">
           <div className="text-center">
             <div className="w-8 h-8 border-4 border-blue-300 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading holidays...</p>
+            <p className="text-gray-600 dark:text-gray-400">
+              Loading holidays...
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -438,7 +429,7 @@ export function HolidaysManagement({
 
   return (
     <>
-      <Card>
+      <Card className="dark:bg-gray-800">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -476,10 +467,10 @@ export function HolidaysManagement({
           {holidays.length === 0 ? (
             <div className="text-center py-8">
               <CalendarIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
                 No holidays configured for {selectedYear}
               </h3>
-              <p className="text-gray-600 mb-4">
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Add holidays to let staff and customers know when you're closed
               </p>
               <div className="flex justify-center gap-2">
@@ -505,7 +496,7 @@ export function HolidaysManagement({
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold text-gray-900">
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">
                           {holiday.holiday_name}
                         </h3>
                         {holiday.is_recurring && (
@@ -517,11 +508,11 @@ export function HolidaysManagement({
                           </Badge>
                         )}
                       </div>
-                      <p className="text-sm text-gray-600 mb-1">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
                         {formatDate(holiday.holiday_date)}
                       </p>
                       {holiday.description && (
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
                           {holiday.description}
                         </p>
                       )}
@@ -689,7 +680,7 @@ export function HolidaysManagement({
 
             {/* Federal Holidays */}
             <div>
-              <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
                 🇺🇸 Federal Holidays
                 <Badge variant="secondary">Official US holidays</Badge>
               </h4>
@@ -727,11 +718,11 @@ export function HolidaysManagement({
                           <div className="flex items-center justify-between">
                             <Label
                               htmlFor={holiday.date}
-                              className={`font-medium ${isExisting ? 'text-gray-500' : 'text-gray-900'}`}
+                              className={`font-medium ${isExisting ? 'text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-gray-100'}`}
                             >
                               {holiday.name}
                             </Label>
-                            <span className="text-sm text-gray-500">
+                            <span className="text-sm text-gray-500 dark:text-gray-400">
                               {new Date(holiday.date).toLocaleDateString(
                                 'en-US',
                                 { month: 'short', day: 'numeric' }
@@ -739,7 +730,7 @@ export function HolidaysManagement({
                             </span>
                           </div>
                           <p
-                            className={`text-sm ${isExisting ? 'text-gray-400' : 'text-gray-600'}`}
+                            className={`text-sm ${isExisting ? 'text-gray-400' : 'text-gray-600 dark:text-gray-400'}`}
                           >
                             {holiday.description}
                             {isExisting && ' (Already added)'}
@@ -753,7 +744,7 @@ export function HolidaysManagement({
 
             {/* Common Business Closures */}
             <div>
-              <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
                 🏢 Common Business Closures
                 <Badge variant="outline">Optional closures</Badge>
               </h4>
@@ -791,11 +782,11 @@ export function HolidaysManagement({
                           <div className="flex items-center justify-between">
                             <Label
                               htmlFor={holiday.date}
-                              className={`font-medium ${isExisting ? 'text-gray-500' : 'text-gray-900'}`}
+                              className={`font-medium ${isExisting ? 'text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-gray-100'}`}
                             >
                               {holiday.name}
                             </Label>
-                            <span className="text-sm text-gray-500">
+                            <span className="text-sm text-gray-500 dark:text-gray-400">
                               {new Date(holiday.date).toLocaleDateString(
                                 'en-US',
                                 { month: 'short', day: 'numeric' }
@@ -803,7 +794,7 @@ export function HolidaysManagement({
                             </span>
                           </div>
                           <p
-                            className={`text-sm ${isExisting ? 'text-gray-400' : 'text-gray-600'}`}
+                            className={`text-sm ${isExisting ? 'text-gray-400' : 'text-gray-600 dark:text-gray-400'}`}
                           >
                             {holiday.description}
                             {isExisting && ' (Already added)'}
@@ -848,6 +839,8 @@ export function HolidaysManagement({
           </div>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog />
     </>
   );
 }

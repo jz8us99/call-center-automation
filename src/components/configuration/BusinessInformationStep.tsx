@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { User } from '@supabase/supabase-js';
+import { toast } from 'sonner';
+import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import { supabase } from '@/lib/supabase';
 import { authenticatedFetch } from '@/lib/api-client';
 import {
@@ -173,6 +175,7 @@ export function BusinessInformationStep({
   onBusinessProfileUpdate,
   initialData = null,
 }: BusinessInformationStepProps) {
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const t = useTranslations('businessInformation');
   const [formData, setFormData] = useState<BusinessProfile>({
     user_id: user.id,
@@ -356,10 +359,13 @@ export function BusinessInformationStep({
         );
         formDataObj.append('clientId', user.id);
 
-        const response = await authenticatedFetch('/api/business/upload-business-files', {
-          method: 'POST',
-          body: formDataObj,
-        });
+        const response = await authenticatedFetch(
+          '/api/business/upload-business-files',
+          {
+            method: 'POST',
+            body: formDataObj,
+          }
+        );
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
@@ -386,7 +392,7 @@ export function BusinessInformationStep({
         console.log(`File "${file.name}" uploaded successfully!`);
       } catch (error) {
         console.error('File upload failed:', error);
-        alert(
+        toast.error(
           `Failed to upload file: ${(error as Error).message || 'Please try again.'}`
         );
       } finally {
@@ -475,10 +481,13 @@ export function BusinessInformationStep({
         );
         formDataObj.append('clientId', user.id);
 
-        const response = await authenticatedFetch('/api/business/upload-business-files', {
-          method: 'POST',
-          body: formDataObj,
-        });
+        const response = await authenticatedFetch(
+          '/api/business/upload-business-files',
+          {
+            method: 'POST',
+            body: formDataObj,
+          }
+        );
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
@@ -507,7 +516,7 @@ export function BusinessInformationStep({
         console.log(`File "${file.name}" uploaded successfully to section!`);
       } catch (error) {
         console.error('File upload failed:', error);
-        alert(
+        toast.error(
           `Failed to upload file: ${(error as Error).message || 'Please try again.'}`
         );
       } finally {
@@ -579,7 +588,7 @@ export function BusinessInformationStep({
 
   const handleSaveLocation = async () => {
     if (!editingLocation || !editingLocation.location_name) {
-      alert('Location name is required');
+      toast.error('Location name is required');
       return;
     }
 
@@ -636,14 +645,20 @@ export function BusinessInformationStep({
       setEditingLocation(null);
     } catch (error) {
       console.error('Error saving location:', error);
-      alert('Failed to save location. Please try again.');
+      toast.error('Failed to save location. Please try again.');
     }
   };
 
   const handleDeleteLocation = async (location: BusinessLocation) => {
-    if (
-      !confirm(`Are you sure you want to delete "${location.location_name}"?`)
-    ) {
+    const confirmed = await confirm({
+      title: 'Delete Location',
+      description: `Are you sure you want to delete "${location.location_name}"?`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -670,7 +685,7 @@ export function BusinessInformationStep({
       setFormData(prev => ({ ...prev, business_locations: updatedLocations }));
     } catch (error) {
       console.error('Error deleting location:', error);
-      alert('Failed to delete location. Please try again.');
+      toast.error('Failed to delete location. Please try again.');
     }
   };
 
@@ -2001,6 +2016,7 @@ export function BusinessInformationStep({
           </CardContent>
         </Card>
       </form>
+      <ConfirmDialog />
     </div>
   );
 }

@@ -166,7 +166,7 @@ export function AgentDashboard({
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-6 dark:bg-gray-800">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">
@@ -190,7 +190,7 @@ export function AgentDashboard({
         </Card>
 
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-6 dark:bg-gray-800">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">
@@ -218,7 +218,7 @@ export function AgentDashboard({
         </Card>
 
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-6 dark:bg-gray-800">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Languages</p>
@@ -240,7 +240,7 @@ export function AgentDashboard({
         </Card>
 
         <Card>
-          <CardContent className="p-6">
+          <CardContent className="p-6 dark:bg-gray-800">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">

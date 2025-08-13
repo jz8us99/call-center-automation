@@ -32,7 +32,9 @@ export function StaffManagement({ user, onStaffUpdate }: StaffManagementProps) {
   const loadBusinessProfile = async () => {
     setLoading(true);
     try {
-      const response = await authenticatedFetch(`/api/business/profile?user_id=${user.id}`);
+      const response = await authenticatedFetch(
+        `/api/business/profile?user_id=${user.id}`
+      );
       if (response.ok) {
         const data = await response.json();
         if (data.profile?.business_type) {
@@ -52,7 +54,7 @@ export function StaffManagement({ user, onStaffUpdate }: StaffManagementProps) {
         <Card>
           <CardContent className="p-8 text-center">
             <div className="w-16 h-16 border-4 border-blue-300 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600">{t('loading')}</p>
+            <p className="text-gray-600 dark:text-gray-400">{t('loading')}</p>
           </CardContent>
         </Card>
       </div>

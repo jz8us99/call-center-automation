@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
 import { authenticatedFetch } from '@/lib/api-client';
+import { toast } from 'sonner';
+import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import {
   Card,
   CardContent,
@@ -93,6 +95,7 @@ export function FinalStaffManagement({
   serviceTypeCode,
   onStaffUpdate,
 }: FinalStaffManagementProps) {
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [jobCategories, setJobCategories] = useState<JobCategory[]>([]);
   const [jobTypes, setJobTypes] = useState<JobType[]>([]);
@@ -214,7 +217,9 @@ export function FinalStaffManagement({
 
   const loadStaff = async () => {
     try {
-      const response = await authenticatedFetch(`/api/business/staff?user_id=${user.id}`);
+      const response = await authenticatedFetch(
+        `/api/business/staff?user_id=${user.id}`
+      );
       if (response.ok) {
         const data = await response.json();
         setStaff(data.staff || []);
@@ -226,7 +231,7 @@ export function FinalStaffManagement({
 
   const handleAddStaff = async () => {
     if (!formData.first_name || !formData.last_name || !formData.job_title) {
-      alert('First name, last name, and job title are required');
+      toast.error('First name, last name, and job title are required');
       return;
     }
 
@@ -259,13 +264,14 @@ export function FinalStaffManagement({
         setStaff(prev => [...prev, data.staff]);
         resetForm();
         setShowAddForm(false);
+        toast.success('Staff member added successfully!');
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to add staff member');
+        toast.error(errorData.error || 'Failed to add staff member');
       }
     } catch (error) {
       console.error('Failed to add staff member:', error);
-      alert('Failed to add staff member. Please try again.');
+      toast.error('Failed to add staff member. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -273,7 +279,7 @@ export function FinalStaffManagement({
 
   const handleUpdateStaff = async () => {
     if (!editingStaff || !formData.first_name || !formData.last_name) {
-      alert('First name and last name are required');
+      toast.error('First name and last name are required');
       return;
     }
 
@@ -309,20 +315,29 @@ export function FinalStaffManagement({
         resetForm();
         setEditingStaff(null);
         setShowAddForm(false);
+        toast.success('Staff member updated successfully!');
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to update staff member');
+        toast.error(errorData.error || 'Failed to update staff member');
       }
     } catch (error) {
       console.error('Failed to update staff member:', error);
-      alert('Failed to update staff member. Please try again.');
+      toast.error('Failed to update staff member. Please try again.');
     } finally {
       setSaving(false);
     }
   };
 
   const handleDeleteStaff = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this staff member?')) {
+    const confirmed = await confirm({
+      title: 'Delete Staff Member',
+      description: 'Are you sure you want to delete this staff member?',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -336,13 +351,14 @@ export function FinalStaffManagement({
 
       if (response.ok) {
         setStaff(prev => prev.filter(s => s.id !== id));
+        toast.success('Staff member deleted successfully!');
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to delete staff member');
+        toast.error(errorData.error || 'Failed to delete staff member');
       }
     } catch (error) {
       console.error('Failed to delete staff member:', error);
-      alert('Failed to delete staff member. Please try again.');
+      toast.error('Failed to delete staff member. Please try again.');
     }
   };
 
@@ -398,13 +414,13 @@ export function FinalStaffManagement({
     try {
       if (!member || !member.id) {
         console.error('Invalid staff member data:', member);
-        alert('Error: Invalid staff member data. Please try again.');
+        toast.error('Error: Invalid staff member data. Please try again.');
         return;
       }
       setConfiguringCalendar(member);
     } catch (error) {
       console.error('Error configuring calendar:', error);
-      alert(
+      toast.error(
         'An error occurred while opening calendar configuration. Please try again.'
       );
     }
@@ -417,7 +433,7 @@ export function FinalStaffManagement({
   const handleSaveAndContinueCalendar = () => {
     setConfiguringCalendar(null);
     // Optionally trigger a callback to parent component
-    alert('Calendar configuration saved successfully!');
+    toast.success('Calendar configuration saved successfully!');
   };
 
   if (loading) {
@@ -425,7 +441,9 @@ export function FinalStaffManagement({
       <div className="space-y-6">
         <div className="text-center py-8">
           <div className="w-16 h-16 border-4 border-blue-300 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading staff management...</p>
+          <p className="text-gray-600 dark:text-gray-400">
+            Loading staff management...
+          </p>
         </div>
       </div>
     );
@@ -433,12 +451,12 @@ export function FinalStaffManagement({
 
   if (!serviceTypeCode) {
     return (
-      <div className="text-center py-12 border rounded-lg bg-gray-50">
+      <div className="text-center py-12 border rounded-lg bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-600">
         <SettingsIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
           Business Type Required
         </h3>
-        <p className="text-gray-600">
+        <p className="text-gray-600 dark:text-gray-400">
           Please configure your business type first to set up staff management.
         </p>
       </div>
@@ -465,7 +483,9 @@ export function FinalStaffManagement({
               {/* Location Selector */}
               {businessLocations.length > 1 && (
                 <div className="flex items-center gap-2">
-                  <Label className="text-sm font-medium">Location:</Label>
+                  <Label className="text-sm font-medium dark:text-gray-300">
+                    Location:
+                  </Label>
                   <Select
                     value={selectedLocationId}
                     onValueChange={setSelectedLocationId}
@@ -499,14 +519,14 @@ export function FinalStaffManagement({
           </div>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="dark:bg-gray-800">
           {filteredStaff.length === 0 ? (
             <div className="text-center py-8">
               <UserIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                 No Staff Members Added
               </h3>
-              <p className="text-gray-600 mb-4">
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Add your first staff member to help the AI agent provide
                 accurate scheduling information.
               </p>
@@ -526,23 +546,23 @@ export function FinalStaffManagement({
               {filteredStaff.map(member => (
                 <div
                   key={member.id}
-                  className="border border-gray-200 rounded-lg p-4"
+                  className="border border-gray-200 dark:border-gray-600 rounded-lg p-4"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                          <UserIcon className="h-5 w-5 text-blue-600" />
+                        <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                          <UserIcon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                         </div>
                         <div>
-                          <h4 className="font-semibold text-gray-900">
+                          <h4 className="font-semibold text-gray-900 dark:text-white">
                             {member.first_name} {member.last_name}
                           </h4>
-                          <p className="text-sm text-gray-600">
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
                             {member.title || 'No job title'}
                           </p>
                           {member.gender && (
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-gray-500 dark:text-gray-500">
                               {member.gender}
                             </p>
                           )}
@@ -551,14 +571,18 @@ export function FinalStaffManagement({
 
                       <div className="grid md:grid-cols-2 gap-4 mt-3">
                         <div>
-                          <p className="text-sm text-gray-600">Email</p>
-                          <p className="text-sm font-medium">
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Email
+                          </p>
+                          <p className="text-sm font-medium dark:text-gray-300">
                             {member.email || 'Not provided'}
                           </p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-600">Phone</p>
-                          <p className="text-sm font-medium">
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Phone
+                          </p>
+                          <p className="text-sm font-medium dark:text-gray-300">
                             {member.phone || 'Not provided'}
                           </p>
                         </div>
@@ -566,14 +590,14 @@ export function FinalStaffManagement({
 
                       {member.job_types && member.job_types.length > 0 && (
                         <div className="mt-3">
-                          <p className="text-sm text-gray-600 mb-1">
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
                             Selected Job Types
                           </p>
                           <div className="flex flex-wrap gap-1">
                             {member.job_types.map(jobTypeId => (
                               <span
                                 key={jobTypeId}
-                                className="px-2 py-1 bg-blue-100 text-xs rounded-full text-blue-800"
+                                className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-xs rounded-full text-blue-800 dark:text-blue-200"
                               >
                                 {getJobTypeNameById(jobTypeId)}
                               </span>
@@ -584,14 +608,14 @@ export function FinalStaffManagement({
 
                       {member.specialties && member.specialties.length > 0 && (
                         <div className="mt-3">
-                          <p className="text-sm text-gray-600 mb-1">
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
                             Specialties
                           </p>
                           <div className="flex flex-wrap gap-1">
                             {member.specialties.map((specialty, idx) => (
                               <span
                                 key={idx}
-                                className="px-2 py-1 bg-gray-100 text-xs rounded-full"
+                                className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-xs dark:text-gray-300 rounded-full"
                               >
                                 {specialty}
                               </span>
@@ -606,7 +630,7 @@ export function FinalStaffManagement({
                         variant="outline"
                         size="sm"
                         onClick={() => handleConfigureCalendar(member)}
-                        className="text-blue-600 hover:text-blue-700"
+                        className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
                         title="Configure Calendar"
                       >
                         <CalendarIcon className="h-4 w-4" />
@@ -623,7 +647,7 @@ export function FinalStaffManagement({
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDeleteStaff(member.id)}
-                        className="text-red-600 hover:text-red-700"
+                        className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                         title="Delete Staff Member"
                       >
                         <TrashIcon className="h-4 w-4" />
@@ -648,10 +672,10 @@ export function FinalStaffManagement({
               Enter basic staff information including their job title.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 dark:bg-gray-800">
             {/* Basic Information */}
             <div className="space-y-4">
-              <h4 className="text-sm font-medium text-gray-900">
+              <h4 className="text-sm font-medium text-gray-900 dark:text-white">
                 Basic Information
               </h4>
               <div className="grid md:grid-cols-2 gap-4">
@@ -753,10 +777,10 @@ export function FinalStaffManagement({
 
             {/* Category Selection */}
             <div className="space-y-4">
-              <h4 className="text-sm font-medium text-gray-900">
+              <h4 className="text-sm font-medium text-gray-900 dark:text-white">
                 Job Category
               </h4>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Select from pre-configured categories for your business type (
                 {serviceTypeCode}).
               </p>
@@ -765,7 +789,7 @@ export function FinalStaffManagement({
                 <Label htmlFor="job-category">
                   Job Categories (Select Multiple)
                 </Label>
-                <div className="border rounded-lg p-3 max-h-48 overflow-y-auto">
+                <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-3 max-h-48 overflow-y-auto">
                   {jobCategories.map(category => (
                     <div
                       key={category.id}
@@ -796,7 +820,7 @@ export function FinalStaffManagement({
                           {category.category_name}
                         </label>
                         {category.description && (
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                             {category.description}
                           </p>
                         )}
@@ -807,11 +831,11 @@ export function FinalStaffManagement({
               </div>
 
               {jobCategories.length === 0 && (
-                <div className="text-center py-6 border rounded-lg bg-amber-50">
-                  <p className="text-sm text-amber-800 mb-2">
+                <div className="text-center py-6 border border-amber-200 dark:border-amber-800 rounded-lg bg-amber-50 dark:bg-amber-900/20">
+                  <p className="text-sm text-amber-800 dark:text-amber-200 mb-2">
                     No categories available
                   </p>
-                  <p className="text-xs text-amber-600">
+                  <p className="text-xs text-amber-600 dark:text-amber-400">
                     Please configure service categories in the Products &
                     Services step first.
                   </p>
@@ -822,10 +846,10 @@ export function FinalStaffManagement({
             {/* Job Types Selection */}
             {formData.job_category_ids.length > 0 && (
               <div className="space-y-4">
-                <h4 className="text-sm font-medium text-gray-900">
+                <h4 className="text-sm font-medium text-gray-900 dark:text-white">
                   Select Job Types
                 </h4>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Choose specific job types this staff member can handle from
                   their selected categories.
                 </p>
@@ -843,11 +867,11 @@ export function FinalStaffManagement({
 
                   if (categoryJobTypes.length === 0) {
                     return (
-                      <div className="text-center py-6 border rounded-lg bg-gray-50">
-                        <p className="text-sm text-gray-600">
+                      <div className="text-center py-6 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
                           No job types available for the selected categories.
                         </p>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
                           Configure job types in the Products & Services step
                           first.
                         </p>
@@ -856,7 +880,7 @@ export function FinalStaffManagement({
                   }
 
                   return (
-                    <div className="space-y-4 max-h-64 overflow-y-auto border rounded-lg p-4">
+                    <div className="space-y-4 max-h-64 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-lg p-4">
                       {formData.job_category_ids.map(categoryId => {
                         const category = jobCategories.find(
                           c => c.id === categoryId
@@ -868,7 +892,7 @@ export function FinalStaffManagement({
 
                         return (
                           <div key={categoryId} className="space-y-2">
-                            <h5 className="text-sm font-semibold text-blue-700 border-b border-blue-200 pb-1">
+                            <h5 className="text-sm font-semibold text-blue-700 dark:text-blue-300 border-b border-blue-200 dark:border-blue-800 pb-1">
                               {category?.category_name}
                             </h5>
                             <div className="space-y-2">
@@ -889,16 +913,16 @@ export function FinalStaffManagement({
                                   <div className="flex-1">
                                     <label
                                       htmlFor={`jobtype-${jobType.id}`}
-                                      className="text-sm font-medium text-gray-900 cursor-pointer"
+                                      className="text-sm font-medium text-gray-900 dark:text-white cursor-pointer"
                                     >
                                       {jobType.job_name}
                                     </label>
                                     {jobType.job_description && (
-                                      <p className="text-xs text-gray-600">
+                                      <p className="text-xs text-gray-600 dark:text-gray-400">
                                         {jobType.job_description}
                                       </p>
                                     )}
-                                    <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
+                                    <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 mt-1">
                                       <span>
                                         {jobType.default_duration_minutes} min
                                       </span>
@@ -921,7 +945,7 @@ export function FinalStaffManagement({
 
             {/* Additional Information */}
             <div className="space-y-4">
-              <h4 className="text-sm font-medium text-gray-900">
+              <h4 className="text-sm font-medium text-gray-900 dark:text-white">
                 Additional Information
               </h4>
               <div>
@@ -944,7 +968,7 @@ export function FinalStaffManagement({
             </div>
 
             {/* Form Actions */}
-            <div className="flex gap-2 pt-4 border-t">
+            <div className="flex gap-2 pt-4 border-t border-gray-200 dark:border-gray-600">
               <Button
                 onClick={editingStaff ? handleUpdateStaff : handleAddStaff}
                 disabled={
@@ -1003,10 +1027,10 @@ export function FinalStaffManagement({
                 console.error('Error rendering calendar configuration:', error);
                 return (
                   <div className="p-8 text-center">
-                    <h3 className="text-lg font-semibold text-red-600 mb-4">
+                    <h3 className="text-lg font-semibold text-red-600 dark:text-red-400 mb-4">
                       Error Loading Calendar Configuration
                     </h3>
-                    <p className="text-gray-600 mb-4">
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">
                       There was an error loading the calendar configuration.
                       Please try again.
                     </p>
@@ -1020,17 +1044,17 @@ export function FinalStaffManagement({
       )}
 
       {/* Status Summary */}
-      <Card className="bg-blue-50 border-blue-200">
-        <CardContent className="p-4">
+      <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+        <CardContent className="p-4 dark:bg-gray-800">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-              <UserIcon className="h-4 w-4 text-blue-600" />
+            <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+              <UserIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <p className="font-medium text-blue-900">
+              <p className="font-medium text-blue-900 dark:text-blue-200">
                 Staff Management Status
               </p>
-              <p className="text-sm text-blue-700">
+              <p className="text-sm text-blue-700 dark:text-blue-300">
                 {staff.length > 0
                   ? `${staff.length} staff member${staff.length > 1 ? 's' : ''} added. The AI agent can now provide staff-specific information.`
                   : 'Add at least one staff member to help the AI agent provide accurate scheduling and availability information.'}
@@ -1039,6 +1063,8 @@ export function FinalStaffManagement({
           </div>
         </CardContent>
       </Card>
+
+      <ConfirmDialog />
     </div>
   );
 }

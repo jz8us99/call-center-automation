@@ -94,8 +94,10 @@ export async function POST(request: NextRequest) {
         default_start_time: default_start_time || '09:00:00',
         default_end_time: default_end_time || '17:00:00',
         working_days: working_days !== undefined ? working_days : 31, // Mon-Fri default
-        lunch_break_start: lunch_break_start || null,
-        lunch_break_end: lunch_break_end || null,
+        lunch_break_start:
+          lunch_break_start === '' ? null : lunch_break_start || null,
+        lunch_break_end:
+          lunch_break_end === '' ? null : lunch_break_end || null,
         buffer_minutes: buffer_minutes || 15,
         max_advance_days: max_advance_days || 90,
         is_configured: is_configured || false,
@@ -165,9 +167,11 @@ export async function PUT(request: NextRequest) {
       updateData.default_end_time = default_end_time;
     if (working_days !== undefined) updateData.working_days = working_days;
     if (lunch_break_start !== undefined)
-      updateData.lunch_break_start = lunch_break_start;
+      updateData.lunch_break_start =
+        lunch_break_start === '' ? null : lunch_break_start;
     if (lunch_break_end !== undefined)
-      updateData.lunch_break_end = lunch_break_end;
+      updateData.lunch_break_end =
+        lunch_break_end === '' ? null : lunch_break_end;
     if (buffer_minutes !== undefined)
       updateData.buffer_minutes = buffer_minutes;
     if (max_advance_days !== undefined)

@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
+import { AuthenticatedApiClient } from '@/lib/api-client';
+import { toast } from 'sonner';
 import {
   Card,
   CardContent,
@@ -55,7 +57,7 @@ export function OfficeHoursSetup({
   const loadOfficeHours = async () => {
     try {
       setLoading(true);
-      const response = await fetch(
+      const response = await AuthenticatedApiClient.get(
         `/api/business/office-hours?user_id=${user.id}&business_id=${businessId}`
       );
 
@@ -130,28 +132,25 @@ export function OfficeHoursSetup({
           is_active: day.is_active,
         }));
 
-      const response = await fetch('/api/business/office-hours', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const response = await AuthenticatedApiClient.post(
+        '/api/business/office-hours',
+        {
           user_id: user.id,
           business_id: businessId,
           office_hours: activeHours,
-        }),
-      });
+        }
+      );
 
       if (response.ok) {
-        alert('Office hours saved successfully!');
+        toast.success('Office hours saved successfully!');
         if (onSaved) onSaved();
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to save office hours');
+        toast.error(errorData.error || 'Failed to save office hours');
       }
     } catch (error) {
       console.error('Failed to save office hours:', error);
-      alert('Failed to save office hours. Please try again.');
+      toast.error('Failed to save office hours. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -159,11 +158,13 @@ export function OfficeHoursSetup({
 
   if (loading) {
     return (
-      <Card>
+      <Card className="dark:bg-gray-800">
         <CardContent className="p-6">
           <div className="text-center">
             <div className="w-8 h-8 border-4 border-blue-300 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading office hours...</p>
+            <p className="text-gray-600 dark:text-gray-400">
+              Loading office hours...
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -171,7 +172,7 @@ export function OfficeHoursSetup({
   }
 
   return (
-    <Card>
+    <Card className="dark:bg-gray-800">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <ClockIcon className="h-5 w-5" />
@@ -203,7 +204,9 @@ export function OfficeHoursSetup({
                       updateDayHours(index, 'is_active', checked)
                     }
                   />
-                  <span className="text-sm text-gray-600">Open</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    Open
+                  </span>
                 </div>
 
                 {dayHours.is_active && (
@@ -244,7 +247,9 @@ export function OfficeHoursSetup({
                 )}
 
                 {!dayHours.is_active && (
-                  <span className="text-sm text-gray-500 italic">Closed</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400 italic">
+                    Closed
+                  </span>
                 )}
               </div>
             );

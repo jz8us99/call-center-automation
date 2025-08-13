@@ -73,7 +73,6 @@ export default function PreferencesSettings({
                 onCheckedChange={checked =>
                   setTheme(checked ? 'dark' : 'light')
                 }
-                className="data-[state=unchecked]:bg-gray-300 data-[state=checked]:bg-orange-500"
               />
             </div>
           </div>
@@ -193,11 +192,7 @@ export default function PreferencesSettings({
                   {t('callNotificationsDesc')}
                 </p>
               </div>
-              <Switch
-                id="email-calls"
-                defaultChecked={true}
-                className="data-[state=unchecked]:bg-gray-300 data-[state=checked]:bg-orange-500"
-              />
+              <Switch id="email-calls" defaultChecked={true} />
             </div>
 
             <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
@@ -212,11 +207,7 @@ export default function PreferencesSettings({
                   {t('appointmentNotificationsDesc')}
                 </p>
               </div>
-              <Switch
-                id="email-appointments"
-                defaultChecked={true}
-                className="data-[state=unchecked]:bg-gray-300 data-[state=checked]:bg-orange-500"
-              />
+              <Switch id="email-appointments" defaultChecked={true} />
             </div>
 
             <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
@@ -231,11 +222,7 @@ export default function PreferencesSettings({
                   {t('systemUpdatesDesc')}
                 </p>
               </div>
-              <Switch
-                id="email-system"
-                defaultChecked={true}
-                className="data-[state=unchecked]:bg-gray-300 data-[state=checked]:bg-orange-500"
-              />
+              <Switch id="email-system" defaultChecked={true} />
             </div>
 
             <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700">
@@ -250,11 +237,7 @@ export default function PreferencesSettings({
                   {t('billingPaymentsDesc')}
                 </p>
               </div>
-              <Switch
-                id="email-billing"
-                defaultChecked={true}
-                className="data-[state=unchecked]:bg-gray-300 data-[state=checked]:bg-orange-500"
-              />
+              <Switch id="email-billing" defaultChecked={true} />
             </div>
 
             <div className="flex items-center justify-between py-3">
@@ -269,11 +252,7 @@ export default function PreferencesSettings({
                   {t('marketingPromotionsDesc')}
                 </p>
               </div>
-              <Switch
-                id="email-marketing"
-                defaultChecked={false}
-                className="data-[state=unchecked]:bg-gray-300 data-[state=checked]:bg-orange-500"
-              />
+              <Switch id="email-marketing" defaultChecked={false} />
             </div>
           </div>
         </Card>

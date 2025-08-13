@@ -100,7 +100,7 @@ export function StaffCalendarListing({
 
         // Load calendar configurations for all staff
         if (staffMembers.length > 0) {
-          const configResponse = await fetch(
+          const configResponse = await authenticatedFetch(
             `/api/business/staff-calendar-configs?user_id=${user.id}`
           );
           if (configResponse.ok) {
@@ -123,7 +123,9 @@ export function StaffCalendarListing({
   const loadBusinessHours = async () => {
     try {
       // Load business profile to get default hours
-      const response = await authenticatedFetch(`/api/business/profile?user_id=${user.id}`);
+      const response = await authenticatedFetch(
+        `/api/business/profile?user_id=${user.id}`
+      );
       if (response.ok) {
         const data = await response.json();
         if (data.profile?.business_hours) {

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
+import { AuthenticatedApiClient } from '@/lib/api-client';
 import {
   Card,
   CardContent,
@@ -29,6 +30,8 @@ import {
   UserIcon,
   SettingsIcon,
 } from '@/components/icons';
+import { toast } from 'sonner';
+import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 
 interface PredefinedJobTitle {
   id: string;
@@ -84,6 +87,7 @@ export function NewJobTitleManagement({
   serviceTypeCode,
   onJobTitlesUpdate,
 }: NewJobTitleManagementProps) {
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const [predefinedTitles, setPredefinedTitles] = useState<
     PredefinedJobTitle[]
   >([]);
@@ -129,7 +133,9 @@ export function NewJobTitleManagement({
 
   const loadPredefinedTitles = async () => {
     try {
-      const response = await fetch('/api/job-titles?predefined=true');
+      const response = await AuthenticatedApiClient.get(
+        '/api/job-titles?predefined=true'
+      );
       if (response.ok) {
         const data = await response.json();
         setPredefinedTitles(data.job_titles || []);
@@ -141,7 +147,9 @@ export function NewJobTitleManagement({
 
   const loadUserJobTitles = async () => {
     try {
-      const response = await fetch(`/api/job-titles?user_id=${user.id}`);
+      const response = await AuthenticatedApiClient.get(
+        `/api/job-titles?user_id=${user.id}`
+      );
       if (response.ok) {
         const data = await response.json();
         setUserJobTitles(data.job_titles || []);
@@ -200,7 +208,7 @@ export function NewJobTitleManagement({
 
   const handleAddJobTitle = async () => {
     if (!selectedPredefinedTitle) {
-      alert('Please select a job title');
+      toast.error('Please select a job title');
       return;
     }
 
@@ -225,22 +233,27 @@ export function NewJobTitleManagement({
         setSelectedPredefinedTitle('');
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to add job title');
+        toast.error(errorData.error || 'Failed to add job title');
       }
     } catch (error) {
       console.error('Failed to add job title:', error);
-      alert('Failed to add job title. Please try again.');
+      toast.error('Failed to add job title. Please try again.');
     } finally {
       setSaving(false);
     }
   };
 
   const handleDeleteJobTitle = async (id: string) => {
-    if (
-      !confirm(
-        'Are you sure you want to delete this job title? This will also remove all associated category mappings.'
-      )
-    ) {
+    const confirmed = await confirm({
+      title: 'Delete Job Title',
+      description:
+        'Are you sure you want to delete this job title? This will also remove all associated category mappings.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -263,11 +276,11 @@ export function NewJobTitleManagement({
         loadTitleCategoryMappings();
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to delete job title');
+        toast.error(errorData.error || 'Failed to delete job title');
       }
     } catch (error) {
       console.error('Failed to delete job title:', error);
-      alert('Failed to delete job title. Please try again.');
+      toast.error('Failed to delete job title. Please try again.');
     }
   };
 
@@ -330,7 +343,7 @@ export function NewJobTitleManagement({
 
   const handleSaveCategoryMappings = async () => {
     if (!selectedUserTitle) {
-      alert('Please select a job title first');
+      toast.error('Please select a job title first');
       return;
     }
 
@@ -358,10 +371,10 @@ export function NewJobTitleManagement({
       // Reload mappings to reflect changes
       await loadTitleCategoryMappings();
 
-      alert('Category mappings saved successfully!');
+      toast.success('Category mappings saved successfully!');
     } catch (error) {
       console.error('Failed to save category mappings:', error);
-      alert('Failed to save category mappings. Please try again.');
+      toast.error('Failed to save category mappings. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -676,6 +689,7 @@ export function NewJobTitleManagement({
           </div>
         </CardContent>
       </Card>
+      <ConfirmDialog />
     </div>
   );
 }

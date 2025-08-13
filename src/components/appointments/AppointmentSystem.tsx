@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { User } from '@supabase/supabase-js';
+import { AuthenticatedApiClient } from '@/lib/api-client';
+import { toast } from 'sonner';
+import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import {
   Card,
   CardContent,
@@ -65,10 +68,11 @@ const DAYS_OF_WEEK = [
   { value: 6, label: 'Saturday', short: 'Sat' },
 ];
 
-export function Step5AppointmentSystem({
+export function AppointmentSystem({
   user,
   businessId,
 }: Step5AppointmentSystemProps) {
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const [activeTab, setActiveTab] = useState('business-hours');
   const [loading, setLoading] = useState(true);
 
@@ -94,7 +98,7 @@ export function Step5AppointmentSystem({
   const loadOfficeHours = async () => {
     try {
       setLoading(true);
-      const response = await fetch(
+      const response = await AuthenticatedApiClient.get(
         `/api/business/office-hours?user_id=${user.id}&business_id=${businessId}`
       );
 
@@ -128,7 +132,7 @@ export function Step5AppointmentSystem({
 
   const loadHolidays = async () => {
     try {
-      const response = await fetch(
+      const response = await AuthenticatedApiClient.get(
         `/api/business/holidays?user_id=${user.id}&business_id=${businessId}&year=${selectedYear}`
       );
 
@@ -178,29 +182,26 @@ export function Step5AppointmentSystem({
         is_active: day.is_active,
       }));
 
-      const response = await fetch('/api/business/office-hours', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const response = await AuthenticatedApiClient.post(
+        '/api/business/office-hours',
+        {
           user_id: user.id,
           business_id: businessId,
           office_hours: allHours,
-        }),
-      });
+        }
+      );
 
       if (response.ok) {
-        alert('Business hours saved successfully!');
+        toast.success('Business hours saved successfully!');
         setEditingHours(false);
         await loadOfficeHours();
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to save business hours');
+        toast.error(errorData.error || 'Failed to save business hours');
       }
     } catch (error) {
       console.error('Failed to save business hours:', error);
-      alert('Failed to save business hours. Please try again.');
+      toast.error('Failed to save business hours. Please try again.');
     } finally {
       setSavingHours(false);
     }
@@ -304,7 +305,7 @@ export function Step5AppointmentSystem({
 
   const saveBankHolidays = async () => {
     if (selectedBankHolidays.length === 0) {
-      alert('Please select at least one holiday to add.');
+      toast.error('Please select at least one holiday to add.');
       return;
     }
 
@@ -321,20 +322,17 @@ export function Step5AppointmentSystem({
         const exists = holidays.some(h => h.holiday_date === holiday.date);
         if (exists) continue;
 
-        const response = await fetch('/api/business/holidays', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
+        const response = await AuthenticatedApiClient.post(
+          '/api/business/holidays',
+          {
             user_id: user.id,
             business_id: businessId,
             holiday_date: holiday.date,
             holiday_name: holiday.name,
             description: holiday.description,
             is_recurring: holiday.category === 'federal',
-          }),
-        });
+          }
+        );
 
         if (response.ok) {
           addedCount++;
@@ -344,42 +342,45 @@ export function Step5AppointmentSystem({
       await loadHolidays();
       setShowBankHolidaysDialog(false);
       setSelectedBankHolidays([]);
-      alert(
+      toast.success(
         `Successfully added ${addedCount} holiday${addedCount !== 1 ? 's' : ''}!`
       );
     } catch (error) {
       console.error('Failed to add bank holidays:', error);
-      alert('Failed to add bank holidays. Please try again.');
+      toast.error('Failed to add bank holidays. Please try again.');
     } finally {
       setSavingBankHolidays(false);
     }
   };
 
   const deleteHoliday = async (holiday: Holiday) => {
-    if (
-      !confirm(`Are you sure you want to delete "${holiday.holiday_name}"?`)
-    ) {
+    const confirmed = await confirm({
+      title: 'Delete Holiday',
+      description: `Are you sure you want to delete "${holiday.holiday_name}"?`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+    });
+
+    if (!confirmed) {
       return;
     }
 
     try {
-      const response = await fetch(
-        `/api/business/holidays?id=${holiday.id}&user_id=${user.id}`,
-        {
-          method: 'DELETE',
-        }
+      const response = await AuthenticatedApiClient.delete(
+        `/api/business/holidays?id=${holiday.id}&user_id=${user.id}`
       );
 
       if (response.ok) {
         await loadHolidays();
-        alert('Holiday deleted successfully!');
+        toast.success('Holiday deleted successfully!');
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to delete holiday');
+        toast.error(errorData.error || 'Failed to delete holiday');
       }
     } catch (error) {
       console.error('Failed to delete holiday:', error);
-      alert('Failed to delete holiday. Please try again.');
+      toast.error('Failed to delete holiday. Please try again.');
     }
   };
 
@@ -397,11 +398,13 @@ export function Step5AppointmentSystem({
 
   if (loading) {
     return (
-      <Card>
-        <CardContent className="p-6">
+      <Card className="dark:bg-gray-800">
+        <CardContent className="p-6 dark:bg-gray-800">
           <div className="text-center">
             <div className="w-8 h-8 border-4 border-blue-300 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading Step 5 configuration...</p>
+            <p className="text-gray-600 dark:text-gray-400">
+              Loading Step 5 configuration...
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -412,10 +415,10 @@ export function Step5AppointmentSystem({
   if (!officeHours || officeHours.length === 0) {
     console.warn('Office hours data is missing or empty');
     return (
-      <Card>
-        <CardContent className="p-6">
+      <Card className="dark:bg-gray-800">
+        <CardContent className="p-6 dark:bg-gray-800">
           <div className="text-center">
-            <p className="text-red-600">
+            <p className="text-red-600 dark:text-red-400">
               Error loading office hours data. Please refresh the page.
             </p>
             <Button onClick={() => window.location.reload()} className="mt-4">
@@ -429,13 +432,13 @@ export function Step5AppointmentSystem({
 
   return (
     <div className="space-y-6">
-      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/40 dark:to-purple-900/40 border-blue-200 dark:border-blue-800">
         <CardHeader>
-          <CardTitle className="text-blue-900 flex items-center gap-2">
+          <CardTitle className="text-blue-900 dark:text-blue-100 flex items-center gap-2">
             <CalendarIcon className="h-6 w-6" />
-            📅 Step 5: Appointment System Configuration
+            📅 Step 4: Appointment System Configuration
           </CardTitle>
-          <CardDescription className="text-blue-700">
+          <CardDescription className="text-blue-700 dark:text-blue-300">
             Configure your business hours, holidays, and appointment settings to
             complete your system setup
           </CardDescription>
@@ -447,34 +450,46 @@ export function Step5AppointmentSystem({
         onValueChange={setActiveTab}
         className="space-y-6"
       >
-        <Card>
-          <CardHeader>
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger
-                value="business-hours"
-                className="flex items-center gap-2"
-              >
-                <ClockIcon className="h-4 w-4" />
-                Business Hours
-              </TabsTrigger>
-              <TabsTrigger value="holidays" className="flex items-center gap-2">
-                <CalendarIcon className="h-4 w-4" />
-                Holiday Configuration
-              </TabsTrigger>
-              <TabsTrigger
-                value="booking-settings"
-                className="flex items-center gap-2"
-              >
-                <SettingsIcon className="h-4 w-4" />
-                Booking Settings
-              </TabsTrigger>
-            </TabsList>
-          </CardHeader>
+        <Card className="dark:bg-gray-800">
+          <CardContent className="pt-6 dark:bg-gray-800">
+            <div className="flex space-x-1 mb-6 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+              {[
+                {
+                  id: 'business-hours',
+                  label: 'Business Hours',
+                  icon: ClockIcon,
+                },
+                {
+                  id: 'holidays',
+                  label: 'Holiday Configuration',
+                  icon: CalendarIcon,
+                },
+                {
+                  id: 'booking-settings',
+                  label: 'Booking Settings',
+                  icon: SettingsIcon,
+                },
+              ].map(section => (
+                <button
+                  key={section.id}
+                  onClick={() => setActiveTab(section.id)}
+                  className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                    activeTab === section.id
+                      ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                  }`}
+                >
+                  <section.icon className="h-4 w-4 mr-2" />
+                  {section.label}
+                </button>
+              ))}
+            </div>
+          </CardContent>
         </Card>
 
         {/* Business Hours Tab */}
         <TabsContent value="business-hours">
-          <Card>
+          <Card className="dark:bg-gray-800">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
@@ -530,7 +545,7 @@ export function Step5AppointmentSystem({
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 dark:bg-gray-800">
               {DAYS_OF_WEEK.map((day, index) => {
                 const dayHours = officeHours[index];
                 if (!dayHours) {
@@ -543,10 +558,12 @@ export function Step5AppointmentSystem({
                 return (
                   <div
                     key={day.value}
-                    className={`flex items-center gap-4 p-4 border rounded-lg ${dayHours.is_active ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}
+                    className={`flex items-center gap-4 p-4 border rounded-lg ${dayHours.is_active ? 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-700' : 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600'}`}
                   >
                     <div className="w-24">
-                      <Label className="font-medium text-lg">{day.label}</Label>
+                      <Label className="font-medium text-lg text-gray-900 dark:text-white">
+                        {day.label}
+                      </Label>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -558,7 +575,7 @@ export function Step5AppointmentSystem({
                         }
                         disabled={!editingHours}
                       />
-                      <span className="text-sm text-gray-600 min-w-[40px]">
+                      <span className="text-sm text-gray-600 dark:text-gray-300 min-w-[40px]">
                         {dayHours.is_active ? 'Open' : 'Closed'}
                       </span>
                     </div>
@@ -566,7 +583,9 @@ export function Step5AppointmentSystem({
                     {dayHours.is_active && (
                       <>
                         <div className="flex items-center gap-2">
-                          <Label className="text-sm font-medium">From:</Label>
+                          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            From:
+                          </Label>
                           <Input
                             type="time"
                             value={dayHours.start_time}
@@ -584,7 +603,9 @@ export function Step5AppointmentSystem({
                         </div>
 
                         <div className="flex items-center gap-2">
-                          <Label className="text-sm font-medium">To:</Label>
+                          <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            To:
+                          </Label>
                           <Input
                             type="time"
                             value={dayHours.end_time}
@@ -611,7 +632,7 @@ export function Step5AppointmentSystem({
                     )}
 
                     {!dayHours.is_active && (
-                      <span className="text-sm text-gray-500 italic flex-1">
+                      <span className="text-sm text-gray-500 dark:text-gray-400 italic flex-1">
                         Closed all day
                       </span>
                     )}
@@ -619,14 +640,14 @@ export function Step5AppointmentSystem({
                 );
               })}
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6">
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mt-6">
                 <div className="flex items-start gap-3">
-                  <ClockIcon className="h-5 w-5 text-blue-600 mt-0.5" />
+                  <ClockIcon className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
                   <div>
-                    <h4 className="font-medium text-blue-900">
+                    <h4 className="font-medium text-blue-900 dark:text-blue-100">
                       Business Hours Configuration
                     </h4>
-                    <ul className="text-sm text-blue-800 mt-2 space-y-1">
+                    <ul className="text-sm text-blue-800 dark:text-blue-300 mt-2 space-y-1">
                       <li>
                         • <strong>All days are customizable</strong> - Enable
                         weekends or any day you operate
@@ -657,7 +678,7 @@ export function Step5AppointmentSystem({
 
         {/* Holiday Configuration Tab */}
         <TabsContent value="holidays">
-          <Card>
+          <Card className="dark:bg-gray-800">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
@@ -692,14 +713,14 @@ export function Step5AppointmentSystem({
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="dark:bg-gray-800">
               {holidays.length === 0 ? (
                 <div className="text-center py-8">
                   <CalendarIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                     No holidays configured for {selectedYear}
                   </h3>
-                  <p className="text-gray-600 mb-6">
+                  <p className="text-gray-600 dark:text-gray-400 mb-6">
                     Add holidays to let customers know when you&apos;re closed
                     for business
                   </p>
@@ -721,10 +742,10 @@ export function Step5AppointmentSystem({
                     {holidays.map(holiday => (
                       <div
                         key={holiday.id}
-                        className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow bg-white"
+                        className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:shadow-md transition-shadow bg-white dark:bg-gray-800"
                       >
                         <div className="flex items-center justify-between mb-2">
-                          <h3 className="font-semibold text-gray-900 text-sm">
+                          <h3 className="font-semibold text-gray-900 dark:text-white text-sm">
                             {holiday.holiday_name}
                           </h3>
                           <Button
@@ -738,7 +759,7 @@ export function Step5AppointmentSystem({
                         </div>
 
                         <div className="flex items-center gap-2 mb-2">
-                          <span className="text-sm font-medium text-blue-600">
+                          <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
                             {formatDate(holiday.holiday_date)}
                           </span>
                           {holiday.is_recurring && (
@@ -754,7 +775,7 @@ export function Step5AppointmentSystem({
                         </div>
 
                         {holiday.description && (
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
                             {holiday.description}
                           </p>
                         )}
@@ -783,7 +804,7 @@ export function Step5AppointmentSystem({
 
         {/* Booking Settings Tab */}
         <TabsContent value="booking-settings">
-          <Card>
+          <Card className="dark:bg-gray-800">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <SettingsIcon className="h-5 w-5" />
@@ -793,13 +814,13 @@ export function Step5AppointmentSystem({
                 Configure appointment booking rules and customer policies
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="dark:bg-gray-800">
               <div className="text-center py-8">
                 <SettingsIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
                   Advanced Booking Configuration
                 </h3>
-                <p className="text-gray-600 mb-6">
+                <p className="text-gray-600 dark:text-gray-400 mb-6">
                   Set up detailed booking rules, customer requirements, and
                   notification preferences
                 </p>
@@ -825,7 +846,7 @@ export function Step5AppointmentSystem({
         open={showBankHolidaysDialog}
         onOpenChange={setShowBankHolidaysDialog}
       >
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto dark:bg-gray-800">
           <DialogHeader>
             <DialogTitle>Select Bank Holidays for {selectedYear}</DialogTitle>
             <DialogDescription>
@@ -836,14 +857,14 @@ export function Step5AppointmentSystem({
 
           <div className="space-y-6">
             {/* Summary */}
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+            <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h4 className="font-medium text-purple-900">
+                  <h4 className="font-medium text-purple-900 dark:text-purple-100">
                     {selectedBankHolidays.length} holiday
                     {selectedBankHolidays.length !== 1 ? 's' : ''} selected
                   </h4>
-                  <p className="text-sm text-purple-700">
+                  <p className="text-sm text-purple-700 dark:text-purple-300">
                     Select multiple holidays and save them all at once
                   </p>
                 </div>
@@ -871,7 +892,7 @@ export function Step5AppointmentSystem({
 
             {/* Federal Holidays */}
             <div>
-              <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
                 🇺🇸 Federal Holidays
                 <Badge variant="secondary">Official US holidays</Badge>
               </h4>
@@ -891,10 +912,10 @@ export function Step5AppointmentSystem({
                         key={holiday.date}
                         className={`flex items-center space-x-3 p-3 border rounded-lg ${
                           isExisting
-                            ? 'bg-gray-50 border-gray-200'
+                            ? 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600'
                             : isSelected
-                              ? 'bg-green-50 border-green-200'
-                              : 'bg-white border-gray-200'
+                              ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                              : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600'
                         }`}
                       >
                         <Checkbox
@@ -909,11 +930,11 @@ export function Step5AppointmentSystem({
                           <div className="flex items-center justify-between">
                             <Label
                               htmlFor={holiday.date}
-                              className={`font-medium ${isExisting ? 'text-gray-500' : 'text-gray-900'}`}
+                              className={`font-medium ${isExisting ? 'text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-gray-100'}`}
                             >
                               {holiday.name}
                             </Label>
-                            <span className="text-sm text-gray-500">
+                            <span className="text-sm text-gray-500 dark:text-gray-400">
                               {new Date(holiday.date).toLocaleDateString(
                                 'en-US',
                                 { month: 'short', day: 'numeric' }
@@ -921,7 +942,7 @@ export function Step5AppointmentSystem({
                             </span>
                           </div>
                           <p
-                            className={`text-sm ${isExisting ? 'text-gray-400' : 'text-gray-600'}`}
+                            className={`text-sm ${isExisting ? 'text-gray-400' : 'text-gray-600 dark:text-gray-400'}`}
                           >
                             {holiday.description}
                             {isExisting && ' (Already added)'}
@@ -935,7 +956,7 @@ export function Step5AppointmentSystem({
 
             {/* Common Business Closures */}
             <div>
-              <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
                 🏢 Common Business Closures
                 <Badge variant="outline">Optional closures</Badge>
               </h4>
@@ -955,10 +976,10 @@ export function Step5AppointmentSystem({
                         key={holiday.date}
                         className={`flex items-center space-x-3 p-3 border rounded-lg ${
                           isExisting
-                            ? 'bg-gray-50 border-gray-200'
+                            ? 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600'
                             : isSelected
-                              ? 'bg-green-50 border-green-200'
-                              : 'bg-white border-gray-200'
+                              ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                              : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600'
                         }`}
                       >
                         <Checkbox
@@ -973,11 +994,11 @@ export function Step5AppointmentSystem({
                           <div className="flex items-center justify-between">
                             <Label
                               htmlFor={holiday.date}
-                              className={`font-medium ${isExisting ? 'text-gray-500' : 'text-gray-900'}`}
+                              className={`font-medium ${isExisting ? 'text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-gray-100'}`}
                             >
                               {holiday.name}
                             </Label>
-                            <span className="text-sm text-gray-500">
+                            <span className="text-sm text-gray-500 dark:text-gray-400">
                               {new Date(holiday.date).toLocaleDateString(
                                 'en-US',
                                 { month: 'short', day: 'numeric' }
@@ -985,7 +1006,7 @@ export function Step5AppointmentSystem({
                             </span>
                           </div>
                           <p
-                            className={`text-sm ${isExisting ? 'text-gray-400' : 'text-gray-600'}`}
+                            className={`text-sm ${isExisting ? 'text-gray-400' : 'text-gray-600 dark:text-gray-400'}`}
                           >
                             {holiday.description}
                             {isExisting && ' (Already added)'}
@@ -998,7 +1019,7 @@ export function Step5AppointmentSystem({
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-2 pt-4 border-t">
+            <div className="flex gap-2 pt-4 border-t border-gray-200 dark:border-gray-600">
               <Button
                 onClick={saveBankHolidays}
                 disabled={
@@ -1029,6 +1050,8 @@ export function Step5AppointmentSystem({
           </div>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog />
     </div>
   );
 }

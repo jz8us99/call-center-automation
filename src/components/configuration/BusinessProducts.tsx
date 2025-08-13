@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { User } from '@supabase/supabase-js';
 import { authenticatedFetch } from '@/lib/api-client';
+import { toast } from 'sonner';
+import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import {
   Card,
   CardContent,
@@ -68,6 +70,7 @@ export function BusinessProducts({
   onProductsUpdate,
 }: BusinessProductsProps) {
   const t = useTranslations('businessProducts');
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const [businessProfile, setBusinessProfile] =
     useState<BusinessProfile | null>(null);
   const [productCategories, setProductCategories] = useState<ProductCategory[]>(
@@ -181,23 +184,28 @@ export function BusinessProducts({
 
   const handleAddCategory = async () => {
     if (!categoryForm.category_name || !businessProfile?.business_type) {
-      alert('Category name is required and business type must be configured');
+      toast.error(
+        'Category name is required and business type must be configured'
+      );
       return;
     }
 
     setSaving(true);
     try {
-      const response = await authenticatedFetch('/api/business/product-categories', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          business_type: businessProfile.business_type,
-          category_name: categoryForm.category_name,
-          category_description: categoryForm.category_description,
-        }),
-      });
+      const response = await authenticatedFetch(
+        '/api/business/product-categories',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            business_type: businessProfile.business_type,
+            category_name: categoryForm.category_name,
+            category_description: categoryForm.category_description,
+          }),
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -207,11 +215,11 @@ export function BusinessProducts({
         setHasUnsavedChanges(true);
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to add category');
+        toast.error(errorData.error || 'Failed to add category');
       }
     } catch (error) {
       console.error('Failed to add category:', error);
-      alert('Failed to add category. Please try again.');
+      toast.error('Failed to add category. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -219,23 +227,26 @@ export function BusinessProducts({
 
   const handleUpdateCategory = async () => {
     if (!editingCategory || !categoryForm.category_name) {
-      alert('Category name is required');
+      toast.error('Category name is required');
       return;
     }
 
     setSaving(true);
     try {
-      const response = await authenticatedFetch('/api/business/product-categories', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          id: editingCategory.id,
-          category_name: categoryForm.category_name,
-          category_description: categoryForm.category_description,
-        }),
-      });
+      const response = await authenticatedFetch(
+        '/api/business/product-categories',
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            id: editingCategory.id,
+            category_name: categoryForm.category_name,
+            category_description: categoryForm.category_description,
+          }),
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -248,22 +259,27 @@ export function BusinessProducts({
         setHasUnsavedChanges(true);
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to update category');
+        toast.error(errorData.error || 'Failed to update category');
       }
     } catch (error) {
       console.error('Failed to update category:', error);
-      alert('Failed to update category. Please try again.');
+      toast.error('Failed to update category. Please try again.');
     } finally {
       setSaving(false);
     }
   };
 
   const handleDeleteCategory = async (id: string) => {
-    if (
-      !confirm(
-        'Are you sure you want to delete this category? This will also affect any associated products.'
-      )
-    ) {
+    const confirmed = await confirm({
+      title: 'Delete Category',
+      description:
+        'Are you sure you want to delete this category? This will also affect any associated products.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -284,11 +300,11 @@ export function BusinessProducts({
         setHasUnsavedChanges(true);
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to delete category');
+        toast.error(errorData.error || 'Failed to delete category');
       }
     } catch (error) {
       console.error('Failed to delete category:', error);
-      alert('Failed to delete category. Please try again.');
+      toast.error('Failed to delete category. Please try again.');
     }
   };
 
@@ -329,7 +345,9 @@ export function BusinessProducts({
 
   const handleAddProduct = async () => {
     if (!productForm.product_name || !businessProfile?.business_type) {
-      alert('Product name is required and business type must be configured');
+      toast.error(
+        'Product name is required and business type must be configured'
+      );
       return;
     }
 
@@ -362,11 +380,11 @@ export function BusinessProducts({
         setShowProductForm(false);
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to add product');
+        toast.error(errorData.error || 'Failed to add product');
       }
     } catch (error) {
       console.error('Failed to add product:', error);
-      alert('Failed to add product. Please try again.');
+      toast.error('Failed to add product. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -405,7 +423,7 @@ export function BusinessProducts({
 
   const handleUpdateProduct = async () => {
     if (!editingProduct || !productForm.product_name) {
-      alert('Product name is required');
+      toast.error('Product name is required');
       return;
     }
 
@@ -440,35 +458,46 @@ export function BusinessProducts({
         setShowProductForm(false);
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to update product');
+        toast.error(errorData.error || 'Failed to update product');
       }
     } catch (error) {
       console.error('Failed to update product:', error);
-      alert('Failed to update product. Please try again.');
+      toast.error('Failed to update product. Please try again.');
     } finally {
       setSaving(false);
     }
   };
 
   const handleDeleteProduct = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this product?')) {
+    const confirmed = await confirm({
+      title: 'Delete Product',
+      description: 'Are you sure you want to delete this product?',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+    });
+
+    if (!confirmed) {
       return;
     }
 
     try {
-      const response = await authenticatedFetch(`/api/business/products?id=${id}`, {
-        method: 'DELETE',
-      });
+      const response = await authenticatedFetch(
+        `/api/business/products?id=${id}`,
+        {
+          method: 'DELETE',
+        }
+      );
 
       if (response.ok) {
         setProducts(prev => prev.filter(p => p.id !== id));
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to delete product');
+        toast.error(errorData.error || 'Failed to delete product');
       }
     } catch (error) {
       console.error('Failed to delete product:', error);
-      alert('Failed to delete product. Please try again.');
+      toast.error('Failed to delete product. Please try again.');
     }
   };
 
@@ -502,7 +531,7 @@ export function BusinessProducts({
 
   const saveInlineProduct = async (categoryId: string) => {
     if (!inlineForm.product_name.trim()) {
-      alert('Product name is required');
+      toast.error('Product name is required');
       return;
     }
 
@@ -531,11 +560,11 @@ export function BusinessProducts({
         cancelInlineAdd();
       } else {
         const errorData = await response.json();
-        alert(errorData.error || 'Failed to add product');
+        toast.error(errorData.error || 'Failed to add product');
       }
     } catch (error) {
       console.error('Failed to add product:', error);
-      alert('Failed to add product. Please try again.');
+      toast.error('Failed to add product. Please try again.');
     } finally {
       setInlineSaving(false);
     }
@@ -649,21 +678,21 @@ export function BusinessProducts({
                 return (
                   <div
                     key={category.id}
-                    className="border border-gray-200 rounded-lg overflow-hidden"
+                    className="border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden"
                   >
                     {/* Category Header */}
-                    <div className="bg-blue-50 border-b border-gray-200">
+                    <div className="bg-blue-50 dark:bg-blue-900/20 border-b border-gray-200 dark:border-gray-600">
                       <div className="flex items-center justify-between px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <h4 className="font-semibold text-blue-800">
+                          <h4 className="font-semibold text-blue-800 dark:text-blue-200">
                             {category.category_name}
                           </h4>
                           {category.category_description && (
-                            <span className="text-sm text-blue-600">
+                            <span className="text-sm text-blue-600 dark:text-blue-300">
                               - {category.category_description}
                             </span>
                           )}
-                          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                          <span className="text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-200 px-2 py-1 rounded">
                             {categoryProducts.length} products
                           </span>
                         </div>
@@ -672,7 +701,7 @@ export function BusinessProducts({
                             variant="ghost"
                             size="sm"
                             onClick={() => startEditCategory(category)}
-                            className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-100"
+                            className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-100 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/30"
                           >
                             <EditIcon className="h-3 w-3" />
                           </Button>
@@ -680,7 +709,7 @@ export function BusinessProducts({
                             variant="ghost"
                             size="sm"
                             onClick={() => handleDeleteCategory(category.id)}
-                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-100"
+                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-100 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/30"
                           >
                             <TrashIcon className="h-3 w-3" />
                           </Button>
@@ -688,7 +717,7 @@ export function BusinessProducts({
                             variant="ghost"
                             size="sm"
                             onClick={() => startInlineAdd(category.id)}
-                            className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-100"
+                            className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-100 dark:text-green-400 dark:hover:text-green-300 dark:hover:bg-green-900/30"
                             disabled={addingToCategory === category.id}
                           >
                             <PlusIcon className="h-4 w-4" />
@@ -701,8 +730,8 @@ export function BusinessProducts({
                     {categoryProducts.length > 0 ? (
                       <>
                         {/* Products Header */}
-                        <div className="bg-gray-50 border-b border-gray-200">
-                          <div className="grid grid-cols-12 gap-4 px-4 py-2 text-xs font-medium text-gray-700">
+                        <div className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+                          <div className="grid grid-cols-12 gap-4 px-4 py-2 text-xs font-medium text-gray-700 dark:text-gray-300">
                             <div className="col-span-3">Product Name</div>
                             <div className="col-span-3">Description</div>
                             <div className="col-span-2">Brand</div>
@@ -715,28 +744,28 @@ export function BusinessProducts({
                         {categoryProducts.map((product, index) => (
                           <div
                             key={product.id}
-                            className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-gray-200 bg-white hover:bg-gray-50"
+                            className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
                           >
-                            <div className="col-span-3 font-medium text-black">
+                            <div className="col-span-3 font-medium text-black dark:text-white">
                               {product.product_name}
                             </div>
-                            <div className="col-span-3 text-sm text-black">
+                            <div className="col-span-3 text-sm text-black dark:text-gray-300">
                               {product.product_description || '-'}
                             </div>
-                            <div className="col-span-2 text-sm text-black">
+                            <div className="col-span-2 text-sm text-black dark:text-gray-300">
                               {product.brand || '-'}
                             </div>
-                            <div className="col-span-2 text-sm text-black">
+                            <div className="col-span-2 text-sm text-black dark:text-gray-300">
                               {product.price
                                 ? `${product.price_currency} ${product.price}`
                                 : '-'}
                             </div>
-                            <div className="col-span-2 flex items-center justify-end gap-1">
+                            <div className="col-span-2 flex items-center justify-end gap-1 bg-transparent dark:bg-gray-800">
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => startEditProduct(product)}
-                                className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/30"
                               >
                                 <EditIcon className="h-3 w-3" />
                               </Button>
@@ -744,7 +773,7 @@ export function BusinessProducts({
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleDeleteProduct(product.id)}
-                                className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/30"
                               >
                                 <TrashIcon className="h-3 w-3" />
                               </Button>
@@ -754,7 +783,7 @@ export function BusinessProducts({
 
                         {/* Inline Add Row */}
                         {addingToCategory === category.id && (
-                          <div className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-gray-200 bg-yellow-50">
+                          <div className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-gray-200 dark:border-gray-600 bg-yellow-50 dark:bg-yellow-900/20">
                             <div className="col-span-3">
                               <Input
                                 value={inlineForm.product_name}
@@ -811,7 +840,7 @@ export function BusinessProducts({
                                 className="h-8 text-sm"
                               />
                             </div>
-                            <div className="col-span-2 flex items-center justify-end gap-1">
+                            <div className="col-span-2 flex items-center justify-end gap-1 bg-transparent dark:bg-gray-800">
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -858,8 +887,8 @@ export function BusinessProducts({
                         {addingToCategory === category.id ? (
                           <>
                             {/* Products Header */}
-                            <div className="bg-gray-50 border-b border-gray-200">
-                              <div className="grid grid-cols-12 gap-4 px-4 py-2 text-xs font-medium text-gray-700">
+                            <div className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+                              <div className="grid grid-cols-12 gap-4 px-4 py-2 text-xs font-medium text-gray-700 dark:text-gray-300">
                                 <div className="col-span-3">Product Name</div>
                                 <div className="col-span-3">Description</div>
                                 <div className="col-span-2">Brand</div>
@@ -870,7 +899,7 @@ export function BusinessProducts({
                               </div>
                             </div>
                             {/* Inline Add Row for empty category */}
-                            <div className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-gray-200 bg-yellow-50">
+                            <div className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-gray-200 dark:border-gray-600 bg-yellow-50 dark:bg-yellow-900/20">
                               <div className="col-span-3">
                                 <Input
                                   value={inlineForm.product_name}
@@ -927,7 +956,7 @@ export function BusinessProducts({
                                   className="h-8 text-sm"
                                 />
                               </div>
-                              <div className="col-span-2 flex items-center justify-end gap-1">
+                              <div className="col-span-2 flex items-center justify-end gap-1 bg-transparent dark:bg-gray-800">
                                 <Button
                                   variant="ghost"
                                   size="sm"
@@ -991,15 +1020,15 @@ export function BusinessProducts({
                 if (uncategorizedProducts.length === 0) return null;
 
                 return (
-                  <div className="border border-gray-200 rounded-lg overflow-hidden">
+                  <div className="border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden">
                     {/* Uncategorized Header */}
-                    <div className="bg-amber-50 border-b border-gray-200">
+                    <div className="bg-amber-50 dark:bg-amber-900/20 border-b border-gray-200 dark:border-gray-600">
                       <div className="flex items-center justify-between px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <h4 className="font-semibold text-amber-800">
+                          <h4 className="font-semibold text-amber-800 dark:text-amber-200">
                             Uncategorized Products
                           </h4>
-                          <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded">
+                          <span className="text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-200 px-2 py-1 rounded">
                             {uncategorizedProducts.length} products
                           </span>
                         </div>
@@ -1007,8 +1036,8 @@ export function BusinessProducts({
                     </div>
 
                     {/* Products Header */}
-                    <div className="bg-gray-50 border-b border-gray-200">
-                      <div className="grid grid-cols-12 gap-4 px-4 py-2 text-xs font-medium text-gray-700">
+                    <div className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+                      <div className="grid grid-cols-12 gap-4 px-4 py-2 text-xs font-medium text-gray-700 dark:text-gray-300">
                         <div className="col-span-3">Product Name</div>
                         <div className="col-span-3">Description</div>
                         <div className="col-span-2">Brand</div>
@@ -1021,18 +1050,18 @@ export function BusinessProducts({
                     {uncategorizedProducts.map((product, index) => (
                       <div
                         key={product.id}
-                        className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-gray-200 bg-white hover:bg-gray-50"
+                        className="grid grid-cols-12 gap-4 px-4 py-3 border-b border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
                       >
-                        <div className="col-span-3 font-medium text-black">
+                        <div className="col-span-3 font-medium text-black dark:text-white">
                           {product.product_name}
                         </div>
-                        <div className="col-span-3 text-sm text-black">
+                        <div className="col-span-3 text-sm text-black dark:text-gray-300">
                           {product.product_description || '-'}
                         </div>
-                        <div className="col-span-2 text-sm text-black">
+                        <div className="col-span-2 text-sm text-black dark:text-gray-300">
                           {product.brand || '-'}
                         </div>
-                        <div className="col-span-2 text-sm text-black">
+                        <div className="col-span-2 text-sm text-black dark:text-gray-300">
                           {product.price
                             ? `${product.price_currency} ${product.price}`
                             : '-'}
@@ -1042,7 +1071,7 @@ export function BusinessProducts({
                             variant="ghost"
                             size="sm"
                             onClick={() => startEditProduct(product)}
-                            className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/30"
                           >
                             <EditIcon className="h-3 w-3" />
                           </Button>
@@ -1050,7 +1079,7 @@ export function BusinessProducts({
                             variant="ghost"
                             size="sm"
                             onClick={() => handleDeleteProduct(product.id)}
-                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/30"
                           >
                             <TrashIcon className="h-3 w-3" />
                           </Button>
@@ -1345,15 +1374,17 @@ export function BusinessProducts({
       )}
 
       {/* Status Summary */}
-      <Card className="bg-green-50 border-green-200">
+      <Card className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-              <SettingsIcon className="h-4 w-4 text-green-600" />
+            <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+              <SettingsIcon className="h-4 w-4 text-green-600 dark:text-green-400" />
             </div>
             <div>
-              <p className="font-medium text-green-900">Products Status</p>
-              <p className="text-sm text-green-700">
+              <p className="font-medium text-green-900 dark:text-green-200">
+                Products Status
+              </p>
+              <p className="text-sm text-green-700 dark:text-green-300">
                 Business Type: <strong>{businessProfile.business_type}</strong>{' '}
                 | Categories: <strong>{productCategories.length}</strong> |
                 Products: <strong>{products.length}</strong>
@@ -1367,6 +1398,8 @@ export function BusinessProducts({
           </div>
         </CardContent>
       </Card>
+
+      <ConfirmDialog />
     </div>
   );
 }

@@ -12,11 +12,14 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { BusinessInformationForm } from '@/components/configuration/BusinessInformationForm';
-import { CallScriptEditor } from '@/components/configuration/CallScriptEditor';
-import { VoiceSettingsPanel } from '@/components/configuration/VoiceSettingsPanel';
-import { AgentTypeSelector } from '@/components/configuration/AgentTypeSelector';
+import { BusinessInformationHeader } from './BusinessInformationHeader';
+import { AgentTypeSelector } from './AgentTypeSelector';
+import { AgentTypeCallScripts } from '../ai-agents/AgentTypeCallScripts';
+import { AgentTypeVoiceSettings } from '../ai-agents/AgentTypeVoiceSettings';
+import { AgentTypeCallRouting } from '../ai-agents/AgentTypeCallRouting';
 import { PlusIcon, EditIcon, TrashIcon } from '@/components/icons';
+import { toast } from 'sonner';
+import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import {
   AgentType,
   AGENT_TYPE_CONFIGS,
@@ -39,6 +42,7 @@ interface AgentConfigurationDashboardProps {
     business_name?: string;
     business_type?: string;
   };
+  onConfigurationUpdate?: (isComplete: boolean) => void;
 }
 
 export function AgentConfigurationDashboard({
@@ -46,6 +50,7 @@ export function AgentConfigurationDashboard({
   isAdminMode = false,
   targetUser,
 }: AgentConfigurationDashboardProps) {
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const [agents, setAgents] = useState<AgentConfiguration[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedAgent, setSelectedAgent] = useState<AgentConfiguration | null>(
@@ -57,7 +62,8 @@ export function AgentConfigurationDashboard({
   );
   const [activeSection, setActiveSection] = useState<
     'type' | 'business' | 'scripts' | 'voice' | 'routing'
-  >('type');
+  >('business');
+  const [businessProfile, setBusinessProfile] = useState<any>(null);
 
   useEffect(() => {
     loadAgentConfigurations();
@@ -85,7 +91,7 @@ export function AgentConfigurationDashboard({
   const handleCreateAgent = () => {
     setSelectedAgent(null);
     setSelectedAgentType(null);
-    setActiveSection('type');
+    setActiveSection('business');
     setShowCreateForm(true);
   };
 
@@ -97,7 +103,15 @@ export function AgentConfigurationDashboard({
   };
 
   const handleDeleteAgent = async (agentId: string) => {
-    if (!confirm('Are you sure you want to delete this agent configuration?')) {
+    const confirmed = await confirm({
+      title: 'Delete Agent Configuration',
+      description: 'Are you sure you want to delete this agent configuration?',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -121,6 +135,14 @@ export function AgentConfigurationDashboard({
   if (showCreateForm || selectedAgent) {
     return (
       <div className="space-y-6">
+        {/* Business Information Header - Always show for context */}
+        <BusinessInformationHeader
+          user={user}
+          onBusinessProfileUpdate={setBusinessProfile}
+          agentType={selectedAgentType || undefined}
+          showAgentTypeSpecific={!!selectedAgentType}
+        />
+
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -137,7 +159,7 @@ export function AgentConfigurationDashboard({
               setShowCreateForm(false);
               setSelectedAgent(null);
               setSelectedAgentType(null);
-              setActiveSection('type');
+              setActiveSection('business');
             }}
           >
             ← Back to Agents
@@ -216,30 +238,36 @@ export function AgentConfigurationDashboard({
                 selectedType={selectedAgentType || undefined}
                 onSelect={type => {
                   setSelectedAgentType(type);
-                  setActiveSection('business');
+                  setActiveSection('scripts');
                 }}
                 showContinueButton={true}
-                onContinue={() => setActiveSection('business')}
+                onContinue={() => setActiveSection('scripts')}
+                businessType={businessProfile?.business_type}
               />
             )}
 
-            {activeSection === 'business' && selectedAgentType && (
-              <BusinessInformationForm
-                agent={selectedAgent}
-                onSave={async data => {
-                  console.log('Saving business info:', data);
-                  // TODO: Implement save
-                  await loadAgentConfigurations();
-                  setShowCreateForm(false);
-                  setSelectedAgent(null);
-                }}
-              />
+            {activeSection === 'business' && (
+              <div className="text-center py-8">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Business Information Complete
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  Your business information is displayed above. You can now
+                  configure your AI agent settings.
+                </p>
+                <Button
+                  onClick={() => setActiveSection('scripts')}
+                  className="bg-orange-600 hover:bg-orange-700"
+                >
+                  Continue to Call Scripts
+                </Button>
+              </div>
             )}
 
             {activeSection === 'scripts' && selectedAgentType && (
-              <CallScriptEditor
-                agent={selectedAgent}
+              <AgentTypeCallScripts
                 agentType={selectedAgentType}
+                businessInfo={businessProfile}
                 onSave={async data => {
                   console.log('Saving call scripts:', data);
                   // TODO: Implement save
@@ -248,9 +276,9 @@ export function AgentConfigurationDashboard({
             )}
 
             {activeSection === 'voice' && selectedAgentType && (
-              <VoiceSettingsPanel
-                agent={selectedAgent}
+              <AgentTypeVoiceSettings
                 agentType={selectedAgentType}
+                businessInfo={businessProfile}
                 onSave={async data => {
                   console.log('Saving voice settings:', data);
                   // TODO: Implement save
@@ -258,58 +286,15 @@ export function AgentConfigurationDashboard({
               />
             )}
 
-            {activeSection === 'routing' && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Call Routing & Forwarding</CardTitle>
-                  <CardDescription>
-                    Configure how calls are handled when the AI agent can't
-                    assist
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Forward to Office Number
-                      </label>
-                      <Input
-                        type="tel"
-                        placeholder="+1 (555) 123-4567"
-                        defaultValue=""
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Voicemail Greeting
-                      </label>
-                      <Input placeholder="Custom voicemail message" />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center space-x-4">
-                    <label className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        className="rounded border-gray-300"
-                      />
-                      <span className="text-sm">Enable call forwarding</span>
-                    </label>
-                    <label className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        className="rounded border-gray-300"
-                        defaultChecked
-                      />
-                      <span className="text-sm">Enable voicemail</span>
-                    </label>
-                  </div>
-
-                  <div className="pt-4 border-t">
-                    <Button>Save Routing Settings</Button>
-                  </div>
-                </CardContent>
-              </Card>
+            {activeSection === 'routing' && selectedAgentType && (
+              <AgentTypeCallRouting
+                agentType={selectedAgentType}
+                businessInfo={businessProfile}
+                onSave={async data => {
+                  console.log('Saving routing settings:', data);
+                  // TODO: Implement save
+                }}
+              />
             )}
           </div>
         </div>
@@ -392,10 +377,15 @@ export function AgentConfigurationDashboard({
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {agents.map(agent => (
-            <Card key={agent.id} className="hover:shadow-md transition-shadow">
+            <Card
+              key={agent.id}
+              className="hover:shadow-md transition-shadow border-gray-300 dark:border-gray-600 dark:bg-gray-800"
+            >
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">{agent.agent_name}</CardTitle>
+                  <CardTitle className="text-lg dark:text-white">
+                    {agent.agent_name}
+                  </CardTitle>
                   <div className="flex items-center space-x-2">
                     <Badge variant={agent.is_active ? 'default' : 'secondary'}>
                       {agent.is_active ? 'Active' : 'Inactive'}
@@ -405,13 +395,13 @@ export function AgentConfigurationDashboard({
                     </Badge>
                   </div>
                 </div>
-                <CardDescription>
+                <CardDescription className="dark:text-gray-300">
                   {agent.business_name} • {agent.business_type}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
                     <p>Agent ID: {agent.agent_id}</p>
                     <p>
                       Created: {new Date(agent.created_at).toLocaleDateString()}
@@ -432,7 +422,7 @@ export function AgentConfigurationDashboard({
                       variant="outline"
                       size="sm"
                       onClick={() => handleDeleteAgent(agent.id)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                     >
                       <TrashIcon className="h-4 w-4" />
                     </Button>
@@ -443,6 +433,7 @@ export function AgentConfigurationDashboard({
           ))}
         </div>
       )}
+      <ConfirmDialog />
     </div>
   );
 }

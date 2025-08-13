@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import {
   Card,
   CardContent,
@@ -12,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { EditIcon, CheckIcon, BuildingIcon } from '@/components/icons';
 import { User } from '@supabase/supabase-js';
+import { AuthenticatedApiClient } from '@/lib/api-client';
 import { BusinessType } from '@/types/business-types';
 import { BusinessInformationForm } from './BusinessInformationForm';
 
@@ -66,9 +68,16 @@ export function BusinessInformationHeader({
     loadBusinessTypes();
   }, [user]);
 
+  // Call the update callback whenever businessProfile changes
+  useEffect(() => {
+    if (businessProfile && onBusinessProfileUpdate) {
+      onBusinessProfileUpdate(businessProfile);
+    }
+  }, [businessProfile, onBusinessProfileUpdate]);
+
   const loadBusinessTypes = async () => {
     try {
-      const response = await fetch('/api/business/types');
+      const response = await AuthenticatedApiClient.get('/api/business/types');
       const result = await response.json();
       setBusinessTypes(result.business_types || []);
     } catch (error) {
@@ -79,7 +88,9 @@ export function BusinessInformationHeader({
   const loadBusinessProfile = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/business/profile?user_id=${user.id}`);
+      const response = await AuthenticatedApiClient.get(
+        `/api/business/profile?user_id=${user.id}`
+      );
       const result = await response.json();
 
       if (result.profile) {
@@ -134,7 +145,7 @@ export function BusinessInformationHeader({
 
   const handleSave = async () => {
     if (!formData.business_name || !formData.business_phone) {
-      alert('Please fill in required fields: Business Name and Phone');
+      toast.error('Please fill in required fields: Business Name and Phone');
       return;
     }
 
@@ -191,7 +202,7 @@ export function BusinessInformationHeader({
       }
     } catch (error) {
       console.error('Failed to save business profile:', error);
-      alert('Failed to save business profile. Please try again.');
+      toast.error('Failed to save business profile. Please try again.');
     } finally {
       setSaving(false);
     }
