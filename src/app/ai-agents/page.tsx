@@ -7,8 +7,8 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 import { User } from '@supabase/supabase-js';
 
 // Components
-import { GetStartedPanel } from '@/components/ai-agents/GetStartedPanel';
-import { AgentDashboard } from '@/components/ai-agents/AgentDashboard';
+import { GetStartedPanel } from '@/components/settings/business/steps/step6-agents/GetStartedPanel';
+import { AgentDashboard } from '@/components/settings/business/steps/step6-agents/AgentDashboard';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { HelpButton } from '@/components/modals/HelpDialog';

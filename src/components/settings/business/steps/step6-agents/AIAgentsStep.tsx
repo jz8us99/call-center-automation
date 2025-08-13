@@ -34,9 +34,9 @@ import {
   UsersIcon as UserIcon,
   MicIcon,
 } from '@/components/icons';
-import { AgentTypeCallScripts } from '../ai-agents/AgentTypeCallScripts';
-import { AgentTypeVoiceSettings } from '../ai-agents/AgentTypeVoiceSettings';
-import { AgentTypeCallRouting } from '../ai-agents/AgentTypeCallRouting';
+import { AgentTypeCallScripts } from '@/components/settings/business/steps/step6-agents/AgentTypeCallScripts';
+import { AgentTypeVoiceSettings } from '@/components/settings/business/steps/step6-agents/AgentTypeVoiceSettings';
+import { AgentTypeCallRouting } from '@/components/settings/business/steps/step6-agents/AgentTypeCallRouting';
 import { AgentType, AGENT_TYPE_CONFIGS } from '@/types/agent-types';
 
 interface AIAgent {

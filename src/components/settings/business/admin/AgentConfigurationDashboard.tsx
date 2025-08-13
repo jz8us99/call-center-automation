@@ -12,11 +12,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { BusinessInformationHeader } from './BusinessInformationHeader';
-import { AgentTypeSelector } from './AgentTypeSelector';
-import { AgentTypeCallScripts } from '../ai-agents/AgentTypeCallScripts';
-import { AgentTypeVoiceSettings } from '../ai-agents/AgentTypeVoiceSettings';
-import { AgentTypeCallRouting } from '../ai-agents/AgentTypeCallRouting';
+import { BusinessInformationHeader } from '@/components/settings/business/admin/BusinessInformationHeader';
+import { AgentTypeSelector } from '@/components/settings/business/admin/AgentTypeSelector';
+import { AgentTypeCallScripts } from '@/components/settings/business/steps/step6-agents/AgentTypeCallScripts';
+import { AgentTypeVoiceSettings } from '@/components/settings/business/steps/step6-agents/AgentTypeVoiceSettings';
+import { AgentTypeCallRouting } from '@/components/settings/business/steps/step6-agents/AgentTypeCallRouting';
 import { PlusIcon, EditIcon, TrashIcon } from '@/components/icons';
 import { toast } from 'sonner';
 import { useConfirmDialog } from '@/components/ui/confirm-dialog';

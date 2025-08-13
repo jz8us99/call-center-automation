@@ -11,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { FinalStaffManagement } from './FinalStaffManagement';
+import { FinalStaffManagement } from '@/components/settings/business/steps/step5-staff/FinalStaffManagement';
 
 interface StaffManagementProps {
   user: User;

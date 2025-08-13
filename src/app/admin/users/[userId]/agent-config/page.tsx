@@ -17,7 +17,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { AgentConfigurationDashboard } from '@/components/configuration/AgentConfigurationDashboard';
+import { AgentConfigurationDashboard } from '@/components/settings/business/admin/AgentConfigurationDashboard';
 import { UsageUpgradeDialog } from '@/components/ui/usage-upgrade-dialog';
 import {
   ArrowLeftIcon,

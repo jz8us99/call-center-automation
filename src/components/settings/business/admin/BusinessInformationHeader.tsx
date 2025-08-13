@@ -15,7 +15,7 @@ import { EditIcon, CheckIcon, BuildingIcon } from '@/components/icons';
 import { User } from '@supabase/supabase-js';
 import { AuthenticatedApiClient } from '@/lib/api-client';
 import { BusinessType } from '@/types/business-types';
-import { BusinessInformationForm } from './BusinessInformationForm';
+import { BusinessInformationForm } from '@/components/settings/business/admin/BusinessInformationForm';
 
 interface BusinessProfile {
   id?: string;

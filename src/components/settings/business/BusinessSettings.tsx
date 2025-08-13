@@ -6,11 +6,11 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 import { useTranslations } from 'next-intl';
 
 // Import existing configuration components
-import { LoadingScreen } from '@/components/configuration/ConfigurationPage/LoadingScreen';
-import { Step } from '@/components/configuration/ConfigurationPage/StepNavigation';
-import { RequirementsNotice } from '@/components/configuration/ConfigurationPage/RequirementsNotice';
-import { StepContent } from '@/components/configuration/ConfigurationPage/StepContent';
-import { useWorkflowState } from '@/components/configuration/ConfigurationPage/hooks/useWorkflowState';
+import { LoadingScreen } from '@/components/settings/business/common/LoadingScreen';
+import { Step } from '@/components/settings/business/common/StepNavigation';
+import { RequirementsNotice } from '@/components/settings/business/common/RequirementsNotice';
+import { StepContent } from '@/components/settings/business/common/StepContent';
+import { useWorkflowState } from '@/components/settings/business/common/hooks/useWorkflowState';
 
 // Import icons
 import {

@@ -1,10 +1,10 @@
 import { User } from '@supabase/supabase-js';
-import { BusinessInformationStep } from '@/components/configuration/BusinessInformationStep';
-import { BusinessProducts } from '@/components/configuration/BusinessProducts';
-import { BusinessServices } from '@/components/configuration/BusinessServices';
-import { StaffManagement } from '@/components/configuration/StaffManagement';
-import { AppointmentSystemConfig } from '@/components/configuration/AppointmentSystemConfig';
-import { AIAgentsStep } from '@/components/configuration/AIAgentsStep';
+import { BusinessInformationStep } from '@/components/settings/business/steps/step1-business/BusinessInformationStep';
+import { BusinessProducts } from '@/components/settings/business/steps/step2-products/BusinessProducts';
+import { BusinessServices } from '@/components/settings/business/steps/step3-services/BusinessServices';
+import { StaffManagement } from '@/components/settings/business/steps/step5-staff/StaffManagement';
+import { AppointmentSystemConfig } from '@/components/settings/business/steps/step4-appointments/AppointmentSystemConfig';
+import { AIAgentsStep } from '@/components/settings/business/steps/step6-agents/AIAgentsStep';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   SettingsIcon,
@@ -13,7 +13,7 @@ import {
   BuildingIcon,
   ClockIcon,
 } from '@/components/icons';
-import { Step } from './StepNavigation';
+import { Step } from '@/components/settings/business/common/StepNavigation';
 
 interface StepContentProps {
   activeStep: Step['id'];

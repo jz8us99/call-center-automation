@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase';
 
 import { User } from '@supabase/supabase-js';
 import { useParams, useRouter } from 'next/navigation';
-import { StaffCalendarView } from '@/components/calendar/StaffCalendarView';
+import { StaffCalendarView } from '@/components/settings/business/steps/step5-staff/StaffCalendarView';
 import {
   Card,
   CardContent,

@@ -34,7 +34,7 @@ import {
   SettingsIcon,
   CalendarIcon,
 } from '@/components/icons';
-import { StaffCalendarConfiguration } from './StaffCalendarConfiguration';
+import { StaffCalendarConfiguration } from '@/components/settings/business/steps/step5-staff/StaffCalendarConfiguration';
 
 interface JobCategory {
   id: string;

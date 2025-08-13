@@ -12,9 +12,9 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AppointmentBookingInterface } from '@/components/booking/AppointmentBookingInterface';
-import { AppointmentManagementDashboard } from '@/components/appointments/AppointmentManagementDashboard';
-import { AppointmentSystem } from '@/components/appointments/AppointmentSystem';
+import { AppointmentBookingInterface } from '@/components/settings/business/steps/step4-appointments/AppointmentBookingInterface';
+import { AppointmentManagementDashboard } from '@/components/settings/business/steps/step4-appointments/AppointmentManagementDashboard';
+import { AppointmentSystem } from '@/components/settings/business/steps/step4-appointments/AppointmentSystem';
 import { CalendarIcon, UserIcon, ClockIcon } from '@/components/icons';
 
 export default function AppointmentsPage() {

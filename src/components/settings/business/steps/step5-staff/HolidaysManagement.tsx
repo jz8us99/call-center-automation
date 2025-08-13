@@ -25,6 +25,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { useConfirmDialog } from '@/components/ui/confirm-dialog';
 import {
   CalendarIcon,
   PlusIcon,
@@ -53,6 +54,7 @@ export function HolidaysManagement({
   currentYear = new Date().getFullYear(),
 }: HolidaysManagementProps) {
   const [holidays, setHolidays] = useState<Holiday[]>([]);
+  const { confirm, ConfirmDialog } = useConfirmDialog();
   const [loading, setLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingHoliday, setEditingHoliday] = useState<Holiday | null>(null);

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
 
 import { User } from '@supabase/supabase-js';
-import { CalendarConfigurationDashboard } from '@/components/calendar/CalendarConfigurationDashboard';
+import { CalendarConfigurationDashboard } from '@/components/settings/business/steps/step5-staff/CalendarConfigurationDashboard';
 import {
   Card,
   CardContent,

@@ -508,10 +508,10 @@ AppointmentBookingInterface.tsx (@/components/booking/)
 
 **清理收益：减少 16 个不必要的文件更新** 🎉
 
-**重大发现：存在两套配置系统，原始系统需要清理**
-1. ❌ **原始系统（已弃用）**：`/app/configuration` → `ConfigurationPage` 
+**重大发现：存在两套配置系统，原始系统已清理**
+1. ❌ **原始系统（已删除）**：`/app/configuration` → `ConfigurationPage` 
 2. ✅ **新系统（正在使用）**：`/app/settings/business` → `BusinessSettings`  
-3. **部分组件被两套系统共享**
+3. **所有组件现在统一在新的目录结构下**
 
 ## 清理计划 - 删除弃用的原始配置系统
 
@@ -562,39 +562,77 @@ rm /components/configuration/NewJobTitleManagement.tsx
 ### 清理后保留的 configuration 文件按 Step 分类
 
 **🏢 Step 1: Business Information**
-1. `/components/configuration/BusinessInformationStep.tsx` ✅
+1. `/components/settings/business/steps/step1-business/BusinessInformationStep.tsx` ✅
 
 **📦 Step 2: Products** 
-2. `/components/configuration/BusinessProducts.tsx` ✅
+2. `/components/settings/business/steps/step2-products/BusinessProducts.tsx` ✅
 
 **⚙️ Step 3: Services**
-3. `/components/configuration/BusinessServices.tsx` ✅
+3. `/components/settings/business/steps/step3-services/BusinessServices.tsx` ✅
 
 **📅 Step 4: Appointment System**
-4. `/components/configuration/AppointmentSystemConfig.tsx` ✅
+4. `/components/settings/business/steps/step4-appointments/AppointmentSystemConfig.tsx` ✅
 
 **👥 Step 5: Staff Management**
-5. `/components/configuration/StaffManagement.tsx` ✅
-6. `/components/configuration/FinalStaffManagement.tsx` (子组件)
-7. `/components/configuration/StaffCalendarConfiguration.tsx` (子组件)
+5. `/components/settings/business/steps/step5-staff/StaffManagement.tsx` ✅
+6. `/components/settings/business/steps/step5-staff/FinalStaffManagement.tsx` (子组件)
+7. `/components/settings/business/steps/step5-staff/StaffCalendarConfiguration.tsx` (子组件)
 
 **🤖 Step 6: AI Agents Setup**
-8. `/components/configuration/AIAgentsStep.tsx` ✅
+8. `/components/settings/business/steps/step6-agents/AIAgentsStep.tsx` ✅
 
-**🔧 Admin 管理组件** (独立于步骤)
-9. `/components/configuration/AgentConfigurationDashboard.tsx`
-10. `/components/configuration/AgentTypeSelector.tsx`  
-11. `/components/configuration/BusinessInformationHeader.tsx`
-12. `/components/configuration/BusinessInformationForm.tsx`
+**🔧 Admin 管理组件** (独立于步骤，用于管理员界面)
+9. `/components/settings/business/admin/AgentConfigurationDashboard.tsx` - 管理员用户代理配置面板
+10. `/components/settings/business/admin/AgentTypeSelector.tsx` - 代理类型选择器
+11. `/components/settings/business/admin/BusinessInformationHeader.tsx` - 商业信息头部显示
+12. `/components/settings/business/admin/BusinessInformationForm.tsx` - 商业信息编辑表单
 
 **🏗️ 系统基础设施组件** (支撑整个配置系统)
-13. `/components/configuration/ConfigurationPage/StepContent.tsx` (核心路由)
-14. `/components/configuration/ConfigurationPage/LoadingScreen.tsx` (加载状态)
-15. `/components/configuration/ConfigurationPage/StepNavigation.tsx` (类型定义)
-16. `/components/configuration/ConfigurationPage/RequirementsNotice.tsx` (前置条件)
-17. `/components/configuration/ConfigurationPage/hooks/useWorkflowState.ts` (状态管理)
+13. `/components/settings/business/common/StepContent.tsx` (核心路由)
+14. `/components/settings/business/common/LoadingScreen.tsx` (加载状态)
+15. `/components/settings/business/common/StepNavigation.tsx` (类型定义)
+16. `/components/settings/business/common/RequirementsNotice.tsx` (前置条件)
+17. `/components/settings/business/common/hooks/useWorkflowState.ts` (状态管理)
 
-**总计：17个文件需要更新 UI 组件引用** 📋
+**总计：17个文件 - 现在已重新组织到统一目录结构** 📋
+
+## Admin 目录组件说明
+
+### 🔧 **Admin 目录用途分析**
+
+`/components/settings/business/admin/` 目录下的组件**不属于任何具体的Business Settings步骤**，而是专门为**管理员后台界面**设计的独立组件：
+
+#### 1. **AgentConfigurationDashboard.tsx** 
+- **用途**: 管理员用户代理配置控制面板
+- **使用场景**: `/app/admin/users/[userId]/agent-config/page.tsx`
+- **功能**: 
+  - 管理员可以配置其他用户的AI代理
+  - 支持`isAdminMode`属性来区分管理员和普通用户模式
+  - 集成了Step 6中的代理配置组件（AgentTypeCallScripts, AgentTypeVoiceSettings, AgentTypeCallRouting）
+
+#### 2. **BusinessInformationHeader.tsx**
+- **用途**: 商业信息头部展示组件
+- **功能**: 显示和编辑商业基本信息的头部区域
+- **被引用**: AgentConfigurationDashboard.tsx
+
+#### 3. **BusinessInformationForm.tsx** 
+- **用途**: 商业信息编辑表单
+- **功能**: 提供商业信息的编辑界面
+- **被引用**: BusinessInformationHeader.tsx
+
+#### 4. **AgentTypeSelector.tsx**
+- **用途**: 代理类型选择器
+- **功能**: 选择和管理不同类型的AI代理
+- **被引用**: AgentConfigurationDashboard.tsx
+
+### 🎯 **Admin组件与Business Settings的关系**
+
+- **独立性**: Admin组件完全独立于Business Settings的6个步骤流程
+- **复用性**: Admin组件复用了Step 6中的代理配置子组件
+- **权限性**: 专门为管理员权限设计，支持跨用户操作
+- **用途区别**: 
+  - Business Settings Steps：普通用户配置自己的业务
+  - Admin组件：管理员配置其他用户的业务和代理
 
 ## UI 组件更新策略
 
@@ -626,21 +664,36 @@ rm /components/configuration/NewJobTitleManagement.tsx
 
 ### 系统架构关系
 ```
-Business Settings (核心配置)
-├── Step 1-4: 业务信息、产品、服务、预约系统配置
-├── Step 5: 员工管理 (StaffCalendarConfiguration 内嵌 3137 行)
-├── Step 6: AI 智能体设置
+Business Settings 系统架构 (/components/settings/business/)
 │
-├── 扩展管理界面 (/app/appointments)
-│   ├── AppointmentSystem (Step 5 扩展配置)
-│   ├── AppointmentManagementDashboard (日常管理)
-│   └── AppointmentBookingInterface (客户预订)
+├── BusinessSettings.tsx (主入口)
 │
-└── 独立管理系统 (/app/calendar)
-    ├── CalendarConfigurationDashboard (日历总控)
-    ├── OfficeHoursSetup (办公时间)
-    ├── HolidaysManagement (节假日)
-    └── BookingSettingsManagement (预订设置)
+├── common/ (基础设施组件)
+│   ├── StepContent.tsx (核心路由)
+│   ├── LoadingScreen.tsx 
+│   ├── StepNavigation.tsx
+│   ├── RequirementsNotice.tsx
+│   └── hooks/useWorkflowState.ts
+│
+├── steps/ (6个业务配置步骤)
+│   ├── step1-business/ (业务信息)
+│   ├── step2-products/ (产品配置)  
+│   ├── step3-services/ (服务配置)
+│   ├── step4-appointments/ (预约系统 + 扩展页面组件)
+│   ├── step5-staff/ (员工管理 + 日历组件)
+│   └── step6-agents/ (AI代理配置)
+│
+├── admin/ (管理员后台专用组件 - 不属于任何步骤)
+│   ├── AgentConfigurationDashboard.tsx (管理员代理配置面板)
+│   ├── BusinessInformationHeader.tsx 
+│   ├── BusinessInformationForm.tsx
+│   └── AgentTypeSelector.tsx
+│
+└── 扩展应用页面使用组件
+    ├── /app/appointments/* (使用 step4-appointments 组件)
+    ├── /app/calendar/* (使用 step5-staff 组件)
+    ├── /app/ai-agents/* (使用 step6-agents 组件)
+    └── /app/admin/users/*/agent-config/* (使用 admin 组件)
 ```
 
 ## 注意事项
@@ -651,3 +704,47 @@ Business Settings (核心配置)
 - 所有的图标组件来自 `@/components/icons` 或 `lucide-react`，不需要更新
 - 业务逻辑相关的引用（如 hooks、types、lib）不需要更新
 - 确保 useConfirmDialog 这种自定义 hook 的路径也被正确更新
+
+## 🎉 组件重组织完成总结
+
+### ✅ **已完成的工作**
+
+1. **目录重组织**: 将32个分散的组件统一整理到 `/components/settings/business/` 目录下
+2. **路径标准化**: 所有引用路径统一使用 `@/components/settings/business/...` 绝对路径格式
+3. **功能分类**: 
+   - `common/`: 5个系统基础设施组件
+   - `steps/`: 23个按步骤分类的业务配置组件  
+   - `admin/`: 4个管理员专用组件
+4. **文档更新**: 更新组件树文档，明确各组件用途和关系
+
+### 📁 **最终目录结构**
+
+```
+src/components/settings/business/
+├── BusinessSettings.tsx                    # 主入口组件
+├── admin/                                  # 管理员后台组件 (4个)
+│   ├── AgentConfigurationDashboard.tsx   # 代理配置面板
+│   ├── AgentTypeSelector.tsx             # 代理类型选择器
+│   ├── BusinessInformationHeader.tsx     # 商业信息头部
+│   └── BusinessInformationForm.tsx       # 商业信息表单
+├── common/                                # 基础设施组件 (5个)
+│   ├── LoadingScreen.tsx                 # 加载状态
+│   ├── RequirementsNotice.tsx            # 前置条件提醒
+│   ├── StepContent.tsx                   # 核心路由组件
+│   ├── StepNavigation.tsx                # 步骤导航类型
+│   └── hooks/useWorkflowState.ts         # 工作流状态管理
+└── steps/                                # 业务配置步骤 (23个)
+    ├── step1-business/                   # 业务信息 (1个)
+    ├── step2-products/                   # 产品配置 (1个)  
+    ├── step3-services/                   # 服务配置 (1个)
+    ├── step4-appointments/               # 预约系统 (6个)
+    ├── step5-staff/                      # 员工管理 (8个)
+    └── step6-agents/                     # AI代理配置 (6个)
+```
+
+### 🔧 **技术改进**
+
+- **模块化**: 每个步骤的组件独立管理，便于维护
+- **可重用性**: Admin组件复用Step组件，避免代码重复
+- **路径清晰**: 统一的绝对路径引用，避免相对路径混乱
+- **功能分离**: Business Settings步骤流程与管理员后台功能清晰分离
