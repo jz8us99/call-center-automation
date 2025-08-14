@@ -908,9 +908,81 @@ export class RetellDeploymentService extends BaseBusinessService {
         }),
       };
 
-      await supabase.from('retell_agents').upsert(routerRecord);
+      // Always ensure the router record is stored in database
+      const { data: insertedRouterRecord, error: routerInsertError } =
+        await supabase
+          .from('retell_agents')
+          .upsert(routerRecord, {
+            onConflict: 'retell_agent_id',
+            ignoreDuplicates: false,
+          })
+          .select();
 
-      this.logger.info('Stored router agent in database:', routerRecord);
+      if (routerInsertError) {
+        this.logger.error(
+          'Failed to store router agent in database:',
+          routerInsertError
+        );
+        this.logger.error('Router record that failed to insert:', routerRecord);
+
+        // Try alternative insert method if upsert fails
+        try {
+          const { data: fallbackRouterRecord, error: fallbackRouterError } =
+            await supabase.from('retell_agents').insert(routerRecord).select();
+
+          if (!fallbackRouterError) {
+            this.logger.info(
+              'Fallback insert successful for router agent:',
+              fallbackRouterRecord
+            );
+          } else {
+            this.logger.error(
+              'Fallback insert also failed for router agent:',
+              fallbackRouterError
+            );
+          }
+        } catch (fallbackErr) {
+          this.logger.error(
+            'Fallback insert exception for router agent:',
+            fallbackErr
+          );
+        }
+      } else {
+        this.logger.info(
+          'Successfully stored router agent in database:',
+          insertedRouterRecord
+        );
+      }
+
+      // Final verification: check if router record exists in database
+      const { data: verifyRouterRecord, error: verifyRouterError } =
+        await supabase
+          .from('retell_agents')
+          .select('*')
+          .eq('retell_agent_id', agent.agent_id)
+          .single();
+
+      if (verifyRouterError || !verifyRouterRecord) {
+        this.logger.error(
+          'CRITICAL: Router agent record not found in database after insertion!',
+          {
+            agentId: agent.agent_id,
+            agentName: agent.agent_name,
+            businessId: businessId,
+            verifyRouterError,
+          }
+        );
+      } else {
+        this.logger.info(
+          '✅ Verified router agent record exists in database:',
+          {
+            id: verifyRouterRecord.id,
+            retell_agent_id: verifyRouterRecord.retell_agent_id,
+            agent_name: verifyRouterRecord.agent_name,
+            business_id: verifyRouterRecord.business_id,
+          }
+        );
+      }
 
       return agent;
     } catch (error) {
@@ -1084,9 +1156,81 @@ export class RetellDeploymentService extends BaseBusinessService {
         }),
       };
 
-      await supabase.from('retell_agents').upsert(agentRecord);
+      // Always ensure the record is stored in database
+      const { data: insertedRecord, error: insertError } = await supabase
+        .from('retell_agents')
+        .upsert(agentRecord, {
+          onConflict: 'retell_agent_id',
+          ignoreDuplicates: false,
+        })
+        .select();
 
-      this.logger.info(`Stored ${role} agent in database:`, agentRecord);
+      if (insertError) {
+        this.logger.error(
+          `Failed to store ${role} agent in database:`,
+          insertError
+        );
+        this.logger.error('Agent record that failed to insert:', agentRecord);
+
+        // Try alternative insert method if upsert fails
+        try {
+          const { data: fallbackRecord, error: fallbackError } = await supabase
+            .from('retell_agents')
+            .insert(agentRecord)
+            .select();
+
+          if (!fallbackError) {
+            this.logger.info(
+              `Fallback insert successful for ${role} agent:`,
+              fallbackRecord
+            );
+          } else {
+            this.logger.error(
+              `Fallback insert also failed for ${role} agent:`,
+              fallbackError
+            );
+          }
+        } catch (fallbackErr) {
+          this.logger.error(
+            `Fallback insert exception for ${role} agent:`,
+            fallbackErr
+          );
+        }
+      } else {
+        this.logger.info(
+          `Successfully stored ${role} agent in database:`,
+          insertedRecord
+        );
+      }
+
+      // Final verification: check if record exists in database
+      const { data: verificationRecord, error: verifyError } = await supabase
+        .from('retell_agents')
+        .select('*')
+        .eq('retell_agent_id', agent.agent_id)
+        .single();
+
+      if (verifyError || !verificationRecord) {
+        this.logger.error(
+          `CRITICAL: ${role} agent record not found in database after insertion!`,
+          {
+            agentId: agent.agent_id,
+            agentName: agent.agent_name,
+            businessId: config.client_id,
+            verifyError,
+          }
+        );
+      } else {
+        this.logger.info(
+          `✅ Verified ${role} agent record exists in database:`,
+          {
+            id: verificationRecord.id,
+            retell_agent_id: verificationRecord.retell_agent_id,
+            agent_name: verificationRecord.agent_name,
+            business_id: verificationRecord.business_id,
+          }
+        );
+      }
 
       return agent;
     } catch (error) {
