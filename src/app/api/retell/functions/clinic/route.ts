@@ -4,8 +4,8 @@ import {
   verifyRetellWebhook,
 } from '@/lib/retell-webhook-utils';
 import { PatientService } from '@/lib/services/patient-service';
-import { MetaDataService } from '@/lib/services/metadata-service';
-import { withAuth, isAuthError } from '@/lib/api-auth-helper';
+import { MetaDataService } from '@/lib/metadata';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import {
   PatientSearchParams,
   ErrorResponse,
@@ -40,6 +40,7 @@ async function handlePOST(
     let user_id: string;
     try {
       user_id = await getUserIdByAgentId(agent_id);
+      console.log(` user_id ${user_id}`);
     } catch (error) {
       console.error('Failed to get user_id:', error);
       return NextResponse.json(
@@ -48,16 +49,13 @@ async function handlePOST(
       );
     }
 
-    // Authenticate and get Supabase client
-    const authResult = await withAuth(request);
-    if (isAuthError(authResult)) {
-      return authResult as NextResponse<RetellFunctionResponse | ErrorResponse>;
-    }
-    const { supabaseWithAuth } = authResult;
-
-    // Create services with authenticated Supabase client
-    const patientService = new PatientService(user_id, supabaseWithAuth);
-    const metaDataService = new MetaDataService(user_id, agent_id);
+    // Create services with admin Supabase client (no JWT auth needed for webhook)
+    const patientService = new PatientService(user_id, supabaseAdmin);
+    const metaDataService = new MetaDataService(
+      user_id,
+      agent_id,
+      supabaseAdmin
+    );
 
     // Route function call to appropriate handler
     switch (retellCall.name) {
@@ -73,7 +71,8 @@ async function handlePOST(
 
       case 'get_meta_data':
         return await metaDataService.getMetaData(
-          retellCall.args as MetaDataRequest
+          retellCall.args as MetaDataRequest,
+          request
         );
 
       default:

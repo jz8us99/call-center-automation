@@ -13,6 +13,16 @@ export {
   getAdminUser,
 } from './admin-auth';
 
+// Cache invalidation interceptor (DEPRECATED - use global middleware instead)
+// Kept for backward compatibility only
+export {
+  CacheInvalidationMiddleware,
+  createCacheInvalidationHandler,
+  invalidateUserCache,
+  addCachePattern,
+  removeCachePattern,
+} from './cache-invalidation';
+
 // Middleware
 export {
   adminMiddleware,
@@ -25,14 +35,23 @@ export {
   logApiRequest,
 } from './middleware/api-logger-middleware';
 
+// Global cache invalidation middleware (CURRENT APPROACH)
+export {
+  shouldApplyCacheInvalidation,
+  processCacheInvalidation,
+  GlobalCacheInvalidationMiddleware,
+} from './middleware/cache-invalidation-global';
+
 // Configuration
 export { interceptorConfig, loadInterceptorConfig } from './config';
 
 // Convenient export of all interceptor instances
 import { apiLogger } from './api-logger';
 import { adminAuth } from './admin-auth';
+import { CacheInvalidationMiddleware } from './cache-invalidation';
 
 export const interceptors = {
   apiLogger,
   adminAuth,
+  cacheInvalidation: CacheInvalidationMiddleware,
 } as const;

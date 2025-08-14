@@ -8,3 +8,5 @@
 - run yarn lint after change
 - run yarn format after change
 - all generated document should use English
+- all generated design document store into store in docs/design
+- all log and comment in code should be English

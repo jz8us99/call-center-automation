@@ -108,17 +108,23 @@ export interface MetaDataRequest {
   format?: 'json' | 'text';
 }
 
+// 员工信息类型
+export interface StaffInfo {
+  id: string;
+  name: string;
+  title?: string;
+}
+
 // MetaData 响应类型
 export interface MetaDataResponse {
   practice_name: string;
   location: string;
   phone: string;
   email: string;
-  team: string[];
+  team: StaffInfo[];
   services: string[];
   hours: string[];
   insurance: string[];
-  emergency_info: string;
   user_id: string;
   agent_id: string;
 }

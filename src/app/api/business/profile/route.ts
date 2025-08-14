@@ -176,6 +176,7 @@ export async function POST(request: NextRequest) {
           contact_person_role,
           contact_person_phone,
           contact_person_email,
+          insurance_accepted: accepted_insurances || insurance_accepted || [],
           support_content: JSON.stringify(comprehensiveData),
           updated_at: new Date().toISOString(),
         })
@@ -202,6 +203,7 @@ export async function POST(request: NextRequest) {
           contact_person_role,
           contact_person_phone,
           contact_person_email,
+          insurance_accepted: accepted_insurances || insurance_accepted || [],
           support_content: JSON.stringify(comprehensiveData),
         })
         .select()
@@ -414,6 +416,7 @@ export async function PUT(request: NextRequest) {
       contact_person_role,
       contact_person_phone,
       contact_person_email,
+      insurance_accepted: accepted_insurances || insurance_accepted || [],
       support_content: JSON.stringify(comprehensiveData),
       updated_at: new Date().toISOString(),
     };

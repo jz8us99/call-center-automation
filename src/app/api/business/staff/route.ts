@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth, isAuthError } from '@/lib/api-auth-helper';
 
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   try {
     const authResult = await withAuth(request);
     if (isAuthError(authResult)) {
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   try {
     const authResult = await withAuth(request);
     if (isAuthError(authResult)) {
@@ -129,7 +129,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function PUT(request: NextRequest) {
+async function handlePUT(request: NextRequest) {
   try {
     const authResult = await withAuth(request);
     if (isAuthError(authResult)) {
@@ -212,7 +212,7 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-export async function DELETE(request: NextRequest) {
+async function handleDELETE(request: NextRequest) {
   try {
     const authResult = await withAuth(request);
     if (isAuthError(authResult)) {
@@ -271,3 +271,9 @@ export async function DELETE(request: NextRequest) {
     );
   }
 }
+
+// Export handlers directly - cache invalidation is handled by global middleware
+export const GET = handleGET;
+export const POST = handlePOST;
+export const PUT = handlePUT;
+export const DELETE = handleDELETE;

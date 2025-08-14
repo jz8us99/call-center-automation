@@ -263,6 +263,8 @@ export function BusinessInformationStep({
               number_of_employees: profile.number_of_employees || undefined,
               business_documents: profile.business_documents || [],
               document_sections: profile.document_sections || [],
+              accepted_insurances:
+                profile.accepted_insurances || profile.insurance_accepted || [],
             });
 
             // Notify parent that business info is already completed
@@ -778,6 +780,7 @@ export function BusinessInformationStep({
           number_of_employees: formData.number_of_employees,
           business_documents: formData.business_documents,
           document_sections: formData.document_sections,
+          accepted_insurances: formData.accepted_insurances,
         }),
       });
 
