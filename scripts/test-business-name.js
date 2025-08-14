@@ -9,7 +9,7 @@ async function testBusinessName() {
     );
 
     console.log('Testing business name retrieval...');
-    
+
     // Get all business profiles to see what's available
     const { data: allProfiles, error: allError } = await supabase
       .from('business_profiles')
@@ -39,7 +39,7 @@ async function testBusinessName() {
         console.error('Error getting business name:', error);
       } else {
         console.log('Business name retrieved:', business.business_name);
-        
+
         // Test the full agent name format
         const agentName = 'Customer Support';
         const fullAgentName = `${business.business_name} ${agentName}`;
@@ -48,7 +48,6 @@ async function testBusinessName() {
     } else {
       console.log('No business profiles found');
     }
-
   } catch (error) {
     console.error('Test failed:', error);
   }

@@ -32,9 +32,9 @@ export async function POST(request: NextRequest) {
 
     if (!testResult.success) {
       return NextResponse.json(
-        { 
+        {
           error: 'Test call failed',
-          details: testResult.error 
+          details: testResult.error,
         },
         { status: 500 }
       );
@@ -44,14 +44,14 @@ export async function POST(request: NextRequest) {
       success: true,
       callId: testResult.callId,
       callUrl: testResult.callUrl,
-      message: 'Test call created successfully'
+      message: 'Test call created successfully',
     });
   } catch (error) {
     console.error('Error creating test call:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

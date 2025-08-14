@@ -4,7 +4,7 @@ require('dotenv').config();
 async function testAPIEndpoints() {
   try {
     const retell = new Retell({
-      apiKey: process.env.RETELL_API_KEY
+      apiKey: process.env.RETELL_API_KEY,
     });
 
     console.log('1. Testing agent.list()...');
@@ -20,7 +20,10 @@ async function testAPIEndpoints() {
       const phoneNumbers = await retell.phoneNumber.list();
       console.log(`✓ SUCCESS: Found ${phoneNumbers.length} phone numbers`);
     } catch (phoneError) {
-      console.log(`⚠ Phone numbers error (might be normal):`, phoneError.message);
+      console.log(
+        `⚠ Phone numbers error (might be normal):`,
+        phoneError.message
+      );
     }
 
     console.log('\n4. Testing specific agent retrieval...');
@@ -30,7 +33,10 @@ async function testAPIEndpoints() {
     }
 
     console.log('\n5. Testing SDK version and methods...');
-    console.log('Available methods on retell.agent:', Object.getOwnPropertyNames(retell.agent));
+    console.log(
+      'Available methods on retell.agent:',
+      Object.getOwnPropertyNames(retell.agent)
+    );
 
     return true;
   } catch (error) {

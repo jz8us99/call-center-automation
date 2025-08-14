@@ -13,11 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  CalendarIcon,
-  RefreshIcon,
-  XCircleIcon,
-} from '@/components/icons';
+import { CalendarIcon, RefreshIcon, XCircleIcon } from '@/components/icons';
 import { CheckCircle as CheckCircleIcon, Link as LinkIcon } from 'lucide-react';
 
 interface CalendarIntegration {
@@ -40,7 +36,9 @@ interface CalendarIntegrationsProps {
   businessId: string;
 }
 
-export function CalendarIntegrations({ businessId }: CalendarIntegrationsProps) {
+export function CalendarIntegrations({
+  businessId,
+}: CalendarIntegrationsProps) {
   const [staffCalendars, setStaffCalendars] = useState<StaffCalendar[]>([]);
   const [loading, setLoading] = useState(true);
   const [connecting, setConnecting] = useState<string | null>(null);
@@ -74,21 +72,24 @@ export function CalendarIntegrations({ businessId }: CalendarIntegrationsProps) 
   ) => {
     try {
       setConnecting(`${staffId}-${provider}`);
-      
+
       // Initiate OAuth flow
-      const response = await authenticatedFetch('/api/calendar/oauth/initiate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          staffId,
-          provider,
-          redirectUri: `${window.location.origin}/api/calendar/oauth/callback`
-        })
-      });
+      const response = await authenticatedFetch(
+        '/api/calendar/oauth/initiate',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            staffId,
+            provider,
+            redirectUri: `${window.location.origin}/api/calendar/oauth/callback`,
+          }),
+        }
+      );
 
       if (response.ok) {
         const { authUrl } = await response.json();
-        
+
         // Open OAuth window
         const authWindow = window.open(
           authUrl,
@@ -122,7 +123,7 @@ export function CalendarIntegrations({ businessId }: CalendarIntegrationsProps) 
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ staffId })
+          body: JSON.stringify({ staffId }),
         }
       );
 
@@ -143,7 +144,7 @@ export function CalendarIntegrations({ businessId }: CalendarIntegrationsProps) 
       const response = await authenticatedFetch(`/api/calendar/sync`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ staffId })
+        body: JSON.stringify({ staffId }),
       });
 
       if (response.ok) {
@@ -205,113 +206,120 @@ export function CalendarIntegrations({ businessId }: CalendarIntegrationsProps) 
           Calendar Integrations
         </CardTitle>
         <CardDescription>
-          Connect staff calendars to automatically sync appointments and availability
+          Connect staff calendars to automatically sync appointments and
+          availability
         </CardDescription>
       </CardHeader>
 
       <CardContent>
         <div className="space-y-6">
-          {Array.isArray(staffCalendars) && staffCalendars.map((staff) => (
-            <div
-              key={staff.id}
-              className="border rounded-lg p-4 space-y-4"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-semibold">{staff.display_name}</h4>
-                  {staff.calendar_provider ? (
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge className={getProviderColor(staff.calendar_provider)}>
-                        <span className="mr-1">
-                          {getProviderIcon(staff.calendar_provider)}
-                        </span>
-                        {staff.calendar_provider}
-                      </Badge>
-                      {staff.provider_account_id && (
-                        <span className="text-sm text-gray-600">
-                          {staff.provider_account_id}
-                        </span>
-                      )}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-gray-500 mt-1">
-                      No calendar connected
-                    </p>
-                  )}
+          {Array.isArray(staffCalendars) &&
+            staffCalendars.map(staff => (
+              <div key={staff.id} className="border rounded-lg p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-semibold">{staff.display_name}</h4>
+                    {staff.calendar_provider ? (
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge
+                          className={getProviderColor(staff.calendar_provider)}
+                        >
+                          <span className="mr-1">
+                            {getProviderIcon(staff.calendar_provider)}
+                          </span>
+                          {staff.calendar_provider}
+                        </Badge>
+                        {staff.provider_account_id && (
+                          <span className="text-sm text-gray-600">
+                            {staff.provider_account_id}
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500 mt-1">
+                        No calendar connected
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {staff.calendar_provider ? (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleSyncCalendar(staff.id)}
+                        >
+                          <RefreshIcon className="h-4 w-4 mr-1" />
+                          Sync
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDisconnectCalendar(staff.id)}
+                        >
+                          Disconnect
+                        </Button>
+                      </>
+                    ) : (
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() =>
+                            handleConnectCalendar(staff.id, 'google')
+                          }
+                          disabled={connecting === `${staff.id}-google`}
+                        >
+                          {connecting === `${staff.id}-google` ? (
+                            <RefreshIcon className="h-4 w-4 animate-spin mr-1" />
+                          ) : (
+                            <LinkIcon className="h-4 w-4 mr-1" />
+                          )}
+                          Google Calendar
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() =>
+                            handleConnectCalendar(staff.id, 'outlook')
+                          }
+                          disabled={connecting === `${staff.id}-outlook`}
+                        >
+                          {connecting === `${staff.id}-outlook` ? (
+                            <RefreshIcon className="h-4 w-4 animate-spin mr-1" />
+                          ) : (
+                            <LinkIcon className="h-4 w-4 mr-1" />
+                          )}
+                          Outlook
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() =>
+                            handleConnectCalendar(staff.id, 'calendly')
+                          }
+                          disabled={connecting === `${staff.id}-calendly`}
+                        >
+                          {connecting === `${staff.id}-calendly` ? (
+                            <RefreshIcon className="h-4 w-4 animate-spin mr-1" />
+                          ) : (
+                            <LinkIcon className="h-4 w-4 mr-1" />
+                          )}
+                          Calendly
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  {staff.calendar_provider ? (
-                    <>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleSyncCalendar(staff.id)}
-                      >
-                        <RefreshIcon className="h-4 w-4 mr-1" />
-                        Sync
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDisconnectCalendar(staff.id)}
-                      >
-                        Disconnect
-                      </Button>
-                    </>
-                  ) : (
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleConnectCalendar(staff.id, 'google')}
-                        disabled={connecting === `${staff.id}-google`}
-                      >
-                        {connecting === `${staff.id}-google` ? (
-                          <RefreshIcon className="h-4 w-4 animate-spin mr-1" />
-                        ) : (
-                          <LinkIcon className="h-4 w-4 mr-1" />
-                        )}
-                        Google Calendar
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleConnectCalendar(staff.id, 'outlook')}
-                        disabled={connecting === `${staff.id}-outlook`}
-                      >
-                        {connecting === `${staff.id}-outlook` ? (
-                          <RefreshIcon className="h-4 w-4 animate-spin mr-1" />
-                        ) : (
-                          <LinkIcon className="h-4 w-4 mr-1" />
-                        )}
-                        Outlook
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleConnectCalendar(staff.id, 'calendly')}
-                        disabled={connecting === `${staff.id}-calendly`}
-                      >
-                        {connecting === `${staff.id}-calendly` ? (
-                          <RefreshIcon className="h-4 w-4 animate-spin mr-1" />
-                        ) : (
-                          <LinkIcon className="h-4 w-4 mr-1" />
-                        )}
-                        Calendly
-                      </Button>
-                    </div>
-                  )}
-                </div>
+                {staff.last_sync && (
+                  <div className="text-sm text-gray-500">
+                    Last synced: {new Date(staff.last_sync).toLocaleString()}
+                  </div>
+                )}
               </div>
-
-              {staff.last_sync && (
-                <div className="text-sm text-gray-500">
-                  Last synced: {new Date(staff.last_sync).toLocaleString()}
-                </div>
-              )}
-            </div>
-          ))}
+            ))}
 
           {(!Array.isArray(staffCalendars) || staffCalendars.length === 0) && (
             <div className="text-center py-8">

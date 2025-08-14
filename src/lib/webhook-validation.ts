@@ -178,9 +178,11 @@ export async function validateWebhookSignature(
 ): Promise<boolean> {
   try {
     const webhookSecret = secret || process.env.RETELL_WEBHOOK_SECRET;
-    
+
     if (!webhookSecret) {
-      console.warn('No webhook secret configured, skipping signature validation');
+      console.warn(
+        'No webhook secret configured, skipping signature validation'
+      );
       return true; // Allow in development, but log warning
     }
 
