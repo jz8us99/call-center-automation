@@ -46,21 +46,27 @@ export interface TimeSlot {
 
 export class AppointmentService extends BaseBusinessService {
   readonly name = 'Appointment Service';
-  
+
   protected logger = {
-    info: (message: string, ...args: any[]) => console.log(`[${this.name}]`, message, ...args),
-    error: (message: string, ...args: any[]) => console.error(`[${this.name}]`, message, ...args),
-    warn: (message: string, ...args: any[]) => console.warn(`[${this.name}]`, message, ...args),
+    info: (message: string, ...args: any[]) =>
+      console.log(`[${this.name}]`, message, ...args),
+    error: (message: string, ...args: any[]) =>
+      console.error(`[${this.name}]`, message, ...args),
+    warn: (message: string, ...args: any[]) =>
+      console.warn(`[${this.name}]`, message, ...args),
   };
 
   /**
    * Look up a customer by last name and phone
    */
-  async lookupCustomer(lastName: string, phone: string): Promise<Customer | null> {
+  async lookupCustomer(
+    lastName: string,
+    phone: string
+  ): Promise<Customer | null> {
     try {
       // Normalize phone to E.164 format if not already
       const normalizedPhone = this.normalizePhone(phone);
-      
+
       const { data, error } = await supabase
         .from('customers')
         .select('*')
@@ -68,7 +74,8 @@ export class AppointmentService extends BaseBusinessService {
         .eq('phone', normalizedPhone)
         .single();
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
+      if (error && error.code !== 'PGRST116') {
+        // PGRST116 = no rows found
         throw error;
       }
 
@@ -88,12 +95,12 @@ export class AppointmentService extends BaseBusinessService {
       const normalizedCustomer = {
         ...customer,
         phone: this.normalizePhone(customer.phone),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       };
 
       // Check if customer exists by phone
       const existing = await this.lookupCustomer(
-        normalizedCustomer.last_name, 
+        normalizedCustomer.last_name,
         normalizedCustomer.phone
       );
 
@@ -105,7 +112,7 @@ export class AppointmentService extends BaseBusinessService {
             first_name: normalizedCustomer.first_name,
             last_name: normalizedCustomer.last_name,
             email: normalizedCustomer.email || existing.email,
-            updated_at: normalizedCustomer.updated_at
+            updated_at: normalizedCustomer.updated_at,
           })
           .eq('id', existing.id)
           .select()
@@ -119,7 +126,7 @@ export class AppointmentService extends BaseBusinessService {
           .from('customers')
           .insert({
             ...normalizedCustomer,
-            created_at: new Date().toISOString()
+            created_at: new Date().toISOString(),
           })
           .select()
           .single();
@@ -136,17 +143,21 @@ export class AppointmentService extends BaseBusinessService {
   /**
    * Check if a customer has an existing appointment
    */
-  async checkExistingAppointment(customerId: string): Promise<Appointment | null> {
+  async checkExistingAppointment(
+    customerId: string
+  ): Promise<Appointment | null> {
     try {
       const now = new Date().toISOString();
-      
+
       const { data, error } = await supabase
         .from('appointments')
-        .select(`
+        .select(
+          `
           *,
           staff:staff_members(display_name),
           customer:customers(first_name, last_name)
-        `)
+        `
+        )
         .eq('customer_id', customerId)
         .gte('starts_at', now)
         .in('status', ['scheduled', 'confirmed'])
@@ -197,9 +208,11 @@ export class AppointmentService extends BaseBusinessService {
   }): Promise<TimeSlot[]> {
     try {
       const duration = params.durationMins || 30;
-      const startDate = params.dateFrom ? parseISO(params.dateFrom) : new Date();
-      const endDate = params.dateTo 
-        ? parseISO(params.dateTo) 
+      const startDate = params.dateFrom
+        ? parseISO(params.dateFrom)
+        : new Date();
+      const endDate = params.dateTo
+        ? parseISO(params.dateTo)
         : addMinutes(startDate, 60 * 24 * 7); // Default to 7 days ahead
 
       // Get staff members
@@ -210,7 +223,7 @@ export class AppointmentService extends BaseBusinessService {
           .select('*')
           .eq('id', params.staffId)
           .single();
-        
+
         if (error) throw error;
         staffMembers = [data];
       } else {
@@ -235,9 +248,10 @@ export class AppointmentService extends BaseBusinessService {
 
       // Generate available time slots
       const slots: TimeSlot[] = [];
-      
+
       for (const staff of staffMembers) {
-        const staffAppointments = appointments?.filter(a => a.staff_id === staff.id) || [];
+        const staffAppointments =
+          appointments?.filter(a => a.staff_id === staff.id) || [];
         const staffSlots = this.generateTimeSlots(
           staff,
           staffAppointments,
@@ -245,14 +259,12 @@ export class AppointmentService extends BaseBusinessService {
           endDate,
           duration
         );
-        
+
         slots.push(...staffSlots);
       }
 
       // Sort by start time and limit to first 10 slots
-      return slots
-        .sort((a, b) => a.start.localeCompare(b.start))
-        .slice(0, 10);
+      return slots.sort((a, b) => a.start.localeCompare(b.start)).slice(0, 10);
     } catch (error) {
       this.logger.error('Error finding openings:', error);
       throw error;
@@ -280,10 +292,12 @@ export class AppointmentService extends BaseBusinessService {
         .select('id')
         .eq('staff_id', params.staffId)
         .in('status', ['scheduled', 'confirmed'])
-        .or(`and(starts_at.lt.${endsAt.toISOString()},ends_at.gt.${startsAt.toISOString()})`);
+        .or(
+          `and(starts_at.lt.${endsAt.toISOString()},ends_at.gt.${startsAt.toISOString()})`
+        );
 
       if (conflictError) throw conflictError;
-      
+
       if (conflicting && conflicting.length > 0) {
         throw new Error('This time slot is no longer available');
       }
@@ -299,7 +313,7 @@ export class AppointmentService extends BaseBusinessService {
           ends_at: endsAt.toISOString(),
           status: 'scheduled',
           source: 'retell',
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
         })
         .select()
         .single();
@@ -328,7 +342,11 @@ export class AppointmentService extends BaseBusinessService {
         .eq('id', appointment.staff_id)
         .single();
 
-      if (error || !staff?.calendar_provider || staff.calendar_provider === 'none') {
+      if (
+        error ||
+        !staff?.calendar_provider ||
+        staff.calendar_provider === 'none'
+      ) {
         return; // No calendar sync configured
       }
 
@@ -368,7 +386,7 @@ export class AppointmentService extends BaseBusinessService {
       thursday: { start: '09:00', end: '17:00' },
       friday: { start: '09:00', end: '17:00' },
       saturday: null,
-      sunday: null
+      sunday: null,
     };
 
     // Generate slots for each day
@@ -389,7 +407,7 @@ export class AppointmentService extends BaseBusinessService {
 
         while (slotStart < dayEnd) {
           const slotEnd = addMinutes(slotStart, durationMins);
-          
+
           if (slotEnd <= dayEnd) {
             // Check if slot conflicts with existing appointments
             const hasConflict = appointments.some(apt => {
@@ -408,7 +426,7 @@ export class AppointmentService extends BaseBusinessService {
                 end: slotEnd.toISOString(),
                 available: true,
                 staffId: staff.id,
-                staffName: staff.display_name
+                staffName: staff.display_name,
               });
             }
           }
@@ -429,17 +447,17 @@ export class AppointmentService extends BaseBusinessService {
   private normalizePhone(phone: string): string {
     // Remove all non-digit characters
     let cleaned = phone.replace(/\D/g, '');
-    
+
     // Add country code if missing (assuming US)
     if (cleaned.length === 10) {
       cleaned = '1' + cleaned;
     }
-    
+
     // Add + prefix
     if (!cleaned.startsWith('+')) {
       cleaned = '+' + cleaned;
     }
-    
+
     return cleaned;
   }
 }
