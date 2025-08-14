@@ -129,44 +129,63 @@ export class RetellDeploymentService extends BaseBusinessService {
         process.env.SUPABASE_SERVICE_ROLE_KEY!
       );
 
-      // Get business profile
-      const { data: business } = await serviceSupabase
+      // Get business profile using user_id (businessId is the user ID)
+      const { data: business, error: businessError } = await serviceSupabase
         .from('business_profiles')
         .select('*')
-        .eq('id', businessId)
+        .eq('user_id', businessId)
         .single();
 
-      // Get services
-      const { data: services } = await serviceSupabase
+      if (businessError) {
+        this.logger.warn('Business profile lookup error:', businessError);
+      }
+
+      // Use the business profile ID for related table lookups
+      const actualBusinessId = business?.id || businessId;
+
+      // Get services (business_services table uses user_id column)
+      const { data: services, error: servicesError } = await serviceSupabase
         .from('business_services')
         .select('*')
-        .eq('business_id', businessId);
+        .eq('user_id', businessId);
 
-      // Get products
-      const { data: products } = await serviceSupabase
+      // Get products (business_products table uses user_id column)
+      const { data: products, error: productsError } = await serviceSupabase
         .from('business_products')
         .select('*')
-        .eq('business_id', businessId);
+        .eq('user_id', businessId);
 
-      // Get staff
-      const { data: staff } = await serviceSupabase
-        .from('business_staff')
+      // Get staff (staff_members table uses user_id, not business_id)
+      const { data: staff, error: staffError } = await serviceSupabase
+        .from('staff_members')
         .select('*')
-        .eq('business_id', businessId);
+        .eq('user_id', businessId); // Use the original user ID
 
       // Get locations
-      const { data: locations } = await serviceSupabase
+      const { data: locations, error: locationsError } = await serviceSupabase
         .from('business_locations')
         .select('*')
-        .eq('business_id', businessId);
+        .eq('business_id', actualBusinessId);
 
-      // Get insurance providers (for healthcare businesses)
-      const { data: insurance } = await serviceSupabase
-        .from('insurance_providers')
-        .select('*')
-        .eq('business_id', businessId);
+      // Get insurance providers (insurance_providers is a lookup table, need to find business-specific relationship)
+      // For now, skip business-specific insurance until we find the relationship table
+      const { data: insurance, error: insuranceError } = {
+        data: [],
+        error: null,
+      };
 
-      return {
+      // Log any errors for debugging
+      if (servicesError)
+        this.logger.warn('Services lookup error:', servicesError);
+      if (productsError)
+        this.logger.warn('Products lookup error:', productsError);
+      if (staffError) this.logger.warn('Staff lookup error:', staffError);
+      if (locationsError)
+        this.logger.warn('Locations lookup error:', locationsError);
+      if (insuranceError)
+        this.logger.warn('Insurance lookup error:', insuranceError);
+
+      const businessContext = {
         businessName: business?.business_name || 'Business',
         businessType: business?.business_type || 'general',
         industry: business?.industry || 'general',
@@ -176,6 +195,20 @@ export class RetellDeploymentService extends BaseBusinessService {
         locations: locations || [],
         insuranceProviders: insurance || [],
       };
+
+      this.logger.info('Business context retrieved:', {
+        businessId: businessId,
+        actualBusinessId: actualBusinessId,
+        businessName: businessContext.businessName,
+        businessType: businessContext.businessType,
+        servicesCount: businessContext.services.length,
+        productsCount: businessContext.products.length,
+        staffCount: businessContext.staff.length,
+        locationsCount: businessContext.locations.length,
+        insuranceCount: businessContext.insuranceProviders.length,
+      });
+
+      return businessContext;
     } catch (error) {
       this.logger.error('Error getting business context:', error);
       return {
@@ -967,6 +1000,12 @@ export class RetellDeploymentService extends BaseBusinessService {
         normalize_for_speech: true,
         begin_message_delay_ms:
           config.voice_settings?.begin_message_delay_ms || 200,
+        // Additional call routing configurations
+        end_call_after_silence_ms:
+          config.call_routing?.end_call_after_silence_ms || 60000, // 1 minute
+        ambient_sound: config.voice_settings?.ambient_sound,
+        ambient_sound_volume:
+          config.voice_settings?.ambient_sound_volume || 0.1,
         post_call_analysis_model: 'gpt-4o-mini',
         opt_out_sensitive_data_storage: false, // Keep data for business analysis
         opt_in_signed_url: false,
