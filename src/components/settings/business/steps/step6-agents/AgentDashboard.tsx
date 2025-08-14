@@ -460,12 +460,24 @@ export function AgentDashboard({
                 </CardHeader>
 
                 <CardContent className="space-y-4">
-                  {/* Status and Language */}
+                  {/* Status, Direction and Language */}
                   <div className="flex items-center justify-between">
-                    <Badge className={getStatusColor(agent.status)}>
-                      {agent.status.charAt(0).toUpperCase() +
-                        agent.status.slice(1)}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge className={getStatusColor(agent.status)}>
+                        {agent.status.charAt(0).toUpperCase() +
+                          agent.status.slice(1)}
+                      </Badge>
+                      <Badge
+                        variant={
+                          agentTypeConfig.direction === 'inbound'
+                            ? 'default'
+                            : 'secondary'
+                        }
+                        className="text-xs"
+                      >
+                        {agentTypeConfig.direction || 'inbound'}
+                      </Badge>
+                    </div>
                     <div className="flex items-center space-x-1 text-sm text-gray-600">
                       <Globe className="h-4 w-4" />
                       <span>

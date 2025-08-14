@@ -138,12 +138,20 @@ export function AgentTypeVoiceSettings({
   const loadVoiceProfile = async () => {
     try {
       setLoading(true);
+      console.log(
+        'AgentTypeVoiceSettings: Loading voice profile with initialVoiceSettings:',
+        initialVoiceSettings
+      );
 
       // If initial voice settings are provided, use them with defaults
       if (
         initialVoiceSettings &&
         Object.keys(initialVoiceSettings).length > 0
       ) {
+        console.log(
+          'AgentTypeVoiceSettings: Using provided initial voice settings:',
+          initialVoiceSettings
+        );
         const existingProfile: AgentVoiceProfile = {
           id: 'existing-profile',
           agent_type: agentType,
@@ -160,10 +168,21 @@ export function AgentTypeVoiceSettings({
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         };
+        console.log(
+          'AgentTypeVoiceSettings: Created existing profile:',
+          existingProfile
+        );
         setVoiceProfile(existingProfile);
       } else {
         // Create default profile
+        console.log(
+          'AgentTypeVoiceSettings: No initial settings provided, creating default profile'
+        );
         const defaultProfile = createDefaultVoiceProfile();
+        console.log(
+          'AgentTypeVoiceSettings: Created default profile:',
+          defaultProfile
+        );
         setVoiceProfile(defaultProfile);
       }
     } catch (error) {
@@ -197,9 +216,11 @@ export function AgentTypeVoiceSettings({
   const handleSaveProfile = async () => {
     if (!voiceProfile) return;
 
+    console.log('AgentTypeVoiceSettings: Saving voice profile:', voiceProfile);
     try {
       await onSave(voiceProfile);
       setIsEditing(false);
+      console.log('AgentTypeVoiceSettings: Voice profile saved successfully');
     } catch (error) {
       console.error('Failed to save voice profile:', error);
     }
@@ -211,6 +232,15 @@ export function AgentTypeVoiceSettings({
 
       // Get voice name and characteristics for display
       const selectedVoice = availableVoices.find(v => v.id === voiceId);
+      if (!selectedVoice) {
+        console.error('Voice not found:', voiceId);
+        setIsPlaying(false);
+        toast.error(
+          `Voice "${voiceId}" not found. Please select a different voice.`
+        );
+        return;
+      }
+
       const voiceName =
         selectedVoice?.name ||
         voiceId.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase());
@@ -243,7 +273,27 @@ export function AgentTypeVoiceSettings({
       // Use loaded speech voices or get them fresh
       const voices =
         speechVoices.length > 0 ? speechVoices : speechSynthesis.getVoices();
+
+      if (voices.length === 0) {
+        console.warn(
+          'No speech voices available, waiting for voices to load...'
+        );
+        // Wait a bit for voices to load
+        await new Promise(resolve => setTimeout(resolve, 100));
+        const freshVoices = speechSynthesis.getVoices();
+        if (freshVoices.length === 0) {
+          setIsPlaying(false);
+          toast.error(
+            'No speech voices available in your browser. Voice preview is not supported.'
+          );
+          return;
+        }
+      }
+
       let selectedSpeechVoice = null;
+
+      // Use the selected voice's gender for the preview (this is what we want to hear)
+      const currentGender = selectedVoice?.gender?.toLowerCase() || 'female';
 
       console.log(
         'Available speech voices:',
@@ -253,52 +303,98 @@ export function AgentTypeVoiceSettings({
 
       // Try to find a voice that matches the characteristics
       if (selectedVoice) {
-        // First try to match by gender and accent
-        selectedSpeechVoice = voices.find(voice => {
-          const isGenderMatch =
-            selectedVoice.gender?.toLowerCase() === 'female'
-              ? voice.name.toLowerCase().includes('female') ||
-                voice.name.toLowerCase().includes('woman') ||
-                [
-                  'samantha',
-                  'victoria',
-                  'alex',
-                  'karen',
-                  'moira',
-                  'tessa',
-                  'veena',
-                  'fiona',
-                ].some(name =>
-                  voice.name.toLowerCase().includes(name.toLowerCase())
-                )
-              : selectedVoice.gender?.toLowerCase() === 'male'
-                ? voice.name.toLowerCase().includes('male') ||
-                  voice.name.toLowerCase().includes('man') ||
-                  ['daniel', 'thomas', 'fred', 'jorge', 'aaron', 'albert'].some(
-                    name =>
-                      voice.name.toLowerCase().includes(name.toLowerCase())
-                  )
-                : true;
-
-          const isAccentMatch =
-            selectedVoice.accent?.toLowerCase() === 'british'
-              ? voice.name.toLowerCase().includes('uk') ||
-                voice.name.toLowerCase().includes('british') ||
-                voice.lang.includes('en-GB')
-              : selectedVoice.accent?.toLowerCase() === 'australian'
-                ? voice.name.toLowerCase().includes('au') ||
-                  voice.name.toLowerCase().includes('australian') ||
-                  voice.lang.includes('en-AU')
-                : voice.lang.includes('en-US') || voice.lang.includes('en');
-
-          return isGenderMatch && isAccentMatch;
+        console.log('Looking for voice matching:', {
+          selectedVoiceId: selectedVoice.id,
+          selectedVoiceGender: selectedVoice.gender,
+          voiceProfileGender: voiceProfile?.voice_settings?.gender,
+          currentGender: currentGender,
         });
+
+        console.log('Using gender for matching:', currentGender);
+
+        // First: Try to match by exact voice name
+        selectedSpeechVoice = voices.find(voice => {
+          if (!voice?.name || !selectedVoice?.name) return false;
+          const browserVoiceName = voice.name.toLowerCase();
+          const retellVoiceName = selectedVoice.name.toLowerCase();
+          const exactMatch =
+            browserVoiceName.includes(retellVoiceName) ||
+            retellVoiceName.includes(browserVoiceName.split(' ')[0]);
+
+          if (exactMatch) {
+            console.log(
+              `✅ Exact name match: ${voice.name} matches ${selectedVoice.name}`
+            );
+          }
+          return exactMatch;
+        });
+
+        // Second: Try to match by gender and accent if no exact match
+        if (!selectedSpeechVoice) {
+          selectedSpeechVoice = voices.find(voice => {
+            const isGenderMatch =
+              currentGender === 'female'
+                ? voice.name.toLowerCase().includes('female') ||
+                  voice.name.toLowerCase().includes('woman') ||
+                  [
+                    'samantha',
+                    'victoria',
+                    'alex',
+                    'karen',
+                    'moira',
+                    'tessa',
+                    'veena',
+                    'fiona',
+                    'zira',
+                    'hazel',
+                  ].some(name =>
+                    voice.name.toLowerCase().includes(name.toLowerCase())
+                  )
+                : currentGender === 'male'
+                  ? voice.name.toLowerCase().includes('male') ||
+                    voice.name.toLowerCase().includes('man') ||
+                    [
+                      'daniel',
+                      'thomas',
+                      'fred',
+                      'jorge',
+                      'aaron',
+                      'albert',
+                      'david',
+                      'mark',
+                      'james',
+                    ].some(name =>
+                      voice.name.toLowerCase().includes(name.toLowerCase())
+                    )
+                  : true;
+
+            console.log('Voice matching check:', {
+              voiceName: voice.name,
+              isGenderMatch,
+              currentGender,
+            });
+
+            const isAccentMatch =
+              selectedVoice.accent?.toLowerCase() === 'british'
+                ? voice.name.toLowerCase().includes('uk') ||
+                  voice.name.toLowerCase().includes('british') ||
+                  voice.lang.includes('en-GB')
+                : selectedVoice.accent?.toLowerCase() === 'australian'
+                  ? voice.name.toLowerCase().includes('au') ||
+                    voice.name.toLowerCase().includes('australian') ||
+                    voice.lang.includes('en-AU')
+                  : voice.lang.includes('en-US') || voice.lang.includes('en');
+
+            return isGenderMatch && isAccentMatch;
+          });
+        }
 
         // Fallback: try to match just gender
         if (!selectedSpeechVoice) {
+          console.log('Fallback: matching by gender only');
           selectedSpeechVoice = voices.find(voice => {
-            if (selectedVoice.gender?.toLowerCase() === 'female') {
-              return (
+            if (currentGender === 'female') {
+              const match =
                 voice.name.toLowerCase().includes('female') ||
                 [
                   'samantha',
@@ -313,10 +409,11 @@ export function AgentTypeVoiceSettings({
                   'hazel',
                 ].some(name =>
                   voice.name.toLowerCase().includes(name.toLowerCase())
-                )
-              );
-            } else if (selectedVoice.gender?.toLowerCase() === 'male') {
-              return (
+                );
+              console.log('Female voice match:', voice.name, match);
+              return match;
+            } else if (currentGender === 'male') {
+              const match =
                 voice.name.toLowerCase().includes('male') ||
                 [
                   'daniel',
@@ -330,8 +427,9 @@ export function AgentTypeVoiceSettings({
                   'james',
                 ].some(name =>
                   voice.name.toLowerCase().includes(name.toLowerCase())
-                )
-              );
+                );
+              console.log('Male voice match:', voice.name, match);
+              return match;
             }
             return true;
           });
@@ -347,10 +445,10 @@ export function AgentTypeVoiceSettings({
       if (selectedSpeechVoice) {
         utterance.voice = selectedSpeechVoice;
         console.log(
-          'Selected voice:',
-          selectedSpeechVoice.name,
-          selectedSpeechVoice.lang
+          `🔊 Final selected voice: "${selectedSpeechVoice.name}" (${selectedSpeechVoice.lang}) for Retell voice "${selectedVoice?.name}" (${currentGender})`
         );
+      } else {
+        console.warn('⚠️ No suitable voice found - using system default');
       }
 
       // Apply voice settings
@@ -430,13 +528,24 @@ export function AgentTypeVoiceSettings({
 
   const updateVoiceSettings = (field: keyof VoiceSettings, value: any) => {
     if (!voiceProfile) return;
-    setVoiceProfile({
-      ...voiceProfile,
-      voice_settings: {
-        ...voiceProfile.voice_settings,
-        [field]: value,
-      },
+
+    setVoiceProfile(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        voice_settings: {
+          ...prev.voice_settings,
+          [field]: value,
+        },
+        updated_at: new Date().toISOString(),
+      };
     });
+  };
+
+  const getVoiceDisplayText = (voiceId: string) => {
+    const voice = availableVoices.find(v => v.id === voiceId);
+    if (!voice) return voiceId;
+    return `${voice.name} - ${voice.accent} ${voice.style || voice.gender}`;
   };
 
   const handlePreviewVoice = async () => {
@@ -619,143 +728,205 @@ export function AgentTypeVoiceSettings({
               Voice Selection
             </CardTitle>
             <CardDescription className="dark:text-gray-300">
-              Choose the base voice and characteristics
+              Choose your AI agent's voice characteristics
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4 dark:bg-gray-800">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Retell AI Voice
-              </label>
-              <Select
-                value={voiceProfile.voice_settings.voice_id || ''}
-                onValueChange={value => {
-                  const selectedVoice = availableVoices.find(
-                    v => v.id === value
-                  );
-                  if (selectedVoice) {
-                    updateVoiceSettings('voice_id', value);
-                    updateVoiceSettings(
-                      'gender',
-                      selectedVoice.gender || 'neutral'
-                    );
-                    updateVoiceSettings(
-                      'accent',
-                      selectedVoice.accent.toLowerCase()
-                    );
-                  }
-                }}
-                disabled={!isEditing}
-              >
-                <SelectTrigger>
-                  <SelectValue
-                    placeholder={
-                      loadingVoices ? 'Loading voices...' : 'Select voice'
+          <CardContent className="space-y-6 dark:bg-gray-800">
+            {/* Current Voice Display */}
+            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-1">
+                    Current Voice
+                  </h4>
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    {voiceProfile.voice_settings.voice_id
+                      ? getVoiceDisplayText(
+                          voiceProfile.voice_settings.voice_id
+                        )
+                      : 'No voice selected'}
+                  </p>
+                </div>
+                {voiceProfile.voice_settings.voice_id && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      playVoicePreview(voiceProfile.voice_settings.voice_id)
                     }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {loadingVoices ? (
-                    <SelectItem value="loading" disabled>
-                      Loading voices...
-                    </SelectItem>
-                  ) : availableVoices.length === 0 ? (
-                    <SelectItem value="no-voices" disabled>
-                      No voices available
-                    </SelectItem>
-                  ) : (
-                    availableVoices.map(voice => (
-                      <SelectItem key={voice.id} value={voice.id}>
-                        <div className="flex items-center justify-between w-full">
-                          <div className="flex flex-col">
-                            <span>{voice.name}</span>
-                            <span className="text-xs text-gray-500">
-                              {voice.accent} • {voice.style || voice.gender}
-                              {voice.provider && ` • ${voice.provider}`}
-                            </span>
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={e => {
-                              e.stopPropagation();
-                              playVoicePreview(voice.id);
-                            }}
-                            className="ml-2 h-6 w-6 p-0"
-                          >
-                            <PlayIcon className="h-3 w-3" />
-                          </Button>
+                    disabled={isPlaying}
+                    className="border-blue-300 text-blue-700 hover:bg-blue-100"
+                  >
+                    {isPlaying ? (
+                      <>
+                        <StopIcon className="h-4 w-4 mr-1" />
+                        Playing...
+                      </>
+                    ) : (
+                      <>
+                        <PlayIcon className="h-4 w-4 mr-1" />
+                        Test
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {/* Voice Selection Grid */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                Available Voices
+              </label>
+
+              {loadingVoices ? (
+                <div className="text-center py-8">
+                  <div className="w-6 h-6 border-4 border-orange-300 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
+                  <p className="text-sm text-gray-500">Loading voices...</p>
+                </div>
+              ) : availableVoices.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-sm text-gray-500">No voices available</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {availableVoices.map(voice => (
+                    <div
+                      key={voice.id}
+                      className={`
+                        relative p-4 rounded-lg border cursor-pointer transition-all
+                        ${
+                          voiceProfile.voice_settings.voice_id === voice.id
+                            ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 ring-2 ring-orange-200 dark:ring-orange-800'
+                            : 'border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-orange-600'
+                        }
+                        ${!isEditing ? 'cursor-not-allowed opacity-60' : ''}
+                      `}
+                      onClick={() => {
+                        if (!isEditing || !voiceProfile) return;
+
+                        const newProfile = {
+                          ...voiceProfile,
+                          voice_settings: {
+                            ...voiceProfile.voice_settings,
+                            voice_id: voice.id,
+                            gender: voice.gender?.toLowerCase() || 'neutral',
+                            accent: voice.accent?.toLowerCase() || 'american',
+                          },
+                          updated_at: new Date().toISOString(),
+                        };
+                        console.log(
+                          'AgentTypeVoiceSettings: Setting new voice profile:',
+                          newProfile
+                        );
+                        console.log(
+                          'AgentTypeVoiceSettings: Previous voice_id:',
+                          voiceProfile.voice_settings.voice_id
+                        );
+                        console.log(
+                          'AgentTypeVoiceSettings: New voice_id:',
+                          voice.id
+                        );
+                        setVoiceProfile(newProfile);
+
+                        // Trigger auto-save after voice selection
+                        console.log(
+                          'AgentTypeVoiceSettings: Triggering auto-save for voice change'
+                        );
+                        setTimeout(async () => {
+                          try {
+                            await onSave(newProfile);
+                            console.log(
+                              'AgentTypeVoiceSettings: Auto-save completed for voice change'
+                            );
+                          } catch (error) {
+                            console.error(
+                              'AgentTypeVoiceSettings: Auto-save failed for voice change:',
+                              error
+                            );
+                          }
+                        }, 500); // Small delay to ensure state update
+                      }}
+                    >
+                      {/* Selection indicator */}
+                      {voiceProfile.voice_settings.voice_id === voice.id && (
+                        <div className="absolute top-2 right-2 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
+                          <CheckIcon className="w-3 h-3 text-white" />
                         </div>
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
+                      )}
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-medium text-gray-900 dark:text-gray-100">
+                            {voice.name}
+                          </h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {voice.accent} • {voice.style || voice.gender}
+                          </p>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={e => {
+                            e.stopPropagation();
+                            playVoicePreview(voice.id);
+                          }}
+                          disabled={isPlaying}
+                          className="h-8 w-8 p-0"
+                        >
+                          <PlayIcon className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Voice Gender
-              </label>
-              <Select
-                value={voiceProfile.voice_settings.gender || 'neutral'}
-                onValueChange={value => updateVoiceSettings('gender', value)}
-                disabled={!isEditing}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select gender" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="neutral">Neutral</SelectItem>
-                  <SelectItem value="female">Female</SelectItem>
-                  <SelectItem value="male">Male</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Additional Settings */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Voice Tone
+                </label>
+                <Select
+                  value={voiceProfile.voice_settings.tone || 'professional'}
+                  onValueChange={value => updateVoiceSettings('tone', value)}
+                  disabled={!isEditing}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select tone" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="professional">Professional</SelectItem>
+                    <SelectItem value="friendly">Friendly</SelectItem>
+                    <SelectItem value="energetic">Energetic</SelectItem>
+                    <SelectItem value="calm">Calm</SelectItem>
+                    <SelectItem value="confident">Confident</SelectItem>
+                    <SelectItem value="warm">Warm</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Accent
-              </label>
-              <Select
-                value={voiceProfile.voice_settings.accent || 'american'}
-                onValueChange={value => updateVoiceSettings('accent', value)}
-                disabled={!isEditing}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select accent" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="american">American English</SelectItem>
-                  <SelectItem value="british">British English</SelectItem>
-                  <SelectItem value="australian">Australian English</SelectItem>
-                  <SelectItem value="canadian">Canadian English</SelectItem>
-                  <SelectItem value="neutral">Neutral</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Voice Tone
-              </label>
-              <Select
-                value={voiceProfile.voice_settings.tone}
-                onValueChange={value => updateVoiceSettings('tone', value)}
-                disabled={!isEditing}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select tone" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="professional">Professional</SelectItem>
-                  <SelectItem value="friendly">Friendly</SelectItem>
-                  <SelectItem value="energetic">Energetic</SelectItem>
-                  <SelectItem value="calm">Calm</SelectItem>
-                  <SelectItem value="confident">Confident</SelectItem>
-                  <SelectItem value="warm">Warm</SelectItem>
-                </SelectContent>
-              </Select>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Additional Style
+                </label>
+                <Select
+                  value={voiceProfile.voice_settings.gender || 'neutral'}
+                  onValueChange={value => updateVoiceSettings('gender', value)}
+                  disabled={!isEditing}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select style" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="neutral">Neutral</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                    <SelectItem value="male">Male</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </CardContent>
         </Card>

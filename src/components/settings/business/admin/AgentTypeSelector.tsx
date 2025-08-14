@@ -62,7 +62,19 @@ export function AgentTypeSelector({
                 <div className="flex items-center space-x-3">
                   <div className="text-3xl">{config.icon}</div>
                   <div>
-                    <CardTitle className="text-lg">{config.name}</CardTitle>
+                    <div className="flex items-center gap-2 mb-1">
+                      <CardTitle className="text-lg">{config.name}</CardTitle>
+                      <Badge
+                        variant={
+                          config.direction === 'inbound'
+                            ? 'default'
+                            : 'secondary'
+                        }
+                        className="text-xs"
+                      >
+                        {config.direction}
+                      </Badge>
+                    </div>
                     <CardDescription className="mt-1">
                       {config.description}
                     </CardDescription>

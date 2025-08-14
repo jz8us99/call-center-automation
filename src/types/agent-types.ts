@@ -19,6 +19,7 @@ export interface AgentTypeConfig {
   name: string;
   description: string;
   icon: string;
+  direction: 'inbound' | 'outbound' | 'both';
   capabilities: string[];
   defaultPrompt: string;
   suggestedVoiceSettings: {
@@ -35,6 +36,7 @@ export const AGENT_TYPE_CONFIGS: Record<AgentType, AgentTypeConfig> = {
     description:
       'Handles incoming customer calls, routing, and initial support',
     icon: '📞',
+    direction: 'inbound',
     capabilities: [
       'Call routing and transfer',
       'Appointment scheduling',
@@ -62,6 +64,7 @@ export const AGENT_TYPE_CONFIGS: Record<AgentType, AgentTypeConfig> = {
     description:
       'Manages appointment confirmations, reminders, and rescheduling',
     icon: '📅',
+    direction: 'outbound',
     capabilities: [
       'Appointment confirmations',
       'Reminder calls',
@@ -88,6 +91,7 @@ export const AGENT_TYPE_CONFIGS: Record<AgentType, AgentTypeConfig> = {
     description:
       'Conducts sales calls, lead qualification, and promotional campaigns',
     icon: '📈',
+    direction: 'outbound',
     capabilities: [
       'Lead qualification',
       'Sales presentations',
@@ -115,6 +119,7 @@ export const AGENT_TYPE_CONFIGS: Record<AgentType, AgentTypeConfig> = {
     name: 'Customer Support Agent',
     description: 'Provides detailed technical support and issue resolution',
     icon: '🛠️',
+    direction: 'inbound',
     capabilities: [
       'Technical troubleshooting',
       'Detailed issue resolution',

@@ -1,6 +1,5 @@
 import { BaseBusinessService } from './base-service';
 import { supabase } from '../supabase';
-import { retellTools, routerAgentConfig } from '../retell/tools';
 import Retell from 'retell-sdk';
 import { createClient } from '@supabase/supabase-js';
 
@@ -65,16 +64,20 @@ export class RetellDeploymentService extends BaseBusinessService {
   private async createLlmForAgent(
     businessContext: any,
     config: any,
-    role: string
+    role: string,
+    direction: string = 'inbound'
   ): Promise<string> {
     try {
-      this.logger.info('Creating new LLM for agent deployment...');
+      this.logger.info(
+        `Creating new LLM for ${direction} ${role} agent deployment...`
+      );
 
       // Generate comprehensive prompt using all available data
       const comprehensivePrompt = this.generateComprehensivePrompt(
         businessContext,
         config,
-        role
+        role,
+        direction
       );
 
       // Create LLM with business-specific configuration
@@ -119,7 +122,8 @@ export class RetellDeploymentService extends BaseBusinessService {
   private generateComprehensivePrompt(
     businessContext: any,
     config: any,
-    role: string
+    role: string,
+    direction: string = 'inbound'
   ): string {
     // Start with enhanced business identity based on ALL Supabase data
     let generalPrompt = `You are a professional AI ${role} for ${businessContext.businessName}`;
@@ -248,6 +252,43 @@ export class RetellDeploymentService extends BaseBusinessService {
       generalPrompt +=
         'CALL HANDLING GUIDELINES:\n' + config.call_scripts_prompt + '\n\n';
       this.logger.info('Added user call_scripts_prompt to general prompt');
+    }
+
+    // Add direction-specific guidelines
+    if (direction === 'inbound') {
+      generalPrompt += 'INBOUND CALL GUIDELINES:\n';
+      generalPrompt +=
+        '- You are receiving calls from customers/patients contacting the business\n';
+      generalPrompt += '- Greet callers warmly and professionally\n';
+      generalPrompt += '- Listen carefully to understand their needs\n';
+      generalPrompt += '- Provide helpful information and assistance\n';
+      generalPrompt += '- Schedule appointments if requested\n';
+      generalPrompt +=
+        '- Never make outbound calls - you only receive them\n\n';
+      this.logger.info('Added inbound call guidelines to prompt');
+    } else if (direction === 'outbound') {
+      generalPrompt += 'OUTBOUND CALL GUIDELINES:\n';
+      generalPrompt += '- You are making calls on behalf of the business\n';
+      generalPrompt +=
+        '- Introduce yourself and the business clearly at the start\n';
+      generalPrompt += '- Explain the purpose of your call politely\n';
+      generalPrompt += '- Respect if the person prefers not to talk\n';
+      generalPrompt +=
+        '- Follow up on appointments, services, or business matters\n';
+      generalPrompt += '- Keep calls professional and purpose-driven\n\n';
+      this.logger.info('Added outbound call guidelines to prompt');
+    } else if (direction === 'both') {
+      generalPrompt += 'BIDIRECTIONAL CALL GUIDELINES:\n';
+      generalPrompt += '- You can both receive and make calls\n';
+      generalPrompt +=
+        '- For inbound calls: Greet warmly and assist with their needs\n';
+      generalPrompt +=
+        '- For outbound calls: Introduce yourself and explain the purpose\n';
+      generalPrompt +=
+        '- Adapt your approach based on whether you initiated or received the call\n';
+      generalPrompt +=
+        '- Always be professional and helpful regardless of call direction\n\n';
+      this.logger.info('Added bidirectional call guidelines to prompt');
     }
 
     // Add business-type specific guidelines
@@ -540,6 +581,56 @@ export class RetellDeploymentService extends BaseBusinessService {
   }
 
   /**
+   * Resolve business profile ID from user ID or business ID
+   */
+  private async resolveBusinessId(inputId: string): Promise<string> {
+    try {
+      const serviceSupabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      );
+
+      // First try to find by business profile ID (direct match)
+      const { data: businessById } = await serviceSupabase
+        .from('business_profiles')
+        .select('id')
+        .eq('id', inputId)
+        .single();
+
+      if (businessById) {
+        this.logger.info('Found business by direct ID match:', inputId);
+        return inputId;
+      }
+
+      // If not found, try to find by user_id
+      const { data: businessByUserId } = await serviceSupabase
+        .from('business_profiles')
+        .select('id, business_name')
+        .eq('user_id', inputId)
+        .single();
+
+      if (businessByUserId) {
+        this.logger.info('Resolved user_id to business_id:', {
+          user_id: inputId,
+          business_id: businessByUserId.id,
+          business_name: businessByUserId.business_name,
+        });
+        return businessByUserId.id;
+      }
+
+      // If still not found, log warning and return original ID
+      this.logger.warn(
+        'Could not resolve business ID, using input ID:',
+        inputId
+      );
+      return inputId;
+    } catch (error) {
+      this.logger.error('Error resolving business ID:', error);
+      return inputId; // Fallback to input ID
+    }
+  }
+
+  /**
    * Deploy a single agent to Retell
    */
   async deploySingleAgent(
@@ -551,6 +642,9 @@ export class RetellDeploymentService extends BaseBusinessService {
     error?: string;
   }> {
     try {
+      // Resolve proper business profile ID
+      const resolvedBusinessId = await this.resolveBusinessId(businessId);
+
       // Get business name
       const businessName = await this.getBusinessName(businessId);
 
@@ -562,7 +656,7 @@ export class RetellDeploymentService extends BaseBusinessService {
         {
           ...agentConfig,
           agent_name: fullAgentName,
-          client_id: businessId,
+          client_id: resolvedBusinessId,
         },
         'receptionist'
       ); // Default to receptionist, can be customized
@@ -599,10 +693,15 @@ export class RetellDeploymentService extends BaseBusinessService {
       const errors: string[] = [];
       const deployedAgents: any[] = [];
 
+      // Resolve proper business profile ID
+      const resolvedBusinessId = await this.resolveBusinessId(businessId);
+
       // Get active agent configurations from Step-6
       this.logger.info(
         'Searching for agent configs with businessId:',
-        businessId
+        businessId,
+        'resolved to:',
+        resolvedBusinessId
       );
 
       // First try with full join, then fallback to any configs if none found
@@ -618,7 +717,7 @@ export class RetellDeploymentService extends BaseBusinessService {
           )
         `
         )
-        .eq('client_id', businessId)
+        .eq('client_id', resolvedBusinessId)
         .eq('is_active', true)
         .not('agent_type_id', 'is', null);
 
@@ -637,7 +736,7 @@ export class RetellDeploymentService extends BaseBusinessService {
         const { data: fallbackConfigs, error: fallbackError } = await supabase
           .from('agent_configurations_scoped')
           .select('*')
-          .eq('client_id', businessId)
+          .eq('client_id', resolvedBusinessId)
           .eq('is_active', true);
 
         this.logger.info(
@@ -653,7 +752,7 @@ export class RetellDeploymentService extends BaseBusinessService {
           const { data: allConfigs, error: allError } = await supabase
             .from('agent_configurations_scoped')
             .select('*')
-            .eq('client_id', businessId);
+            .eq('client_id', resolvedBusinessId);
 
           this.logger.info(
             'All agent configs for businessId (any is_active):',
@@ -743,14 +842,6 @@ export class RetellDeploymentService extends BaseBusinessService {
         );
       }
 
-      // Deploy Router Agent
-      const routerAgent = await this.deployRouterAgent(businessId);
-      if (routerAgent) {
-        deployedAgents.push(routerAgent);
-      } else {
-        errors.push('Failed to deploy router agent');
-      }
-
       // Deploy Receptionist Agent
       const receptionistConfig = agentConfigs.find(
         a => a.agent_types?.type_code === 'inbound_receptionist'
@@ -784,7 +875,7 @@ export class RetellDeploymentService extends BaseBusinessService {
       }
 
       // Update deployment status in database
-      await this.updateDeploymentStatus(businessId, deployedAgents);
+      await this.updateDeploymentStatus(resolvedBusinessId, deployedAgents);
 
       return {
         success: errors.length === 0,
@@ -810,188 +901,6 @@ export class RetellDeploymentService extends BaseBusinessService {
   }
 
   /**
-   * Deploy the router agent
-   */
-  private async deployRouterAgent(businessId: string): Promise<any> {
-    try {
-      const baseUrl =
-        process.env.NEXT_PUBLIC_BASE_URL ||
-        process.env.NEXT_PUBLIC_SITE_URL ||
-        'http://localhost:19080';
-      const webhookUrl = `${baseUrl}/api/retell/functions/appointment`;
-
-      // Get business context for LLM creation
-      const businessContext = await this.getBusinessContext(businessId);
-
-      // Create new LLM for router agent
-      const routerConfig = {
-        basic_info_prompt: 'Router agent for appointment handling',
-      };
-      const dynamicLlmId = await this.createLlmForAgent(
-        businessContext,
-        routerConfig,
-        'router'
-      );
-
-      // Create comprehensive agent config based on sample working agent
-      const agentConfig = {
-        agent_name: routerAgentConfig.name,
-        response_engine: {
-          type: 'retell-llm',
-          llm_id: dynamicLlmId,
-        },
-        voice_id: '11labs-Adrian',
-        language: 'en-US',
-        webhook_url: webhookUrl,
-        voice_temperature: 1,
-        voice_speed: 1.28,
-        volume: 1,
-        enable_backchannel: true,
-        backchannel_words: ['mhm', 'uh-huh'],
-        max_call_duration_ms: 1800000, // 30 minutes
-        interruption_sensitivity: 0.9,
-        normalize_for_speech: true,
-        begin_message_delay_ms: 200,
-        post_call_analysis_model: 'gpt-4o-mini',
-      };
-
-      this.logger.info(
-        'Creating router agent with config:',
-        JSON.stringify(agentConfig, null, 2)
-      );
-
-      // Check if agent already exists
-      const existingAgents = await this.retell.agent.list();
-      const existing = existingAgents.find(
-        a => a.agent_name === routerAgentConfig.name
-      );
-
-      let agent;
-      if (existing) {
-        this.logger.info('Updating existing router agent:', existing.agent_id);
-        // Update existing agent
-        agent = await this.retell.agent.update(existing.agent_id, agentConfig);
-      } else {
-        this.logger.info('Creating new router agent...');
-        // Create new agent
-        try {
-          agent = await this.retell.agent.create(agentConfig);
-          this.logger.info(
-            'Router agent created successfully:',
-            agent.agent_id
-          );
-        } catch (createError) {
-          this.logger.error('Failed to create router agent:', {
-            error: createError.message,
-            status: createError.status,
-            details: createError.error || createError,
-            config: agentConfig,
-          });
-          throw createError;
-        }
-      }
-
-      // Store agent ID and configuration in database
-      const routerRecord = {
-        business_id: businessId,
-        agent_type: 'router',
-        retell_agent_id: agent.agent_id,
-        agent_name: agent.agent_name,
-        status: 'deployed',
-        updated_at: new Date().toISOString(),
-        response_engine_type: 'retell-llm',
-        retell_llm_id: dynamicLlmId,
-        voice_settings: JSON.stringify({
-          voice_id: agentConfig.voice_id,
-          voice_temperature: agentConfig.voice_temperature,
-          voice_speed: agentConfig.voice_speed,
-        }),
-      };
-
-      // Always ensure the router record is stored in database
-      const { data: insertedRouterRecord, error: routerInsertError } =
-        await supabase
-          .from('retell_agents')
-          .upsert(routerRecord, {
-            onConflict: 'retell_agent_id',
-            ignoreDuplicates: false,
-          })
-          .select();
-
-      if (routerInsertError) {
-        this.logger.error(
-          'Failed to store router agent in database:',
-          routerInsertError
-        );
-        this.logger.error('Router record that failed to insert:', routerRecord);
-
-        // Try alternative insert method if upsert fails
-        try {
-          const { data: fallbackRouterRecord, error: fallbackRouterError } =
-            await supabase.from('retell_agents').insert(routerRecord).select();
-
-          if (!fallbackRouterError) {
-            this.logger.info(
-              'Fallback insert successful for router agent:',
-              fallbackRouterRecord
-            );
-          } else {
-            this.logger.error(
-              'Fallback insert also failed for router agent:',
-              fallbackRouterError
-            );
-          }
-        } catch (fallbackErr) {
-          this.logger.error(
-            'Fallback insert exception for router agent:',
-            fallbackErr
-          );
-        }
-      } else {
-        this.logger.info(
-          'Successfully stored router agent in database:',
-          insertedRouterRecord
-        );
-      }
-
-      // Final verification: check if router record exists in database
-      const { data: verifyRouterRecord, error: verifyRouterError } =
-        await supabase
-          .from('retell_agents')
-          .select('*')
-          .eq('retell_agent_id', agent.agent_id)
-          .single();
-
-      if (verifyRouterError || !verifyRouterRecord) {
-        this.logger.error(
-          'CRITICAL: Router agent record not found in database after insertion!',
-          {
-            agentId: agent.agent_id,
-            agentName: agent.agent_name,
-            businessId: businessId,
-            verifyRouterError,
-          }
-        );
-      } else {
-        this.logger.info(
-          '✅ Verified router agent record exists in database:',
-          {
-            id: verifyRouterRecord.id,
-            retell_agent_id: verifyRouterRecord.retell_agent_id,
-            agent_name: verifyRouterRecord.agent_name,
-            business_id: verifyRouterRecord.business_id,
-          }
-        );
-      }
-
-      return agent;
-    } catch (error) {
-      this.logger.error('Error deploying router agent:', error);
-      return null;
-    }
-  }
-
-  /**
    * Deploy a role-specific agent (receptionist or support)
    */
   private async deployRoleAgent(
@@ -1001,6 +910,23 @@ export class RetellDeploymentService extends BaseBusinessService {
     try {
       // Use the business user-defined agent name directly
       const agentName = config.agent_name || `${role} Agent`;
+
+      // Get agent type information including direction
+      let agentDirection = 'inbound'; // default
+      if (config.agent_type_id) {
+        const { data: agentType } = await supabase
+          .from('agent_types')
+          .select('direction, type_code')
+          .eq('id', config.agent_type_id)
+          .single();
+
+        if (agentType) {
+          agentDirection = agentType.direction || 'inbound';
+          this.logger.info(
+            `Agent type ${agentType.type_code} has direction: ${agentDirection}`
+          );
+        }
+      }
 
       // Determine response engine type based on configuration
       let responseEngine;
@@ -1017,11 +943,12 @@ export class RetellDeploymentService extends BaseBusinessService {
 
       // Create LLM if using retell-llm response engine
       if (!config.conversationFlowId && !config.conversation_flow_id) {
-        // Create new LLM for this agent
+        // Create new LLM for this agent with direction awareness
         const dynamicLlmId = await this.createLlmForAgent(
           businessContext,
           config,
-          role
+          role,
+          agentDirection
         );
         responseEngine = {
           type: 'retell-llm',
@@ -1138,7 +1065,7 @@ export class RetellDeploymentService extends BaseBusinessService {
       // Store agent ID and configuration in database
       const agentRecord = {
         business_id: config.client_id,
-        agent_type: role,
+        agent_type: `${role}_${agent.agent_id.slice(-8)}`, // Make agent_type unique by appending agent ID suffix
         retell_agent_id: agent.agent_id,
         agent_name: agent.agent_name,
         ai_agent_id: config.id,
@@ -1232,10 +1159,114 @@ export class RetellDeploymentService extends BaseBusinessService {
         );
       }
 
+      // Final step: Always ensure the record exists in database
+      const recordExists = await this.ensureAgentRecordExists(
+        agent,
+        config.client_id || businessId,
+        role,
+        config
+      );
+
+      if (!recordExists) {
+        this.logger.error(
+          `❌ CRITICAL: Could not ensure database record for ${role} agent: ${agent.agent_id}`
+        );
+      } else {
+        this.logger.info(
+          `✅ Database record confirmed for ${role} agent: ${agent.agent_id}`
+        );
+      }
+
       return agent;
     } catch (error) {
       this.logger.error(`Error deploying ${role} agent:`, error);
       return null;
+    }
+  }
+
+  /**
+   * Ensure agent record exists in database - force insert if missing
+   */
+  private async ensureAgentRecordExists(
+    agent: any,
+    businessId: string,
+    role: string,
+    config: any
+  ): Promise<boolean> {
+    try {
+      const resolvedBusinessId = await this.resolveBusinessId(businessId);
+
+      // Check if record exists
+      const { data: existingRecord, error: checkError } = await supabase
+        .from('retell_agents')
+        .select('*')
+        .eq('retell_agent_id', agent.agent_id)
+        .single();
+
+      if (existingRecord && !checkError) {
+        this.logger.info(`✅ Agent record already exists: ${agent.agent_id}`);
+        return true;
+      }
+
+      this.logger.warn(
+        `🔧 Agent record missing for ${agent.agent_id}, force creating...`
+      );
+
+      // Create the missing record with unique agent_type to avoid constraint conflicts
+      const agentRecord = {
+        business_id: resolvedBusinessId,
+        agent_type: `${role}_${agent.agent_id.slice(-8)}`, // Make agent_type unique by appending agent ID suffix
+        retell_agent_id: agent.agent_id,
+        agent_name: agent.agent_name,
+        ai_agent_id: config?.id || null,
+        status: 'deployed',
+        conversation_flow_id:
+          config?.conversationFlowId || config?.conversation_flow_id || null,
+        response_engine_type: agent.response_engine?.type || 'retell-llm',
+        retell_llm_id:
+          agent.response_engine?.type === 'retell-llm'
+            ? agent.response_engine.llm_id
+            : null,
+        voice_settings: JSON.stringify({
+          voice_id:
+            config?.voice?.voiceId || agent.voice?.voice_id || '11labs-Adrian',
+          voice_temperature:
+            config?.voice?.temperature || agent.voice?.voice_temperature || 1,
+          voice_speed: config?.voice?.speed || agent.voice?.voice_speed || 1.28,
+        }),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      // Try multiple insertion methods
+      const insertMethods = [
+        () =>
+          supabase
+            .from('retell_agents')
+            .upsert(agentRecord, { onConflict: 'retell_agent_id' })
+            .select(),
+        () => supabase.from('retell_agents').insert(agentRecord).select(),
+      ];
+
+      for (const method of insertMethods) {
+        const { data: insertResult, error: insertError } = await method();
+
+        if (!insertError && insertResult && insertResult.length > 0) {
+          this.logger.info(`✅ Force insert successful: ${insertResult[0].id}`);
+          return true;
+        } else if (insertError) {
+          this.logger.warn(`⚠️  Insert method failed: ${insertError.message}`);
+        }
+      }
+
+      this.logger.error(
+        '❌ All insertion methods failed for agent:',
+        agent.agent_id
+      );
+      return false;
+    } catch (error) {
+      this.logger.error('❌ Error ensuring agent record exists:', error);
+      return false;
     }
   }
 
@@ -1257,74 +1288,6 @@ export class RetellDeploymentService extends BaseBusinessService {
       });
     } catch (error) {
       this.logger.error('Error updating deployment status:', error);
-    }
-  }
-
-  /**
-   * Assign phone number to router agent
-   */
-  async assignPhoneNumber(
-    businessId: string,
-    phoneNumber?: string
-  ): Promise<{ success: boolean; phoneNumber?: string; error?: string }> {
-    try {
-      // Get router agent
-      const { data: routerAgent, error } = await supabase
-        .from('retell_agents')
-        .select('retell_agent_id')
-        .eq('business_id', businessId)
-        .eq('agent_type', 'router')
-        .single();
-
-      if (error || !routerAgent) {
-        throw new Error('Router agent not found');
-      }
-
-      let assignedNumber;
-
-      if (phoneNumber) {
-        // Use provided phone number
-        assignedNumber = await this.retell.phoneNumber.import({
-          phone_number: phoneNumber,
-          agent_id: routerAgent.retell_agent_id,
-        });
-      } else {
-        // Purchase new phone number
-        const availableNumbers = await this.retell.phoneNumber.searchAvailable({
-          country: 'US',
-          limit: 1,
-        });
-
-        if (availableNumbers.length === 0) {
-          throw new Error('No phone numbers available');
-        }
-
-        assignedNumber = await this.retell.phoneNumber.purchase({
-          phone_number: availableNumbers[0].phone_number,
-          agent_id: routerAgent.retell_agent_id,
-        });
-      }
-
-      // Store phone number assignment
-      await supabase.from('phone_assignments').insert({
-        business_id: businessId,
-        phone_number: assignedNumber.phone_number,
-        retell_agent_id: routerAgent.retell_agent_id,
-        type: 'inbound',
-        status: 'active',
-        assigned_at: new Date().toISOString(),
-      });
-
-      return {
-        success: true,
-        phoneNumber: assignedNumber.phone_number,
-      };
-    } catch (error) {
-      this.logger.error('Error assigning phone number:', error);
-      return {
-        success: false,
-        error: 'Failed to assign phone number: ' + error,
-      };
     }
   }
 

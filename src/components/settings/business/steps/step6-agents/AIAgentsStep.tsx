@@ -74,6 +74,7 @@ const AGENT_TYPES = {
     name: 'Inbound Receptionist',
     description: 'Professional phone receptionist handling incoming calls',
     icon: PhoneIcon,
+    direction: 'inbound',
     capabilities: [
       'Answer calls professionally',
       'Schedule appointments',
@@ -86,6 +87,7 @@ const AGENT_TYPES = {
     name: 'Inbound Customer Support',
     description: 'Dedicated support for customer issues and complaints',
     icon: UserIcon,
+    direction: 'inbound',
     capabilities: [
       'Technical troubleshooting',
       'Issue resolution',
@@ -98,6 +100,7 @@ const AGENT_TYPES = {
     name: 'Outbound Follow-up',
     description: 'Follow-up calls for appointments and customer care',
     icon: PhoneIcon,
+    direction: 'outbound',
     capabilities: [
       'Appointment confirmations',
       'Reminder calls',
@@ -110,6 +113,7 @@ const AGENT_TYPES = {
     name: 'Outbound Marketing',
     description: 'Marketing calls for lead generation and promotions',
     icon: PhoneIcon,
+    direction: 'outbound',
     capabilities: [
       'Lead qualification',
       'Sales presentations',
@@ -216,22 +220,35 @@ export function AIAgentsStep({
         const data = await response.json();
         // Transform the API response to match our AIAgent interface
         const transformedAgents = (data.configurations || []).map(
-          (config: any) => ({
-            id: config.id,
-            agent_name: config.agent_name,
-            agent_type: config.agent_types?.type_code || config.agent_type,
-            agent_personality: config.agent_personality || 'professional',
-            greeting_message: config.greeting_message,
-            custom_instructions: config.custom_instructions,
-            basic_info_prompt: config.basic_info_prompt,
-            call_scripts_prompt: config.call_scripts_prompt,
-            call_scripts: config.call_scripts || {},
-            voice_settings: config.voice_settings || {},
-            call_routing: config.call_routing || {},
-            status: config.is_active ? 'active' : 'inactive',
-            created_at: config.created_at,
-            updated_at: config.updated_at,
-          })
+          (config: any) => {
+            console.log(
+              'AIAgentsStep: Loading agent from database with voice_settings:',
+              config.voice_settings
+            );
+            return {
+              id: config.id,
+              agent_name: config.agent_name,
+              agent_type: config.agent_types?.type_code || config.agent_type,
+              agent_personality: config.agent_personality || 'professional',
+              greeting_message: config.greeting_message,
+              custom_instructions: config.custom_instructions,
+              basic_info_prompt: config.basic_info_prompt,
+              call_scripts_prompt: config.call_scripts_prompt,
+              call_scripts: config.call_scripts || {},
+              voice_settings: config.voice_settings || {},
+              call_routing: config.call_routing || {},
+              status: config.is_active ? 'active' : 'inactive',
+              created_at: config.created_at,
+              updated_at: config.updated_at,
+            };
+          }
+        );
+        console.log(
+          'AIAgentsStep: Transformed agents with voice settings:',
+          transformedAgents.map(a => ({
+            name: a.agent_name,
+            voice_settings: a.voice_settings,
+          }))
         );
         setAgents(transformedAgents);
       } else {
@@ -278,7 +295,25 @@ export function AIAgentsStep({
   };
 
   const handleEditAgent = (agent: AIAgent) => {
+    console.log(
+      'AIAgentsStep: Editing agent with voice_settings:',
+      agent.voice_settings
+    );
     setEditingAgent(agent);
+
+    const voiceSettings = {
+      speed: agent.voice_settings?.speed || 1.0,
+      pitch: agent.voice_settings?.pitch || 1.0,
+      tone: agent.voice_settings?.tone || 'professional',
+      voice_id: agent.voice_settings?.voice_id || 'sarah-professional',
+      accent: agent.voice_settings?.accent || 'american',
+      gender: agent.voice_settings?.gender || 'female',
+    };
+    console.log(
+      'AIAgentsStep: Final voice settings for editing:',
+      voiceSettings
+    );
+
     setFormData({
       agent_name: agent.agent_name,
       agent_type: agent.agent_type,
@@ -288,14 +323,7 @@ export function AIAgentsStep({
       basic_info_prompt: agent.basic_info_prompt || '',
       call_scripts_prompt: agent.call_scripts_prompt || '',
       call_scripts: agent.call_scripts || {},
-      voice_settings: (agent.voice_settings as any) || {
-        speed: 1.0,
-        pitch: 1.0,
-        tone: 'professional',
-        voice_id: 'sarah-professional',
-        accent: 'american',
-        gender: 'female',
-      },
+      voice_settings: voiceSettings,
       call_routing: (agent.call_routing as any) || {
         default_action: 'transfer',
         escalation_number: '',
@@ -512,10 +540,18 @@ export function AIAgentsStep({
       }
 
       if (section === 'voice' || section === 'all') {
+        console.log(
+          'AIAgentsStep: Saving voice_settings to database:',
+          formData.voice_settings
+        );
         saveData = {
           ...saveData,
           voice_settings: formData.voice_settings,
         };
+        console.log(
+          'AIAgentsStep: Complete save data with voice_settings:',
+          saveData
+        );
       }
 
       if (section === 'routing' || section === 'all') {
@@ -556,7 +592,7 @@ export function AIAgentsStep({
       setSaveStatus(prev => ({ ...prev, [section]: 'success' }));
 
       // Refresh agents list to show the new/updated agent
-      if (section === 'basic' || section === 'all') {
+      if (section === 'basic' || section === 'all' || section === 'voice') {
         await loadAgents();
       }
 
@@ -778,9 +814,23 @@ export function AIAgentsStep({
                               agent.agent_type}
                           </p>
                         </div>
-                        <Badge className={getStatusColor(agent.status)}>
-                          {agent.status}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge className={getStatusColor(agent.status)}>
+                            {agent.status}
+                          </Badge>
+                          <Badge
+                            variant={
+                              AGENT_TYPE_CONFIGS[agent.agent_type as AgentType]
+                                ?.direction === 'inbound'
+                                ? 'default'
+                                : 'secondary'
+                            }
+                            className="text-xs"
+                          >
+                            {AGENT_TYPE_CONFIGS[agent.agent_type as AgentType]
+                              ?.direction || 'inbound'}
+                          </Badge>
+                        </div>
                       </div>
 
                       <div className="grid md:grid-cols-2 gap-4 mb-4">
@@ -976,8 +1026,22 @@ export function AIAgentsStep({
                             <SelectItem key={key} value={key}>
                               <div className="flex items-center gap-2">
                                 <type.icon className="h-4 w-4" />
-                                <div>
-                                  <div className="font-medium">{type.name}</div>
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <div className="font-medium">
+                                      {type.name}
+                                    </div>
+                                    <Badge
+                                      variant={
+                                        (type as any).direction === 'inbound'
+                                          ? 'default'
+                                          : 'secondary'
+                                      }
+                                      className="text-xs"
+                                    >
+                                      {(type as any).direction}
+                                    </Badge>
+                                  </div>
                                   <div className="text-xs text-gray-500">
                                     {type.description}
                                   </div>
@@ -1355,10 +1419,29 @@ export function AIAgentsStep({
                   agentType={formData.agent_type as any}
                   businessInfo={{ ...businessInfo, user_id: user.id }}
                   onSave={async (routing: any) => {
+                    console.log(
+                      'AIAgentsStep: Saving call routing to database:',
+                      routing
+                    );
                     setFormData(prev => ({
                       ...prev,
                       call_routing: routing,
                     }));
+
+                    // Auto-save to database
+                    setTimeout(async () => {
+                      try {
+                        await saveAgentConfiguration('routing');
+                        console.log(
+                          'AIAgentsStep: Call routing auto-save completed'
+                        );
+                      } catch (error) {
+                        console.error(
+                          'AIAgentsStep: Call routing auto-save failed:',
+                          error
+                        );
+                      }
+                    }, 500); // Small delay to ensure state update
                   }}
                 />
 
