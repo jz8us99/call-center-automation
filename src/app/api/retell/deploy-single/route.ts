@@ -30,13 +30,16 @@ export async function POST(request: NextRequest) {
     const deploymentService = new RetellDeploymentService();
 
     // Deploy single agent to Retell
-    const deploymentResult = await deploymentService.deploySingleAgent(businessId, agentConfig);
+    const deploymentResult = await deploymentService.deploySingleAgent(
+      businessId,
+      agentConfig
+    );
 
     if (!deploymentResult.success) {
       return NextResponse.json(
-        { 
+        {
           error: 'Deployment failed',
-          details: deploymentResult.error 
+          details: deploymentResult.error,
         },
         { status: 500 }
       );
@@ -45,14 +48,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       agent: deploymentResult.agent,
-      message: `Successfully deployed agent: ${agentConfig.agent_name}`
+      message: `Successfully deployed agent: ${agentConfig.agent_name}`,
     });
   } catch (error) {
     console.error('Error deploying single agent to Retell:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

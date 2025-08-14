@@ -24,16 +24,19 @@ export interface RetellAgentConfig {
 export class RetellDeploymentService extends BaseBusinessService {
   readonly name = 'Retell Deployment Service';
   private retell: Retell;
-  
+
   protected logger = {
-    info: (message: string, ...args: any[]) => console.log(`[${this.name}]`, message, ...args),
-    error: (message: string, ...args: any[]) => console.error(`[${this.name}]`, message, ...args),
-    warn: (message: string, ...args: any[]) => console.warn(`[${this.name}]`, message, ...args),
+    info: (message: string, ...args: any[]) =>
+      console.log(`[${this.name}]`, message, ...args),
+    error: (message: string, ...args: any[]) =>
+      console.error(`[${this.name}]`, message, ...args),
+    warn: (message: string, ...args: any[]) =>
+      console.warn(`[${this.name}]`, message, ...args),
   };
 
   constructor() {
     super();
-    
+
     const apiKey = process.env.RETELL_API_KEY;
     this.logger.info('Environment check:', {
       hasRetellApiKey: !!apiKey,
@@ -42,17 +45,17 @@ export class RetellDeploymentService extends BaseBusinessService {
       llmId: process.env.RETELL_LLM_ID,
       hasBaseUrl: !!process.env.NEXT_PUBLIC_BASE_URL,
       baseUrl: process.env.NEXT_PUBLIC_BASE_URL,
-      nodeEnv: process.env.NODE_ENV
+      nodeEnv: process.env.NODE_ENV,
     });
-    
+
     if (!apiKey) {
       throw new Error('RETELL_API_KEY environment variable is required');
     }
-    
+
     this.retell = new Retell({
-      apiKey: apiKey
+      apiKey: apiKey,
     });
-    
+
     this.logger.info('Retell SDK initialized successfully');
   }
 
@@ -88,7 +91,10 @@ export class RetellDeploymentService extends BaseBusinessService {
   /**
    * Deploy a single agent to Retell
    */
-  async deploySingleAgent(businessId: string, agentConfig: any): Promise<{
+  async deploySingleAgent(
+    businessId: string,
+    agentConfig: any
+  ): Promise<{
     success: boolean;
     agent?: any;
     error?: string;
@@ -96,33 +102,36 @@ export class RetellDeploymentService extends BaseBusinessService {
     try {
       // Get business name
       const businessName = await this.getBusinessName(businessId);
-      
+
       // Create agent name: Business Name + Agent Name from Step 6
       const fullAgentName = `${businessName} ${agentConfig.agent_name}`;
-      
+
       // Deploy the individual agent
-      const deployedAgent = await this.deployRoleAgent({
-        ...agentConfig,
-        agent_name: fullAgentName,
-        client_id: businessId
-      }, 'receptionist'); // Default to receptionist, can be customized
+      const deployedAgent = await this.deployRoleAgent(
+        {
+          ...agentConfig,
+          agent_name: fullAgentName,
+          client_id: businessId,
+        },
+        'receptionist'
+      ); // Default to receptionist, can be customized
 
       if (deployedAgent) {
         return {
           success: true,
-          agent: deployedAgent
+          agent: deployedAgent,
         };
       } else {
         return {
           success: false,
-          error: 'Failed to deploy agent'
+          error: 'Failed to deploy agent',
         };
       }
     } catch (error) {
       this.logger.error('Error deploying single agent:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
@@ -140,24 +149,32 @@ export class RetellDeploymentService extends BaseBusinessService {
       const deployedAgents: any[] = [];
 
       // Get active agent configurations from Step-6
-      this.logger.info('Searching for agent configs with businessId:', businessId);
-      
+      this.logger.info(
+        'Searching for agent configs with businessId:',
+        businessId
+      );
+
       // First try with full join, then fallback to any configs if none found
-      let { data: agentConfigs, error: configError } = await supabase
+      const { data: agentConfigs, error: configError } = await supabase
         .from('agent_configurations_scoped')
-        .select(`
+        .select(
+          `
           *,
           agent_types (
             id,
             type_code,
             name
           )
-        `)
+        `
+        )
         .eq('client_id', businessId)
         .eq('is_active', true)
         .not('agent_type_id', 'is', null);
 
-      this.logger.info('Initial agent configs found:', agentConfigs?.length || 0);
+      this.logger.info(
+        'Initial agent configs found:',
+        agentConfigs?.length || 0
+      );
       if (configError) {
         this.logger.error('Config query error:', configError);
       }
@@ -165,54 +182,69 @@ export class RetellDeploymentService extends BaseBusinessService {
       // If no configs found with agent types, try without the join
       if (!agentConfigs || agentConfigs.length === 0) {
         this.logger.info('Trying fallback query without agent_types join...');
-        
+
         const { data: fallbackConfigs, error: fallbackError } = await supabase
           .from('agent_configurations_scoped')
           .select('*')
           .eq('client_id', businessId)
           .eq('is_active', true);
-        
-        this.logger.info('Fallback agent configs found:', fallbackConfigs?.length || 0);
+
+        this.logger.info(
+          'Fallback agent configs found:',
+          fallbackConfigs?.length || 0
+        );
         if (fallbackError) {
           this.logger.error('Fallback query error:', fallbackError);
         }
-        
+
         // Try even more general query to see what's in the table
         if (!fallbackConfigs || fallbackConfigs.length === 0) {
           const { data: allConfigs, error: allError } = await supabase
             .from('agent_configurations_scoped')
             .select('*')
             .eq('client_id', businessId);
-            
-          this.logger.info('All agent configs for businessId (any is_active):', allConfigs?.length || 0);
+
+          this.logger.info(
+            'All agent configs for businessId (any is_active):',
+            allConfigs?.length || 0
+          );
           if (allConfigs && allConfigs.length > 0) {
             this.logger.info('Sample config:', allConfigs[0]);
           }
           if (allError) {
             this.logger.error('All configs query error:', allError);
           }
-          
+
           // Check if there are ANY agent configs in the table
           const { data: anyConfigs, error: anyError } = await supabase
             .from('agent_configurations_scoped')
             .select('client_id, is_active, agent_name, id')
             .limit(10);
-            
-          this.logger.info('Any agent configs in table:', anyConfigs?.length || 0);
+
+          this.logger.info(
+            'Any agent configs in table:',
+            anyConfigs?.length || 0
+          );
           if (anyConfigs && anyConfigs.length > 0) {
-            this.logger.info('Available client_ids:', anyConfigs.map(c => c.client_id));
+            this.logger.info(
+              'Available client_ids:',
+              anyConfigs.map(c => c.client_id)
+            );
             this.logger.info('Sample configs:', anyConfigs);
           }
           if (anyError) {
             this.logger.error('Any configs query error:', anyError);
           }
         }
-        
+
         if (fallbackConfigs && fallbackConfigs.length > 0) {
           // Manually add agent type info
           agentConfigs = fallbackConfigs.map(config => ({
             ...config,
-            agent_types: { type_code: 'inbound_receptionist', name: 'Inbound Receptionist' }
+            agent_types: {
+              type_code: 'inbound_receptionist',
+              name: 'Inbound Receptionist',
+            },
           }));
         }
       }
@@ -222,34 +254,42 @@ export class RetellDeploymentService extends BaseBusinessService {
       }
 
       if (!agentConfigs || agentConfigs.length === 0) {
-        this.logger.info('No agent configurations found, creating default agent...');
-        
+        this.logger.info(
+          'No agent configurations found, creating default agent...'
+        );
+
         // Get business name for default agent
         const businessName = await this.getBusinessName(businessId);
-        
+
         // Create a default agent configuration if none exists
         const defaultAgent = {
           id: 'default-agent',
           agent_name: `${businessName} AI Receptionist`,
           client_id: businessId,
-          basic_info_prompt: 'You are a helpful AI receptionist for this business. Assist customers with their inquiries professionally and courteously.',
-          call_scripts_prompt: 'Greet callers warmly and ask how you can help them today.',
+          basic_info_prompt:
+            'You are a helpful AI receptionist for this business. Assist customers with their inquiries professionally and courteously.',
+          call_scripts_prompt:
+            'Greet callers warmly and ask how you can help them today.',
           call_scripts: {
-            greeting_script: 'Hello! Thank you for calling. How may I assist you today?'
+            greeting_script:
+              'Hello! Thank you for calling. How may I assist you today?',
           },
           voice_settings: {
             provider: 'retell',
             voice_id: '11labs-Adrian',
-            speed: 1.28
+            speed: 1.28,
           },
-          agent_types: { 
-            type_code: 'inbound_receptionist', 
-            name: 'Inbound Receptionist' 
-          }
+          agent_types: {
+            type_code: 'inbound_receptionist',
+            name: 'Inbound Receptionist',
+          },
         };
-        
+
         agentConfigs = [defaultAgent];
-        this.logger.info('Created default agent configuration with business name:', businessName);
+        this.logger.info(
+          'Created default agent configuration with business name:',
+          businessName
+        );
       }
 
       // Deploy Router Agent
@@ -298,19 +338,22 @@ export class RetellDeploymentService extends BaseBusinessService {
       return {
         success: errors.length === 0,
         agents: deployedAgents,
-        errors: errors.length > 0 ? errors : undefined
+        errors: errors.length > 0 ? errors : undefined,
       };
     } catch (error) {
       this.logger.error('Error deploying agents:', error);
       this.logger.error('Error details:', {
         message: error instanceof Error ? error.message : 'Unknown error',
         stack: error instanceof Error ? error.stack : undefined,
-        businessId
+        businessId,
       });
       return {
         success: false,
         agents: [],
-        errors: ['Failed to deploy agents: ' + (error instanceof Error ? error.message : error)]
+        errors: [
+          'Failed to deploy agents: ' +
+            (error instanceof Error ? error.message : error),
+        ],
       };
     }
   }
@@ -320,7 +363,10 @@ export class RetellDeploymentService extends BaseBusinessService {
    */
   private async deployRouterAgent(businessId: string): Promise<any> {
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:19080';
+      const baseUrl =
+        process.env.NEXT_PUBLIC_BASE_URL ||
+        process.env.NEXT_PUBLIC_SITE_URL ||
+        'http://localhost:19080';
       const webhookUrl = `${baseUrl}/api/retell/functions/appointment`;
 
       // Create comprehensive agent config based on sample working agent
@@ -328,7 +374,8 @@ export class RetellDeploymentService extends BaseBusinessService {
         agent_name: routerAgentConfig.name,
         response_engine: {
           type: 'retell-llm',
-          llm_id: process.env.RETELL_LLM_ID || 'llm_d49a5bb9fc03a64269da6e456058'
+          llm_id:
+            process.env.RETELL_LLM_ID || 'llm_d49a5bb9fc03a64269da6e456058',
         },
         voice_id: '11labs-Adrian',
         language: 'en-US',
@@ -342,10 +389,13 @@ export class RetellDeploymentService extends BaseBusinessService {
         interruption_sensitivity: 0.9,
         normalize_for_speech: true,
         begin_message_delay_ms: 200,
-        post_call_analysis_model: 'gpt-4o-mini'
+        post_call_analysis_model: 'gpt-4o-mini',
       };
 
-      this.logger.info('Creating router agent with config:', JSON.stringify(agentConfig, null, 2));
+      this.logger.info(
+        'Creating router agent with config:',
+        JSON.stringify(agentConfig, null, 2)
+      );
 
       // Check if agent already exists
       const existingAgents = await this.retell.agent.list();
@@ -363,13 +413,16 @@ export class RetellDeploymentService extends BaseBusinessService {
         // Create new agent
         try {
           agent = await this.retell.agent.create(agentConfig);
-          this.logger.info('Router agent created successfully:', agent.agent_id);
+          this.logger.info(
+            'Router agent created successfully:',
+            agent.agent_id
+          );
         } catch (createError) {
           this.logger.error('Failed to create router agent:', {
             error: createError.message,
             status: createError.status,
             details: createError.error || createError,
-            config: agentConfig
+            config: agentConfig,
           });
           throw createError;
         }
@@ -387,13 +440,11 @@ export class RetellDeploymentService extends BaseBusinessService {
         voice_settings: JSON.stringify({
           voice_id: agentConfig.voice_id,
           voice_temperature: agentConfig.voice_temperature,
-          voice_speed: agentConfig.voice_speed
-        })
+          voice_speed: agentConfig.voice_speed,
+        }),
       };
 
-      await supabase
-        .from('retell_agents')
-        .upsert(routerRecord);
+      await supabase.from('retell_agents').upsert(routerRecord);
 
       this.logger.info('Stored router agent in database:', routerRecord);
 
@@ -414,20 +465,23 @@ export class RetellDeploymentService extends BaseBusinessService {
     try {
       // Use the business user-defined agent name directly
       const agentName = config.agent_name || `${role} Agent`;
-      
+
       // Determine response engine type based on configuration
-      const responseEngine = config.conversationFlowId || config.conversation_flow_id
-        ? {
-            type: 'conversation-flow',
-            conversation_flow_id: config.conversationFlowId || config.conversation_flow_id
-          }
-        : {
-            type: 'retell-llm',
-            llm_id: process.env.RETELL_LLM_ID || 'llm_d49a5bb9fc03a64269da6e456058'
-          };
+      const responseEngine =
+        config.conversationFlowId || config.conversation_flow_id
+          ? {
+              type: 'conversation-flow',
+              conversation_flow_id:
+                config.conversationFlowId || config.conversation_flow_id,
+            }
+          : {
+              type: 'retell-llm',
+              llm_id:
+                process.env.RETELL_LLM_ID || 'llm_d49a5bb9fc03a64269da6e456058',
+            };
 
       this.logger.info('Response engine config:', responseEngine);
-      
+
       // Create comprehensive agent config based on sample working agent
       const agentConfig = {
         agent_name: agentName,
@@ -445,10 +499,16 @@ export class RetellDeploymentService extends BaseBusinessService {
         normalize_for_speech: true,
         begin_message_delay_ms: 200,
         post_call_analysis_model: 'gpt-4o-mini',
-        begin_message: config.call_scripts?.greeting_script || config.greeting_message || 'Hello! Thank you for calling. How can I help you today?'
+        begin_message:
+          config.call_scripts?.greeting_script ||
+          config.greeting_message ||
+          'Hello! Thank you for calling. How can I help you today?',
       };
 
-      this.logger.info('Creating role agent with config:', JSON.stringify(agentConfig, null, 2));
+      this.logger.info(
+        'Creating role agent with config:',
+        JSON.stringify(agentConfig, null, 2)
+      );
 
       // For now, always create a new agent to avoid update issues
       // TODO: Implement proper agent updating logic later
@@ -462,7 +522,7 @@ export class RetellDeploymentService extends BaseBusinessService {
           error: createError.message,
           status: createError.status,
           details: createError.error || createError,
-          config: agentConfig
+          config: agentConfig,
         });
         throw createError;
       }
@@ -476,18 +536,17 @@ export class RetellDeploymentService extends BaseBusinessService {
         ai_agent_id: config.id,
         status: 'deployed',
         updated_at: new Date().toISOString(),
-        conversation_flow_id: config.conversationFlowId || config.conversation_flow_id || null,
+        conversation_flow_id:
+          config.conversationFlowId || config.conversation_flow_id || null,
         response_engine_type: responseEngine.type,
         voice_settings: JSON.stringify({
           voice_id: agentConfig.voice_id,
           voice_temperature: agentConfig.voice_temperature,
-          voice_speed: agentConfig.voice_speed
-        })
+          voice_speed: agentConfig.voice_speed,
+        }),
       };
 
-      await supabase
-        .from('retell_agents')
-        .upsert(agentRecord);
+      await supabase.from('retell_agents').upsert(agentRecord);
 
       this.logger.info(`Stored ${role} agent in database:`, agentRecord);
 
@@ -506,16 +565,14 @@ export class RetellDeploymentService extends BaseBusinessService {
     agents: any[]
   ): Promise<void> {
     try {
-      await supabase
-        .from('agent_deployments')
-        .insert({
-          business_id: businessId,
-          deployment_type: 'retell',
-          agents_deployed: agents.length,
-          agent_ids: agents.map(a => a.agent_id),
-          status: 'active',
-          deployed_at: new Date().toISOString()
-        });
+      await supabase.from('agent_deployments').insert({
+        business_id: businessId,
+        deployment_type: 'retell',
+        agents_deployed: agents.length,
+        agent_ids: agents.map(a => a.agent_id),
+        status: 'active',
+        deployed_at: new Date().toISOString(),
+      });
     } catch (error) {
       this.logger.error('Error updating deployment status:', error);
     }
@@ -542,18 +599,18 @@ export class RetellDeploymentService extends BaseBusinessService {
       }
 
       let assignedNumber;
-      
+
       if (phoneNumber) {
         // Use provided phone number
         assignedNumber = await this.retell.phoneNumber.import({
           phone_number: phoneNumber,
-          agent_id: routerAgent.retell_agent_id
+          agent_id: routerAgent.retell_agent_id,
         });
       } else {
         // Purchase new phone number
         const availableNumbers = await this.retell.phoneNumber.searchAvailable({
           country: 'US',
-          limit: 1
+          limit: 1,
         });
 
         if (availableNumbers.length === 0) {
@@ -562,31 +619,29 @@ export class RetellDeploymentService extends BaseBusinessService {
 
         assignedNumber = await this.retell.phoneNumber.purchase({
           phone_number: availableNumbers[0].phone_number,
-          agent_id: routerAgent.retell_agent_id
+          agent_id: routerAgent.retell_agent_id,
         });
       }
 
       // Store phone number assignment
-      await supabase
-        .from('phone_assignments')
-        .insert({
-          business_id: businessId,
-          phone_number: assignedNumber.phone_number,
-          retell_agent_id: routerAgent.retell_agent_id,
-          type: 'inbound',
-          status: 'active',
-          assigned_at: new Date().toISOString()
-        });
+      await supabase.from('phone_assignments').insert({
+        business_id: businessId,
+        phone_number: assignedNumber.phone_number,
+        retell_agent_id: routerAgent.retell_agent_id,
+        type: 'inbound',
+        status: 'active',
+        assigned_at: new Date().toISOString(),
+      });
 
       return {
         success: true,
-        phoneNumber: assignedNumber.phone_number
+        phoneNumber: assignedNumber.phone_number,
       };
     } catch (error) {
       this.logger.error('Error assigning phone number:', error);
       return {
         success: false,
-        error: 'Failed to assign phone number: ' + error
+        error: 'Failed to assign phone number: ' + error,
       };
     }
   }
@@ -595,7 +650,7 @@ export class RetellDeploymentService extends BaseBusinessService {
    * Create a test inbound call to an agent
    */
   async createTestCall(
-    businessId: string, 
+    businessId: string,
     agentId?: string,
     fromNumber?: string,
     toNumber?: string
@@ -618,7 +673,7 @@ export class RetellDeploymentService extends BaseBusinessService {
       }
 
       // Use specified agent or default to first available
-      const targetAgent = agentId 
+      const targetAgent = agentId
         ? agents.find(a => a.retell_agent_id === agentId)
         : agents[0];
 
@@ -630,13 +685,13 @@ export class RetellDeploymentService extends BaseBusinessService {
       const testCallConfig = {
         agent_id: targetAgent.retell_agent_id,
         from_number: fromNumber || '+1234567890', // Test number
-        to_number: toNumber || '+1987654321',     // Test number
+        to_number: toNumber || '+1987654321', // Test number
         metadata: {
           test_call: true,
           business_id: businessId,
           agent_name: targetAgent.agent_name,
-          created_at: new Date().toISOString()
-        }
+          created_at: new Date().toISOString(),
+        },
       };
 
       this.logger.info('Creating test call:', testCallConfig);
@@ -645,17 +700,15 @@ export class RetellDeploymentService extends BaseBusinessService {
       const testCall = await this.retell.call.create(testCallConfig);
 
       // Store test call record
-      await supabase
-        .from('test_calls')
-        .insert({
-          business_id: businessId,
-          retell_agent_id: targetAgent.retell_agent_id,
-          retell_call_id: testCall.call_id,
-          from_number: testCallConfig.from_number,
-          to_number: testCallConfig.to_number,
-          status: 'created',
-          created_at: new Date().toISOString()
-        });
+      await supabase.from('test_calls').insert({
+        business_id: businessId,
+        retell_agent_id: targetAgent.retell_agent_id,
+        retell_call_id: testCall.call_id,
+        from_number: testCallConfig.from_number,
+        to_number: testCallConfig.to_number,
+        status: 'created',
+        created_at: new Date().toISOString(),
+      });
 
       return {
         success: true,
@@ -666,7 +719,9 @@ export class RetellDeploymentService extends BaseBusinessService {
       this.logger.error('Error creating test call:', error);
       return {
         success: false,
-        error: 'Failed to create test call: ' + (error instanceof Error ? error.message : error)
+        error:
+          'Failed to create test call: ' +
+          (error instanceof Error ? error.message : error),
       };
     }
   }
@@ -704,28 +759,28 @@ export class RetellDeploymentService extends BaseBusinessService {
             agentType: agent.agent_type,
             agentName: agent.agent_name,
             status: 'active',
-            details: retellAgent
+            details: retellAgent,
           });
         } catch (agentError) {
           testResults.push({
             agentType: agent.agent_type,
             agentName: agent.agent_name,
             status: 'error',
-            error: agentError
+            error: agentError,
           });
         }
       }
 
       return {
         success: true,
-        results: testResults
+        results: testResults,
       };
     } catch (error) {
       this.logger.error('Error testing deployment:', error);
       return {
         success: false,
         results: [],
-        error: 'Failed to test deployment: ' + error
+        error: 'Failed to test deployment: ' + error,
       };
     }
   }

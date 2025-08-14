@@ -27,9 +27,9 @@ export async function POST(request: NextRequest) {
 
     if (!deploymentResult.success) {
       return NextResponse.json(
-        { 
+        {
           error: 'Deployment failed',
-          errors: deploymentResult.errors 
+          errors: deploymentResult.errors,
         },
         { status: 500 }
       );
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       success: true,
       agents: deploymentResult.agents,
       phoneNumber,
-      message: `Successfully deployed ${deploymentResult.agents.length} agents`
+      message: `Successfully deployed ${deploymentResult.agents.length} agents`,
     });
   } catch (error) {
     console.error('Error deploying to Retell:', error);
@@ -54,12 +54,12 @@ export async function POST(request: NextRequest) {
       message: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined,
       businessId,
-      agents: agents?.length || 0
+      agents: agents?.length || 0,
     });
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

@@ -35,7 +35,10 @@ import {
   MicIcon,
   CalendarIcon,
 } from '@/components/icons';
-import { Rocket as RocketIcon, CheckCircle as CheckCircleIcon } from 'lucide-react';
+import {
+  Rocket as RocketIcon,
+  CheckCircle as CheckCircleIcon,
+} from 'lucide-react';
 import { AgentTypeCallScripts } from '@/components/settings/business/steps/step6-agents/AgentTypeCallScripts';
 import { AgentTypeVoiceSettings } from '@/components/settings/business/steps/step6-agents/AgentTypeVoiceSettings';
 import { AgentTypeCallRouting } from '@/components/settings/business/steps/step6-agents/AgentTypeCallRouting';
@@ -576,7 +579,7 @@ export function AIAgentsStep({
 
     try {
       setDeploying(true);
-      
+
       // Deploy individual agent to Retell
       const response = await authenticatedFetch('/api/retell/deploy-single', {
         method: 'POST',
@@ -592,14 +595,14 @@ export function AIAgentsStep({
             call_scripts: agent.call_scripts,
             voice_settings: agent.voice_settings,
             conversation_flow_id: agent.conversation_flow_id,
-            greeting_message: agent.greeting_message
-          }
+            greeting_message: agent.greeting_message,
+          },
         }),
       });
 
       if (response.ok) {
         const result = await response.json();
-        
+
         // Update agent with retell_agent_id
         setAgents(prev =>
           prev.map(a =>
@@ -612,25 +615,26 @@ export function AIAgentsStep({
               : a
           )
         );
-        
+
         await loadAgents(); // Refresh the list
         toast.success(`Agent "${agent.agent_name}" deployed successfully!`);
       } else {
         const error = await response.json();
-        const errorMessage = error.details || error.error || 'Failed to deploy agent';
+        const errorMessage =
+          error.details || error.error || 'Failed to deploy agent';
         toast.error(errorMessage);
       }
     } catch (error) {
       console.error('Failed to deploy agent:', error);
-      const errorMessage = error instanceof Error 
-        ? `Deployment failed: ${error.message}`
-        : 'Failed to deploy agent - Network or connection error';
+      const errorMessage =
+        error instanceof Error
+          ? `Deployment failed: ${error.message}`
+          : 'Failed to deploy agent - Network or connection error';
       toast.error(errorMessage);
     } finally {
       setDeploying(false);
     }
   };
-
 
   const handleTestCall = async (agent?: AIAgent) => {
     if (!user?.id) return;
@@ -655,22 +659,27 @@ export function AIAgentsStep({
           callUrl: result.callUrl,
         });
         const agentName = agent ? `"${agent.agent_name}"` : 'agent';
-        toast.success(`Test call created for ${agentName}! Click to view in Retell.`, {
-          action: {
-            label: 'View',
-            onClick: () => window.open(result.callUrl, '_blank')
+        toast.success(
+          `Test call created for ${agentName}! Click to view in Retell.`,
+          {
+            action: {
+              label: 'View',
+              onClick: () => window.open(result.callUrl, '_blank'),
+            },
           }
-        });
+        );
       } else {
         const error = await response.json();
-        const errorMessage = error.details || error.error || 'Failed to create test call';
+        const errorMessage =
+          error.details || error.error || 'Failed to create test call';
         toast.error(errorMessage);
       }
     } catch (error) {
       console.error('Failed to create test call:', error);
-      const errorMessage = error instanceof Error 
-        ? `Test call failed: ${error.message}`
-        : 'Failed to create test call - Network or connection error';
+      const errorMessage =
+        error instanceof Error
+          ? `Test call failed: ${error.message}`
+          : 'Failed to create test call - Network or connection error';
       toast.error(errorMessage);
     } finally {
       setTestingCall(false);
@@ -1210,7 +1219,10 @@ export function AIAgentsStep({
                         call_scripts: scriptData,
                         call_scripts_prompt: scriptPrompt,
                       };
-                      console.log('Updated formData with scripts:', updatedData);
+                      console.log(
+                        'Updated formData with scripts:',
+                        updatedData
+                      );
                       return updatedData;
                     });
 
@@ -1222,7 +1234,9 @@ export function AIAgentsStep({
                         console.log('Scripts auto-saved successfully');
                       } catch (error) {
                         console.error('Failed to auto-save scripts:', error);
-                        toast.error('Failed to save scripts to database. Please try manually saving.');
+                        toast.error(
+                          'Failed to save scripts to database. Please try manually saving.'
+                        );
                       }
                     }, 500);
                   }}

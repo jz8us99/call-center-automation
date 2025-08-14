@@ -14,14 +14,14 @@ export async function POST(request: NextRequest) {
 
     console.log('Test deploy endpoint called:', {
       userId: user?.id,
-      businessId
+      businessId,
     });
 
     // Test environment variables
     const environment = {
       retell_api_key: !!process.env.RETELL_API_KEY,
       retell_llm_id: !!process.env.RETELL_LLM_ID,
-      base_url: !!process.env.NEXT_PUBLIC_BASE_URL
+      base_url: !!process.env.NEXT_PUBLIC_BASE_URL,
     };
 
     console.log('Environment check:', environment);
@@ -29,21 +29,23 @@ export async function POST(request: NextRequest) {
     // Test database query
     const { data: agentConfigs, error: configError } = await supabase
       .from('agent_configurations_scoped')
-      .select(`
+      .select(
+        `
         *,
         agent_types!inner (
           id,
           type_code,
           name
         )
-      `)
+      `
+      )
       .eq('client_id', businessId)
       .eq('is_active', true)
       .not('agent_type_id', 'is', null);
 
     console.log('Database query result:', {
       configsFound: agentConfigs?.length || 0,
-      error: configError?.message
+      error: configError?.message,
     });
 
     // Test table existence
@@ -54,7 +56,7 @@ export async function POST(request: NextRequest) {
 
     console.log('Retell agents table check:', {
       exists: !tableError,
-      error: tableError?.message
+      error: tableError?.message,
     });
 
     return NextResponse.json({
@@ -64,20 +66,19 @@ export async function POST(request: NextRequest) {
         agent_configs_found: agentConfigs?.length || 0,
         config_error: configError?.message,
         retell_table_exists: !tableError,
-        retell_table_error: tableError?.message
+        retell_table_error: tableError?.message,
       },
       user: {
         id: user?.id,
-        email: user?.email
-      }
+        email: user?.email,
+      },
     });
-
   } catch (error) {
     console.error('Test deploy error:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Test failed',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
