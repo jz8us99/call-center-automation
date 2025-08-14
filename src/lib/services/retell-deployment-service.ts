@@ -100,12 +100,19 @@ export class RetellDeploymentService extends BaseBusinessService {
       // Create agent name: Business Name + Agent Name from Step 6
       const fullAgentName = `${businessName} ${agentConfig.agent_name}`;
       
-      // Deploy the individual agent
-      const deployedAgent = await this.deployRoleAgent({
+      // Check if agent config has LLM ID, if not it will use default
+      const enhancedConfig = {
         ...agentConfig,
         agent_name: fullAgentName,
-        client_id: businessId
-      }, 'receptionist'); // Default to receptionist, can be customized
+        client_id: businessId,
+        retell_llm_id: agentConfig.retell_llm_id // Pass through the LLM ID if provided
+      };
+      
+      // Deploy the individual agent
+      const deployedAgent = await this.deployRoleAgent(
+        enhancedConfig,
+        agentConfig.agent_type || 'receptionist' // Use provided type or default to receptionist
+      );
 
       if (deployedAgent) {
         return {
@@ -323,12 +330,21 @@ export class RetellDeploymentService extends BaseBusinessService {
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:19080';
       const webhookUrl = `${baseUrl}/api/retell/functions/appointment`;
 
+      // Get default LLM ID from database or use environment variable as fallback
+      const { data: defaultLlm } = await supabase
+        .from('retell_llm_configs')
+        .select('llm_id')
+        .eq('is_default', true)
+        .single();
+      
+      const llmId = defaultLlm?.llm_id || process.env.RETELL_LLM_ID || 'llm_f56f731b3105a4b42d8cb522ffa7';
+
       // Create comprehensive agent config based on sample working agent
       const agentConfig = {
         agent_name: routerAgentConfig.name,
         response_engine: {
           type: 'retell-llm',
-          llm_id: process.env.RETELL_LLM_ID || 'llm_d49a5bb9fc03a64269da6e456058'
+          llm_id: llmId
         },
         voice_id: '11labs-Adrian',
         language: 'en-US',
@@ -384,6 +400,7 @@ export class RetellDeploymentService extends BaseBusinessService {
         status: 'deployed',
         updated_at: new Date().toISOString(),
         response_engine_type: 'retell-llm',
+        retell_llm_id: llmId,
         voice_settings: JSON.stringify({
           voice_id: agentConfig.voice_id,
           voice_temperature: agentConfig.voice_temperature,
@@ -415,6 +432,20 @@ export class RetellDeploymentService extends BaseBusinessService {
       // Use the business user-defined agent name directly
       const agentName = config.agent_name || `${role} Agent`;
       
+      // Get LLM ID from config or use default
+      let llmId = config.retell_llm_id;
+      
+      if (!llmId) {
+        // Try to get default LLM from database
+        const { data: defaultLlm } = await supabase
+          .from('retell_llm_configs')
+          .select('llm_id')
+          .eq('is_default', true)
+          .single();
+        
+        llmId = defaultLlm?.llm_id || process.env.RETELL_LLM_ID || 'llm_f56f731b3105a4b42d8cb522ffa7';
+      }
+
       // Determine response engine type based on configuration
       const responseEngine = config.conversationFlowId || config.conversation_flow_id
         ? {
@@ -423,7 +454,7 @@ export class RetellDeploymentService extends BaseBusinessService {
           }
         : {
             type: 'retell-llm',
-            llm_id: process.env.RETELL_LLM_ID || 'llm_d49a5bb9fc03a64269da6e456058'
+            llm_id: llmId
           };
 
       this.logger.info('Response engine config:', responseEngine);
@@ -478,6 +509,7 @@ export class RetellDeploymentService extends BaseBusinessService {
         updated_at: new Date().toISOString(),
         conversation_flow_id: config.conversationFlowId || config.conversation_flow_id || null,
         response_engine_type: responseEngine.type,
+        retell_llm_id: responseEngine.type === 'retell-llm' ? llmId : null,
         voice_settings: JSON.stringify({
           voice_id: agentConfig.voice_id,
           voice_temperature: agentConfig.voice_temperature,
