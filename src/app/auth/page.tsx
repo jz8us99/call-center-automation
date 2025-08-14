@@ -192,10 +192,10 @@ export default function AuthPage() {
                 className="inline-flex items-center space-x-2 hover:opacity-80 transition-opacity"
               >
                 <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
-                  <span className="text-white text-xl font-bold">R</span>
+                  <span className="text-white text-xl font-bold">J</span>
                 </div>
                 <span className="text-xl font-bold text-black dark:text-white">
-                  ReceptionPro
+                  JSX-ReceptionAI
                 </span>
               </Link>
             </div>

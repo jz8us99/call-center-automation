@@ -65,10 +65,10 @@ export default function Header() {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
-              <span className="text-white text-xl font-bold">R</span>
+              <span className="text-white text-xl font-bold">J</span>
             </div>
             <span className="text-xl font-bold text-black dark:text-white">
-              ReceptionPro
+              JSX-ReceptionAI
             </span>
           </div>
 

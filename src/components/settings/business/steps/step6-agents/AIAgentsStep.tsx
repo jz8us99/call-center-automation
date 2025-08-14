@@ -33,10 +33,13 @@ import {
   PhoneIcon,
   UsersIcon as UserIcon,
   MicIcon,
+  CalendarIcon,
 } from '@/components/icons';
+import { Rocket as RocketIcon, CheckCircle as CheckCircleIcon } from 'lucide-react';
 import { AgentTypeCallScripts } from '@/components/settings/business/steps/step6-agents/AgentTypeCallScripts';
 import { AgentTypeVoiceSettings } from '@/components/settings/business/steps/step6-agents/AgentTypeVoiceSettings';
 import { AgentTypeCallRouting } from '@/components/settings/business/steps/step6-agents/AgentTypeCallRouting';
+import { CalendarIntegrations } from '@/components/settings/business/steps/step6-agents/CalendarIntegrations';
 import { AgentType, AGENT_TYPE_CONFIGS } from '@/types/agent-types';
 
 interface AIAgent {
@@ -127,6 +130,12 @@ export function AIAgentsStep({
     'basic' | 'scripts' | 'voice' | 'routing'
   >('basic');
   const [loading, setLoading] = useState(true);
+  const [deploying, setDeploying] = useState(false);
+  const [deploymentStatus, setDeploymentStatus] = useState<{
+    deployed: boolean;
+    agentCount?: number;
+    phoneNumber?: string;
+  }>({ deployed: false });
 
   const [formData, setFormData] = useState({
     agent_name: '',
@@ -139,6 +148,7 @@ export function AIAgentsStep({
     custom_instructions: '',
     basic_info_prompt: '',
     call_scripts_prompt: '',
+    call_scripts: {},
     voice_settings: {
       speed: 1.0,
       pitch: 1.0,
@@ -242,6 +252,7 @@ export function AIAgentsStep({
       custom_instructions: '',
       basic_info_prompt: '',
       call_scripts_prompt: '',
+      call_scripts: {},
       voice_settings: {
         speed: 1.0,
         pitch: 1.0,
@@ -272,6 +283,7 @@ export function AIAgentsStep({
       custom_instructions: agent.custom_instructions || '',
       basic_info_prompt: agent.basic_info_prompt || '',
       call_scripts_prompt: agent.call_scripts_prompt || '',
+      call_scripts: agent.call_scripts || {},
       voice_settings: (agent.voice_settings as any) || {
         speed: 1.0,
         pitch: 1.0,
@@ -484,10 +496,14 @@ export function AIAgentsStep({
       }
 
       if (section === 'scripts' || section === 'all') {
-        saveData = {
-          ...saveData,
+        const scriptsData = {
           call_scripts_prompt: formData.call_scripts_prompt,
           call_scripts: (formData as any).call_scripts || {},
+        };
+        console.log('Scripts data being saved:', scriptsData);
+        saveData = {
+          ...saveData,
+          ...scriptsData,
         };
       }
 
@@ -594,6 +610,62 @@ export function AIAgentsStep({
     }
   };
 
+  const handleAutoDeployToRetell = async () => {
+    try {
+      setDeploying(true);
+      
+      const response = await authenticatedFetch('/api/retell/deploy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          businessId: user?.id,
+          agents: agents.filter(a => a.status === 'active')
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        toast.success(`Successfully deployed ${result.agents.length} agents to Retell`);
+        
+        // Update deployment status
+        setDeploymentStatus({
+          deployed: true,
+          agentCount: result.agents.length,
+          phoneNumber: result.phoneNumber
+        });
+      } else {
+        const error = await response.json().catch(() => ({ message: 'Unknown error' }));
+        console.error('Deployment error details:', {
+          status: response.status,
+          statusText: response.statusText,
+          error
+        });
+        
+        // Show detailed error message
+        const errorMessage = error.errors 
+          ? `Deployment failed: ${error.errors.join(', ')}`
+          : error.details 
+          ? `Deployment failed: ${error.details}`
+          : error.message 
+          ? `Deployment failed: ${error.message}`
+          : `Deployment failed: ${response.status} ${response.statusText}`;
+          
+        toast.error(errorMessage);
+      }
+    } catch (error) {
+      console.error('Failed to deploy to Retell:', error);
+      
+      // Show detailed error message
+      const errorMessage = error instanceof Error 
+        ? `Deployment failed: ${error.message}`
+        : 'Failed to deploy agents to Retell - Network or connection error';
+        
+      toast.error(errorMessage);
+    } finally {
+      setDeploying(false);
+    }
+  };
+
   const getStatusColor = (status: AIAgent['status']) => {
     switch (status) {
       case 'active':
@@ -629,13 +701,48 @@ export function AIAgentsStep({
               </CardTitle>
               <CardDescription>{t('description')}</CardDescription>
             </div>
-            <Button
-              onClick={handleCreateAgent}
-              className="flex items-center gap-2"
-            >
-              <PlusIcon className="h-4 w-4" />
-              {t('createNewAgent')}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={handleCreateAgent}
+                className="flex items-center gap-2"
+              >
+                <PlusIcon className="h-4 w-4" />
+                {t('createNewAgent')}
+              </Button>
+              {agents.length > 0 && (
+                <>
+                  <Button
+                    onClick={async () => {
+                      try {
+                        const response = await authenticatedFetch('/api/test-deploy', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ businessId: user?.id })
+                        });
+                        const result = await response.json();
+                        console.log('Test deploy result:', result);
+                        toast.success('Test completed - check console');
+                      } catch (error) {
+                        console.error('Test failed:', error);
+                        toast.error('Test failed');
+                      }
+                    }}
+                    variant="secondary"
+                    size="sm"
+                  >
+                    Test Deploy
+                  </Button>
+                  <Button
+                    onClick={handleAutoDeployToRetell}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    <RocketIcon className="h-4 w-4" />
+                    Deploy AI Agent
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
         </CardHeader>
 
@@ -1105,20 +1212,27 @@ export function AIAgentsStep({
                         scripts?.main_script || scripts?.greeting_script || '';
                     }
 
-                    setFormData(prev => ({
-                      ...prev,
-                      call_scripts: scriptData,
-                      call_scripts_prompt: scriptPrompt,
-                    }));
+                    setFormData(prev => {
+                      const updatedData = {
+                        ...prev,
+                        call_scripts: scriptData,
+                        call_scripts_prompt: scriptPrompt,
+                      };
+                      console.log('Updated formData with scripts:', updatedData);
+                      return updatedData;
+                    });
 
                     // Auto-save to database when scripts are generated
                     setTimeout(async () => {
                       try {
+                        console.log('Auto-saving scripts to database...');
                         await saveAgentConfiguration('scripts');
+                        console.log('Scripts auto-saved successfully');
                       } catch (error) {
                         console.error('Failed to auto-save scripts:', error);
+                        toast.error('Failed to save scripts to database. Please try manually saving.');
                       }
-                    }, 100);
+                    }, 500);
                   }}
                   businessInfo={{ ...businessInfo, user_id: user.id }}
                 />
@@ -1323,6 +1437,33 @@ export function AIAgentsStep({
                     {editingAgent ? 'Update Agent' : 'Create Agent'}
                   </Button>
                 )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Calendar Integrations */}
+      {deploymentStatus.deployed && (
+        <CalendarIntegrations businessId={user?.id || ''} />
+      )}
+
+      {/* Deployment Status */}
+      {deploymentStatus.deployed && (
+        <Card className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <CheckCircleIcon className="h-8 w-8 text-green-600 dark:text-green-400" />
+              <div>
+                <p className="font-medium text-green-900 dark:text-green-100">
+                  Agents Deployed to Retell
+                </p>
+                <p className="text-sm text-green-700 dark:text-green-200">
+                  {deploymentStatus.agentCount} agents successfully deployed.
+                  {deploymentStatus.phoneNumber && (
+                    <span> Phone: {deploymentStatus.phoneNumber}</span>
+                  )}
+                </p>
               </div>
             </div>
           </CardContent>

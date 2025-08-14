@@ -26,6 +26,10 @@ import {
   User,
   CreditCard,
   Mic,
+  Rocket,
+  CheckCircle,
+  Link,
+  XCircle,
 } from 'lucide-react';
 
 export interface IconProps {
@@ -224,3 +228,27 @@ export const CallTypeIcon: React.FC<CallTypeIconProps> = ({
     return <QuestionMarkIcon className={`${className} text-gray-500`} />;
   }
 };
+
+// Rocket icon using Lucide
+export const RocketIcon: React.FC<IconProps> = ({
+  className = 'h-4 w-4',
+  size,
+}) => <Rocket className={className} size={size} />;
+
+// Check Circle icon using Lucide
+export const CheckCircleIcon: React.FC<IconProps> = ({
+  className = 'h-4 w-4',
+  size,
+}) => <CheckCircle className={className} size={size} />;
+
+// Link icon using Lucide
+export const LinkIcon: React.FC<IconProps> = ({
+  className = 'h-4 w-4',
+  size,
+}) => <Link className={className} size={size} />;
+
+// X Circle icon using Lucide
+export const XCircleIcon: React.FC<IconProps> = ({
+  className = 'h-4 w-4',
+  size,
+}) => <XCircle className={className} size={size} />;
