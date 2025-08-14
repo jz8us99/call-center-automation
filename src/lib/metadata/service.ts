@@ -85,15 +85,6 @@ export class MetaDataService {
         this.queries
       );
 
-      // 验证数据完整性
-      const validation = MetaDataAggregator.validateMetaData(metaData);
-      if (!validation.isValid) {
-        console.warn(
-          `Metadata validation warnings for user ${this.userId}:`,
-          validation.warnings
-        );
-      }
-
       // Store in cache for future requests (unless skipCache is true)
       if (!skipCache) {
         await MetaDataCache.set(this.userId, metaData, this.agentId);

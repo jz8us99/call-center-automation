@@ -10,3 +10,4 @@
 - all generated document should use English
 - all generated design document store into store in docs/design
 - all log and comment in code should be English
+- run eslint and code format script in package.json after code change

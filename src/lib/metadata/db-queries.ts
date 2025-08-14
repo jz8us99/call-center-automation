@@ -108,7 +108,7 @@ export interface JobTypeData {
     id: string;
     category_name: string;
     description: string;
-  };
+  } | null;
 }
 
 /**
