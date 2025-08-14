@@ -119,7 +119,7 @@ export default function SignUpPage() {
               className="inline-flex flex-col items-center justify-center hover:opacity-80 transition-opacity"
             >
               <div className="inline-flex items-center justify-center w-12 h-12 bg-orange-500 rounded-lg mb-4">
-                <span className="text-white text-xl font-bold">R</span>
+                <span className="text-white text-xl font-bold">J</span>
               </div>
               <h1 className="text-2xl font-bold text-black dark:text-white mb-2">
                 ReceptionPro

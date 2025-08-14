@@ -427,8 +427,10 @@ export function AgentTypeCallScripts({
       setScripts(updatedScripts);
       await onSave(updatedScripts);
       setIsEditing(false);
+      toast.success('Call scripts saved successfully!');
     } catch (error) {
       console.error('Failed to save script:', error);
+      toast.error('Failed to save call scripts. Please try again.');
     }
   };
 

@@ -2,6 +2,8 @@
  * Webhook payload validation utilities
  */
 
+import crypto from 'crypto';
+
 export interface RetellCallValidated {
   call_id?: string;
   agent_id?: string;
@@ -164,4 +166,37 @@ export function safeJsonParse<T = unknown>(
 export function isValidTimestamp(timestamp: string): boolean {
   const date = new Date(timestamp);
   return !isNaN(date.getTime());
+}
+
+/**
+ * Validates webhook signature from Retell
+ */
+export async function validateWebhookSignature(
+  body: string,
+  signature: string,
+  secret?: string
+): Promise<boolean> {
+  try {
+    const webhookSecret = secret || process.env.RETELL_WEBHOOK_SECRET;
+    
+    if (!webhookSecret) {
+      console.warn('No webhook secret configured, skipping signature validation');
+      return true; // Allow in development, but log warning
+    }
+
+    // Retell uses HMAC-SHA256 for webhook signatures
+    const expectedSignature = crypto
+      .createHmac('sha256', webhookSecret)
+      .update(body)
+      .digest('hex');
+
+    // Constant-time comparison to prevent timing attacks
+    return crypto.timingSafeEqual(
+      Buffer.from(signature),
+      Buffer.from(expectedSignature)
+    );
+  } catch (error) {
+    console.error('Error validating webhook signature:', error);
+    return false;
+  }
 }

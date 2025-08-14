@@ -4,7 +4,7 @@ import {
   verifyRetellWebhook,
 } from '@/lib/retell-webhook-utils';
 import { PatientService } from '@/lib/services/patient-service';
-import { MetaDataService } from '@/lib/metadata';
+import { MetaDataService } from '@/lib/services/metadata-service';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import {
   PatientSearchParams,

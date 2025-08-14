@@ -413,18 +413,18 @@
     "testimonials": {
       "title": "What our customers say",
       "testimonial1": {
-        "name": "Sarah Johnson",
-        "company": "Johnson & Associates Law",
+        "name": "Jammie Test",
+        "company": "Jammie Law",
         "text": "The AI receptionist has transformed our practice. We never miss a call and clients love the professional service."
       },
       "testimonial2": {
-        "name": "Michael Chen",
-        "company": "Elite Home Services",
+        "name": "Smith Johnson",
+        "company": "Smith Home Services",
         "text": "Our booking rate increased by 40% since using the service. The ROI is incredible."
       },
       "testimonial3": {
-        "name": "Emma Rodriguez",
-        "company": "Bella Spa & Wellness",
+        "name": "Jane Rodriguez",
+        "company": "Bella Spa",
         "text": "Professional, reliable, and cost-effective. Our clients love the consistent, high-quality service."
       }
     },

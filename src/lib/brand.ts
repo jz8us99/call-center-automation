@@ -6,7 +6,7 @@ export interface BrandConfig {
 }
 
 export const DEFAULT_BRAND: BrandConfig = {
-  name: 'ReceptionPro',
+  name: 'JSX-ReceptionAI',
   primaryColor: '#f97316', // orange-500
   description: 'AI-Powered Call Center Automation',
 };
