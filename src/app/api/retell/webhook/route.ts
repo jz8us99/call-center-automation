@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withAuth, isAuthError } from '@/lib/api-auth-helper';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import {
   RetellCall,
   getUserIdByAgentId,
@@ -181,12 +181,6 @@ async function handleCallAnalyzed(
 
 async function handlePOST(request: NextRequest) {
   try {
-    const authResult = await withAuth(request);
-    if (isAuthError(authResult)) {
-      return authResult;
-    }
-    const { supabaseWithAuth: supabase } = authResult;
-
     // Initialize business services (serverless environment requires reinitialization on each request)
     await initializeBusinessServices();
 
@@ -253,7 +247,7 @@ async function handlePOST(request: NextRequest) {
             user_id: userId,
           };
 
-          const { data, error } = await supabase
+          const { data, error } = await supabaseAdmin
             .from('customer_call_logs')
             .insert(callLogData)
             .select();
