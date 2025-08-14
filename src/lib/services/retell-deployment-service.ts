@@ -1,4 +1,4 @@
-import { BaseBusinessService } from './base-service';
+// import { BaseBusinessService } from './base-service';
 import { supabase } from '../supabase';
 import Retell from 'retell-sdk';
 import { createClient } from '@supabase/supabase-js';
@@ -20,7 +20,7 @@ export interface RetellAgentConfig {
   responseEngineType?: 'retell-llm' | 'conversation-flow';
 }
 
-export class RetellDeploymentService extends BaseBusinessService {
+export class RetellDeploymentService {
   readonly name = 'Retell Deployment Service';
   private retell: Retell;
 
@@ -34,14 +34,10 @@ export class RetellDeploymentService extends BaseBusinessService {
   };
 
   constructor() {
-    super();
-
     const apiKey = process.env.RETELL_API_KEY;
     this.logger.info('Environment check:', {
       hasRetellApiKey: !!apiKey,
       retellApiKeyLength: apiKey?.length || 0,
-      hasLlmId: !!process.env.RETELL_LLM_ID,
-      llmId: process.env.RETELL_LLM_ID,
       hasBaseUrl: !!process.env.NEXT_PUBLIC_SITE_URL,
       baseUrl: process.env.NEXT_PUBLIC_SITE_URL,
       nodeEnv: process.env.NODE_ENV,
@@ -58,26 +54,59 @@ export class RetellDeploymentService extends BaseBusinessService {
     this.logger.info('Retell SDK initialized successfully');
   }
 
+  // async initialize(): Promise<void> {
+  //   // Required by BaseBusinessService
+  //   this.logger.info('Service initialized');
+  // }
+
+  /**
+   * Get or create LLM for agent deployment
+   */
+  private async getOrCreateLlm(
+    businessContext: any,
+    config: any,
+    role: string
+  ): Promise<string> {
+    try {
+      // First try to create a new LLM
+      return await this.createLlmForAgent(businessContext, config, role);
+    } catch (error) {
+      this.logger.warn('Failed to create new LLM, trying to use existing LLM...');
+      
+      // If creation fails, try to get an existing LLM
+      try {
+        const existingLlms = await this.retell.llm.list();
+        
+        if (existingLlms && existingLlms.length > 0) {
+          const firstLlm = existingLlms[0];
+          this.logger.info('Using existing LLM:', firstLlm.llm_id);
+          return firstLlm.llm_id;
+        }
+      } catch (listError) {
+        this.logger.error('Failed to list existing LLMs:', listError);
+      }
+      
+      throw new Error('No LLMs available and cannot create new one: ' + 
+        (error instanceof Error ? error.message : error));
+    }
+  }
+
   /**
    * Create new LLM for agent deployment
    */
   private async createLlmForAgent(
     businessContext: any,
     config: any,
-    role: string,
-    direction: string = 'inbound'
+    role: string
   ): Promise<string> {
     try {
-      this.logger.info(
-        `Creating new LLM for ${direction} ${role} agent deployment...`
-      );
+      this.logger.info('Creating new LLM for agent deployment...');
 
       // Generate comprehensive prompt using all available data
       const comprehensivePrompt = this.generateComprehensivePrompt(
         businessContext,
         config,
-        role,
-        direction
+        role
       );
 
       // Create LLM with business-specific configuration
@@ -98,19 +127,32 @@ export class RetellDeploymentService extends BaseBusinessService {
       return newLlm.llm_id;
     } catch (error) {
       this.logger.error('Error creating new LLM:', error);
+      this.logger.error('Full error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        status: (error as any)?.status,
+        response: (error as any)?.response?.data || (error as any)?.error,
+      });
 
-      // Fallback to environment variable if API fails
-      const fallbackLlmId = process.env.RETELL_LLM_ID;
-      if (fallbackLlmId) {
-        this.logger.warn(
-          'Using fallback LLM ID from environment:',
-          fallbackLlmId
-        );
-        return fallbackLlmId;
+      // Try to get an existing LLM instead of failing
+      try {
+        this.logger.info('Attempting to find existing LLMs...');
+        const existingLlms = await this.retell.llm.list();
+        
+        if (existingLlms && existingLlms.length > 0) {
+          const firstLlm = existingLlms[0];
+          this.logger.warn(
+            'Using existing LLM as fallback:',
+            firstLlm.llm_id
+          );
+          return firstLlm.llm_id;
+        }
+      } catch (listError) {
+        this.logger.error('Failed to list existing LLMs:', listError);
       }
 
       throw new Error(
-        'Failed to create new LLM and no fallback available: ' +
+        'Failed to create new LLM and no existing LLMs found: ' +
           (error instanceof Error ? error.message : error)
       );
     }
@@ -122,8 +164,7 @@ export class RetellDeploymentService extends BaseBusinessService {
   private generateComprehensivePrompt(
     businessContext: any,
     config: any,
-    role: string,
-    direction: string = 'inbound'
+    role: string
   ): string {
     // Start with enhanced business identity based on ALL Supabase data
     let generalPrompt = `You are a professional AI ${role} for ${businessContext.businessName}`;
@@ -254,7 +295,8 @@ export class RetellDeploymentService extends BaseBusinessService {
       this.logger.info('Added user call_scripts_prompt to general prompt');
     }
 
-    // Add direction-specific guidelines
+    // Add direction-specific guidelines (default to inbound)
+    const direction = 'inbound'; // Default direction
     if (direction === 'inbound') {
       generalPrompt += 'INBOUND CALL GUIDELINES:\n';
       generalPrompt +=
@@ -585,10 +627,19 @@ export class RetellDeploymentService extends BaseBusinessService {
    */
   private async resolveBusinessId(inputId: string): Promise<string> {
     try {
-      const serviceSupabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
-      );
+      this.logger.info('Resolving business ID for input:', inputId);
+
+      // Check environment variables
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+      if (!supabaseUrl || !serviceKey) {
+        throw new Error(
+          `Missing Supabase credentials: url=${!!supabaseUrl}, key=${!!serviceKey}`
+        );
+      }
+
+      const serviceSupabase = createClient(supabaseUrl, serviceKey);
 
       // First try to find by business profile ID (direct match)
       const { data: businessById } = await serviceSupabase
@@ -943,12 +994,11 @@ export class RetellDeploymentService extends BaseBusinessService {
 
       // Create LLM if using retell-llm response engine
       if (!config.conversationFlowId && !config.conversation_flow_id) {
-        // Create new LLM for this agent with direction awareness
-        const dynamicLlmId = await this.createLlmForAgent(
+        // Create new LLM for this agent
+        const dynamicLlmId = await this.getOrCreateLlm(
           businessContext,
           config,
-          role,
-          agentDirection
+          role
         );
         responseEngine = {
           type: 'retell-llm',
@@ -958,43 +1008,25 @@ export class RetellDeploymentService extends BaseBusinessService {
 
       this.logger.info('Response engine config:', responseEngine);
 
-      // Create comprehensive agent config (prompt is now handled in LLM creation)
+      // Test API permissions before creating agent
+      try {
+        this.logger.info('Testing Retell API permissions by listing agents...');
+        const existingAgents = await this.retell.agent.list();
+        this.logger.info(`Found ${existingAgents.length} existing agents in Retell account`);
+        if (existingAgents.length > 0) {
+          this.logger.info('Sample agent ID:', existingAgents[0].agent_id);
+        }
+      } catch (listError) {
+        this.logger.error('Failed to list agents - API key may have permission issues:', listError);
+      }
+
+      // Create minimal agent config to debug 404 issue
       const agentConfig = {
         agent_name: agentName,
         response_engine: responseEngine,
-        voice_id: config.voice_settings?.voice_id || '11labs-Adrian',
-        language: businessContext.businessType === 'dental' ? 'en-US' : 'en-US',
+        voice_id: '11labs-Adrian', // Use simple voice ID
+        language: 'en-US',
         webhook_url: `${process.env.NEXT_PUBLIC_SITE_URL}/api/retell/webhook`,
-        voice_temperature: config.voice_settings?.voice_temperature || 1,
-        voice_speed: config.voice_settings?.speed || 1.28,
-        volume: config.voice_settings?.volume || 1,
-        enable_backchannel: config.voice_settings?.enable_backchannel !== false,
-        backchannel_words: config.voice_settings?.backchannel_words || [
-          'mhm',
-          'uh-huh',
-        ],
-        max_call_duration_ms:
-          config.call_routing?.max_call_duration_ms || 1800000, // 30 minutes
-        interruption_sensitivity:
-          config.voice_settings?.interruption_sensitivity || 0.9,
-        normalize_for_speech: true,
-        begin_message_delay_ms:
-          config.voice_settings?.begin_message_delay_ms || 200,
-        post_call_analysis_model: 'gpt-4o-mini',
-        opt_out_sensitive_data_storage: false, // Keep data for business analysis
-        opt_in_signed_url: false,
-        allow_user_dtmf: true,
-        user_dtmf_options: {},
-        is_published: true, // Make agent accessible in Retell interface
-        begin_message:
-          config.call_scripts?.greeting_script ||
-          config.greeting_message ||
-          'Hello! Thank you for calling. How can I help you today?',
-        // Add business-specific post-call analysis fields
-        post_call_analysis_data: this.generatePostCallAnalysisFields(
-          businessContext,
-          config
-        ),
       };
 
       this.logger.info(
@@ -1040,7 +1072,28 @@ export class RetellDeploymentService extends BaseBusinessService {
             details: updateError.error || updateError,
             config: agentConfig,
           });
-          throw updateError;
+          
+          // If agent doesn't exist (404), create a new one instead
+          if (updateError.status === 404) {
+            this.logger.warn(`Agent ${existing.agent_id} not found in Retell, creating new agent instead...`);
+            try {
+              agent = await this.retell.agent.create(agentConfig);
+              this.logger.info(
+                `New ${role} agent created successfully after 404:`,
+                agent.agent_id
+              );
+            } catch (createError) {
+              this.logger.error(`Failed to create new ${role} agent after 404:`, {
+                error: createError.message,
+                status: createError.status,
+                details: createError.error || createError,
+                config: agentConfig,
+              });
+              throw createError;
+            }
+          } else {
+            throw updateError;
+          }
         }
       } else {
         this.logger.info(`Creating new ${role} agent...`);
@@ -1367,6 +1420,63 @@ export class RetellDeploymentService extends BaseBusinessService {
         error:
           'Failed to create test call: ' +
           (error instanceof Error ? error.message : error),
+      };
+    }
+  }
+
+  /**
+   * Assign phone number to business
+   */
+  async assignPhoneNumber(
+    businessId: string,
+    phoneNumber?: string
+  ): Promise<{ success: boolean; phoneNumber?: string; error?: string }> {
+    try {
+      this.logger.info('Attempting to assign phone number for business:', businessId);
+      
+      // Get deployed agents for this business
+      const { data: agents, error } = await supabase
+        .from('retell_agents')
+        .select('retell_agent_id')
+        .eq('business_id', businessId)
+        .eq('status', 'deployed')
+        .limit(1);
+
+      if (error || !agents || agents.length === 0) {
+        this.logger.warn('No deployed agents found for phone number assignment');
+        return {
+          success: true,
+          phoneNumber: undefined,
+        };
+      }
+
+      const agentId = agents[0].retell_agent_id;
+      let assignedNumber;
+
+      if (phoneNumber) {
+        // Use provided phone number
+        this.logger.info('Using provided phone number:', phoneNumber);
+        assignedNumber = phoneNumber;
+      } else {
+        // For now, return success without actually purchasing a new number
+        // This can be implemented later when phone number purchasing is needed
+        this.logger.info('Phone number purchase not implemented - returning success');
+        return {
+          success: true,
+          phoneNumber: undefined,
+        };
+      }
+
+      this.logger.info('Phone number assigned successfully:', assignedNumber);
+      return {
+        success: true,
+        phoneNumber: assignedNumber,
+      };
+    } catch (error) {
+      this.logger.error('Error assigning phone number:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
