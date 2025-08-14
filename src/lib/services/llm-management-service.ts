@@ -25,18 +25,22 @@ export class LLMManagementService {
     if (!apiKey) {
       throw new Error('RETELL_API_KEY environment variable is required');
     }
-    
+
     this.retell = new Retell({ apiKey });
   }
 
   /**
    * Fetch and sync LLM configurations from Retell
    */
-  async syncLLMsFromRetell(): Promise<{ success: boolean; llms?: any[]; error?: string }> {
+  async syncLLMsFromRetell(): Promise<{
+    success: boolean;
+    llms?: any[];
+    error?: string;
+  }> {
     try {
       // Fetch LLMs from Retell
       const retellLLMs = await this.retell.llm.list();
-      
+
       // Store/update LLMs in database
       for (const llm of retellLLMs) {
         const llmConfig: Partial<LLMConfig> = {
@@ -48,29 +52,30 @@ export class LLMManagementService {
           capabilities: {
             version: llm.version,
             start_speaker: llm.start_speaker,
-            has_states: llm.states?.length > 0
-          }
+            has_states: llm.states?.length > 0,
+          },
         };
 
-        await supabase
-          .from('retell_llm_configs')
-          .upsert({
+        await supabase.from('retell_llm_configs').upsert(
+          {
             ...llmConfig,
-            updated_at: new Date().toISOString()
-          }, {
-            onConflict: 'llm_id'
-          });
+            updated_at: new Date().toISOString(),
+          },
+          {
+            onConflict: 'llm_id',
+          }
+        );
       }
 
       return {
         success: true,
-        llms: retellLLMs
+        llms: retellLLMs,
       };
     } catch (error) {
       console.error('Error syncing LLMs:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to sync LLMs'
+        error: error instanceof Error ? error.message : 'Failed to sync LLMs',
       };
     }
   }
@@ -115,7 +120,9 @@ export class LLMManagementService {
   /**
    * Set a new default LLM
    */
-  async setDefaultLLM(llmId: string): Promise<{ success: boolean; error?: string }> {
+  async setDefaultLLM(
+    llmId: string
+  ): Promise<{ success: boolean; error?: string }> {
     try {
       // First, unset current default
       await supabase
@@ -126,9 +133,9 @@ export class LLMManagementService {
       // Set new default
       const { error } = await supabase
         .from('retell_llm_configs')
-        .update({ 
+        .update({
           is_default: true,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('llm_id', llmId);
 
@@ -141,7 +148,8 @@ export class LLMManagementService {
       console.error('Error setting default LLM:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to set default LLM'
+        error:
+          error instanceof Error ? error.message : 'Failed to set default LLM',
       };
     }
   }
@@ -171,7 +179,7 @@ export class LLMManagementService {
         .from('agent_configurations_scoped')
         .update({
           retell_llm_id: llmId,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('id', agentConfigId);
 
@@ -184,7 +192,7 @@ export class LLMManagementService {
       console.error('Error assigning LLM to agent:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to assign LLM'
+        error: error instanceof Error ? error.message : 'Failed to assign LLM',
       };
     }
   }
@@ -214,7 +222,7 @@ export class LLMManagementService {
         .from('agent_configurations_scoped')
         .update({
           retell_llm_id: llmId,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .in('id', agentConfigIds);
 
@@ -224,14 +232,15 @@ export class LLMManagementService {
 
       return {
         success: true,
-        updated: data?.length || 0
+        updated: data?.length || 0,
       };
     } catch (error) {
       console.error('Error bulk assigning LLM:', error);
       return {
         success: false,
         updated: 0,
-        error: error instanceof Error ? error.message : 'Failed to bulk assign LLM'
+        error:
+          error instanceof Error ? error.message : 'Failed to bulk assign LLM',
       };
     }
   }
@@ -242,7 +251,8 @@ export class LLMManagementService {
   async getAgentsByLLM(llmId: string): Promise<any[]> {
     const { data, error } = await supabase
       .from('agent_configurations_scoped')
-      .select(`
+      .select(
+        `
         id,
         agent_name,
         client_id,
@@ -252,7 +262,8 @@ export class LLMManagementService {
           name,
           type_code
         )
-      `)
+      `
+      )
       .eq('retell_llm_id', llmId);
 
     if (error) {
@@ -266,20 +277,23 @@ export class LLMManagementService {
   /**
    * Create or update an LLM configuration
    */
-  async upsertLLMConfig(llmConfig: Partial<LLMConfig>): Promise<{ 
-    success: boolean; 
-    data?: LLMConfig; 
-    error?: string 
+  async upsertLLMConfig(llmConfig: Partial<LLMConfig>): Promise<{
+    success: boolean;
+    data?: LLMConfig;
+    error?: string;
   }> {
     try {
       const { data, error } = await supabase
         .from('retell_llm_configs')
-        .upsert({
-          ...llmConfig,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'llm_id'
-        })
+        .upsert(
+          {
+            ...llmConfig,
+            updated_at: new Date().toISOString(),
+          },
+          {
+            onConflict: 'llm_id',
+          }
+        )
         .select()
         .single();
 
@@ -289,13 +303,16 @@ export class LLMManagementService {
 
       return {
         success: true,
-        data
+        data,
       };
     } catch (error) {
       console.error('Error upserting LLM config:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to upsert LLM config'
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to upsert LLM config',
       };
     }
   }
@@ -306,7 +323,8 @@ export class LLMManagementService {
   async getAgentConfigurationsWithLLMs(clientId: string): Promise<any[]> {
     const { data, error } = await supabase
       .from('agent_configurations_scoped')
-      .select(`
+      .select(
+        `
         *,
         retell_llm_configs!retell_llm_id (
           llm_id,
@@ -318,7 +336,8 @@ export class LLMManagementService {
           name,
           type_code
         )
-      `)
+      `
+      )
       .eq('client_id', clientId)
       .eq('is_active', true);
 

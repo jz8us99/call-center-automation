@@ -37,7 +37,8 @@ export async function GET(request: NextRequest) {
             { status: 400 }
           );
         }
-        const configs = await llmManagementService.getAgentConfigurationsWithLLMs(clientId);
+        const configs =
+          await llmManagementService.getAgentConfigurationsWithLLMs(clientId);
         return NextResponse.json({ success: true, configurations: configs });
 
       default:
@@ -102,7 +103,9 @@ export async function POST(request: NextRequest) {
             { status: 400 }
           );
         }
-        const defaultResult = await llmManagementService.setDefaultLLM(params.llmId);
+        const defaultResult = await llmManagementService.setDefaultLLM(
+          params.llmId
+        );
         return NextResponse.json(defaultResult);
 
       case 'upsert':
@@ -113,7 +116,9 @@ export async function POST(request: NextRequest) {
             { status: 400 }
           );
         }
-        const upsertResult = await llmManagementService.upsertLLMConfig(params.llmConfig);
+        const upsertResult = await llmManagementService.upsertLLMConfig(
+          params.llmConfig
+        );
         return NextResponse.json(upsertResult);
 
       default:

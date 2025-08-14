@@ -1003,21 +1003,64 @@ export class RetellDeploymentService extends BaseBusinessService {
         JSON.stringify(agentConfig, null, 2)
       );
 
-      // For now, always create a new agent to avoid update issues
-      // TODO: Implement proper agent updating logic later
-      this.logger.info(`Creating ${role} agent...`);
+      // Check if agent already exists in database first
+      const { data: existingDbAgent } = await supabase
+        .from('retell_agents')
+        .select('*')
+        .eq('agent_name', agentConfig.agent_name)
+        .eq('business_id', config.client_id)
+        .single();
+
+      // Also check Retell API for existing agents
+      const existingAgents = await this.retell.agent.list();
+      const existing =
+        existingAgents.find(a => a.agent_name === agentConfig.agent_name) ||
+        (existingDbAgent?.retell_agent_id
+          ? existingAgents.find(
+              a => a.agent_id === existingDbAgent.retell_agent_id
+            )
+          : null);
+
       let agent;
-      try {
-        agent = await this.retell.agent.create(agentConfig);
-        this.logger.info(`${role} agent created successfully:`, agent.agent_id);
-      } catch (createError) {
-        this.logger.error(`Failed to create ${role} agent:`, {
-          error: createError.message,
-          status: createError.status,
-          details: createError.error || createError,
-          config: agentConfig,
-        });
-        throw createError;
+      if (existing) {
+        this.logger.info(`Updating existing ${role} agent:`, existing.agent_id);
+        // Update existing agent
+        try {
+          agent = await this.retell.agent.update(
+            existing.agent_id,
+            agentConfig
+          );
+          this.logger.info(
+            `${role} agent updated successfully:`,
+            agent.agent_id
+          );
+        } catch (updateError) {
+          this.logger.error(`Failed to update ${role} agent:`, {
+            error: updateError.message,
+            status: updateError.status,
+            details: updateError.error || updateError,
+            config: agentConfig,
+          });
+          throw updateError;
+        }
+      } else {
+        this.logger.info(`Creating new ${role} agent...`);
+        // Create new agent
+        try {
+          agent = await this.retell.agent.create(agentConfig);
+          this.logger.info(
+            `${role} agent created successfully:`,
+            agent.agent_id
+          );
+        } catch (createError) {
+          this.logger.error(`Failed to create ${role} agent:`, {
+            error: createError.message,
+            status: createError.status,
+            details: createError.error || createError,
+            config: agentConfig,
+          });
+          throw createError;
+        }
       }
 
       // Store agent ID and configuration in database
@@ -1032,7 +1075,8 @@ export class RetellDeploymentService extends BaseBusinessService {
         conversation_flow_id:
           config.conversationFlowId || config.conversation_flow_id || null,
         response_engine_type: responseEngine.type,
-        retell_llm_id: responseEngine.type === 'retell-llm' ? responseEngine.llm_id : null,
+        retell_llm_id:
+          responseEngine.type === 'retell-llm' ? responseEngine.llm_id : null,
         voice_settings: JSON.stringify({
           voice_id: agentConfig.voice_id,
           voice_temperature: agentConfig.voice_temperature,
