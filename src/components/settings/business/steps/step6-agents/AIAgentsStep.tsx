@@ -131,11 +131,11 @@ export function AIAgentsStep({
   >('basic');
   const [loading, setLoading] = useState(true);
   const [deploying, setDeploying] = useState(false);
-  const [deploymentStatus, setDeploymentStatus] = useState<{
-    deployed: boolean;
-    agentCount?: number;
-    phoneNumber?: string;
-  }>({ deployed: false });
+  const [testingCall, setTestingCall] = useState(false);
+  const [testCallResult, setTestCallResult] = useState<{
+    callId: string;
+    callUrl: string;
+  } | null>(null);
 
   const [formData, setFormData] = useState({
     agent_name: '',
@@ -572,97 +572,108 @@ export function AIAgentsStep({
   };
 
   const handleDeployAgent = async (agent: AIAgent) => {
+    if (!user?.id) return;
+
     try {
-      // TODO: Deploy agent to Retell AI
-      const response = await authenticatedFetch('/api/create-retell-agent', {
+      setDeploying(true);
+      
+      // Deploy individual agent to Retell
+      const response = await authenticatedFetch('/api/retell/deploy-single', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          clientId: user.id,
-          agentName: agent.agent_name,
-          agentPersonality: agent.agent_personality,
-          customPrompt: agent.greeting_message,
-          voiceSettings: agent.voice_settings || {
-            speed: 1.0,
-            pitch: 1.0,
-            tone: agent.agent_personality,
-          },
+          businessId: user.id,
+          agentConfig: {
+            id: agent.id,
+            agent_name: agent.agent_name, // Will be combined with business name in backend
+            agent_type: agent.agent_type,
+            basic_info_prompt: agent.basic_info_prompt,
+            call_scripts_prompt: agent.call_scripts_prompt,
+            call_scripts: agent.call_scripts,
+            voice_settings: agent.voice_settings,
+            conversation_flow_id: agent.conversation_flow_id,
+            greeting_message: agent.greeting_message
+          }
         }),
       });
 
       if (response.ok) {
         const result = await response.json();
+        
+        // Update agent with retell_agent_id
         setAgents(prev =>
           prev.map(a =>
             a.id === agent.id
               ? {
                   ...a,
                   status: 'active',
-                  retell_agent_id: result.data.agent_id,
-                  webhook_url: result.data.webhook_url,
+                  retell_agent_id: result.agent.agent_id,
                 }
               : a
           )
         );
+        
+        await loadAgents(); // Refresh the list
+        toast.success(`Agent "${agent.agent_name}" deployed successfully!`);
+      } else {
+        const error = await response.json();
+        const errorMessage = error.details || error.error || 'Failed to deploy agent';
+        toast.error(errorMessage);
       }
     } catch (error) {
       console.error('Failed to deploy agent:', error);
+      const errorMessage = error instanceof Error 
+        ? `Deployment failed: ${error.message}`
+        : 'Failed to deploy agent - Network or connection error';
+      toast.error(errorMessage);
+    } finally {
+      setDeploying(false);
     }
   };
 
-  const handleAutoDeployToRetell = async () => {
+
+  const handleTestCall = async (agent?: AIAgent) => {
+    if (!user?.id) return;
+
+    setTestingCall(true);
+    setTestCallResult(null);
+
     try {
-      setDeploying(true);
-      
-      const response = await authenticatedFetch('/api/retell/deploy', {
+      const response = await authenticatedFetch('/api/retell/test-call', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          businessId: user?.id,
-          agents: agents.filter(a => a.status === 'active')
-        })
+          businessId: user.id,
+          agentId: agent?.retell_agent_id, // Use specific agent if provided
+        }),
       });
 
       if (response.ok) {
         const result = await response.json();
-        toast.success(`Successfully deployed ${result.agents.length} agents to Retell`);
-        
-        // Update deployment status
-        setDeploymentStatus({
-          deployed: true,
-          agentCount: result.agents.length,
-          phoneNumber: result.phoneNumber
+        setTestCallResult({
+          callId: result.callId,
+          callUrl: result.callUrl,
+        });
+        const agentName = agent ? `"${agent.agent_name}"` : 'agent';
+        toast.success(`Test call created for ${agentName}! Click to view in Retell.`, {
+          action: {
+            label: 'View',
+            onClick: () => window.open(result.callUrl, '_blank')
+          }
         });
       } else {
-        const error = await response.json().catch(() => ({ message: 'Unknown error' }));
-        console.error('Deployment error details:', {
-          status: response.status,
-          statusText: response.statusText,
-          error
-        });
-        
-        // Show detailed error message
-        const errorMessage = error.errors 
-          ? `Deployment failed: ${error.errors.join(', ')}`
-          : error.details 
-          ? `Deployment failed: ${error.details}`
-          : error.message 
-          ? `Deployment failed: ${error.message}`
-          : `Deployment failed: ${response.status} ${response.statusText}`;
-          
+        const error = await response.json();
+        const errorMessage = error.details || error.error || 'Failed to create test call';
         toast.error(errorMessage);
       }
     } catch (error) {
-      console.error('Failed to deploy to Retell:', error);
-      
-      // Show detailed error message
+      console.error('Failed to create test call:', error);
       const errorMessage = error instanceof Error 
-        ? `Deployment failed: ${error.message}`
-        : 'Failed to deploy agents to Retell - Network or connection error';
-        
+        ? `Test call failed: ${error.message}`
+        : 'Failed to create test call - Network or connection error';
       toast.error(errorMessage);
     } finally {
-      setDeploying(false);
+      setTestingCall(false);
     }
   };
 
@@ -709,39 +720,6 @@ export function AIAgentsStep({
                 <PlusIcon className="h-4 w-4" />
                 {t('createNewAgent')}
               </Button>
-              {agents.length > 0 && (
-                <>
-                  <Button
-                    onClick={async () => {
-                      try {
-                        const response = await authenticatedFetch('/api/test-deploy', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ businessId: user?.id })
-                        });
-                        const result = await response.json();
-                        console.log('Test deploy result:', result);
-                        toast.success('Test completed - check console');
-                      } catch (error) {
-                        console.error('Test failed:', error);
-                        toast.error('Test failed');
-                      }
-                    }}
-                    variant="secondary"
-                    size="sm"
-                  >
-                    Test Deploy
-                  </Button>
-                  <Button
-                    onClick={handleAutoDeployToRetell}
-                    variant="outline"
-                    className="flex items-center gap-2"
-                  >
-                    <RocketIcon className="h-4 w-4" />
-                    Deploy AI Agent
-                  </Button>
-                </>
-              )}
             </div>
           </div>
         </CardHeader>
@@ -843,16 +821,20 @@ export function AIAgentsStep({
                         <EditIcon className="h-4 w-4" />
                       </Button>
 
-                      {agent.status === 'draft' && (
+                      {/* Test Call Button - show for deployed agents */}
+                      {agent.retell_agent_id && (
                         <Button
+                          variant="outline"
                           size="sm"
-                          onClick={() => handleDeployAgent(agent)}
-                          className="bg-green-600 hover:bg-green-700"
+                          onClick={() => handleTestCall(agent)}
+                          disabled={testingCall}
+                          className="border-blue-300 text-blue-700 hover:bg-blue-100 dark:border-blue-600 dark:text-blue-300"
                         >
-                          Deploy
+                          {testingCall ? 'Testing...' : 'Test Call'}
                         </Button>
                       )}
 
+                      {/* Activate/Deactivate Button - show for non-draft agents */}
                       {agent.status !== 'draft' && (
                         <Button
                           variant="outline"
@@ -864,6 +846,16 @@ export function AIAgentsStep({
                             : 'Activate'}
                         </Button>
                       )}
+
+                      {/* Deploy Agent Button - moved to last position */}
+                      <Button
+                        size="sm"
+                        onClick={() => handleDeployAgent(agent)}
+                        disabled={deploying}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        {deploying ? 'Deploying...' : 'Deploy Agent'}
+                      </Button>
 
                       <Button
                         variant="ghost"
@@ -1444,31 +1436,7 @@ export function AIAgentsStep({
       )}
 
       {/* Calendar Integrations */}
-      {deploymentStatus.deployed && (
-        <CalendarIntegrations businessId={user?.id || ''} />
-      )}
-
-      {/* Deployment Status */}
-      {deploymentStatus.deployed && (
-        <Card className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <CheckCircleIcon className="h-8 w-8 text-green-600 dark:text-green-400" />
-              <div>
-                <p className="font-medium text-green-900 dark:text-green-100">
-                  Agents Deployed to Retell
-                </p>
-                <p className="text-sm text-green-700 dark:text-green-200">
-                  {deploymentStatus.agentCount} agents successfully deployed.
-                  {deploymentStatus.phoneNumber && (
-                    <span> Phone: {deploymentStatus.phoneNumber}</span>
-                  )}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <CalendarIntegrations businessId={user?.id || ''} />
 
       {/* Completion Status */}
       <Card className="bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-700 rounded-lg overflow-hidden">
