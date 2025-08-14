@@ -43,8 +43,8 @@ export class RetellDeploymentService extends BaseBusinessService {
       retellApiKeyLength: apiKey?.length || 0,
       hasLlmId: !!process.env.RETELL_LLM_ID,
       llmId: process.env.RETELL_LLM_ID,
-      hasBaseUrl: !!process.env.NEXT_PUBLIC_BASE_URL,
-      baseUrl: process.env.NEXT_PUBLIC_BASE_URL,
+      hasBaseUrl: !!process.env.NEXT_PUBLIC_SITE_URL,
+      baseUrl: process.env.NEXT_PUBLIC_SITE_URL,
       nodeEnv: process.env.NODE_ENV,
     });
 
@@ -60,38 +60,41 @@ export class RetellDeploymentService extends BaseBusinessService {
   }
 
   /**
-   * Get valid LLM ID from Retell API
+   * Create new LLM for agent deployment
    */
-  private async getValidLlmId(): Promise<string> {
+  private async createLlmForAgent(
+    businessContext: any,
+    config: any,
+    role: string
+  ): Promise<string> {
     try {
-      this.logger.info('Fetching available LLMs from Retell API...');
+      this.logger.info('Creating new LLM for agent deployment...');
 
-      // Get list of available LLMs
-      const llms = await this.retell.llm.list();
-      this.logger.info(`Found ${llms.length} LLMs in Retell account`);
+      // Generate comprehensive prompt using all available data
+      const comprehensivePrompt = this.generateComprehensivePrompt(
+        businessContext,
+        config,
+        role
+      );
 
-      if (llms.length === 0) {
-        this.logger.warn('No LLMs found, creating a default LLM...');
+      // Create LLM with business-specific configuration
+      const newLlm = await this.retell.llm.create({
+        model_name: 'gpt-4o-mini',
+        general_prompt: comprehensivePrompt,
+        begin_message: this.generateBeginMessage(businessContext),
+        inbound_dynamic_variables_webhook_url: `${process.env.NEXT_PUBLIC_SITE_URL}/api/retell/webhook`,
+      });
 
-        // Create a default LLM if none exist
-        const newLlm = await this.retell.llm.create({
-          model_name: 'gpt-3.5-turbo-16k',
-          general_prompt:
-            'You are a helpful AI assistant for a business. Provide professional and courteous service to all callers.',
-          begin_message: 'Hello! How can I help you today?',
-        });
+      this.logger.info('Created new LLM successfully:', newLlm.llm_id);
+      this.logger.info('LLM prompt length:', comprehensivePrompt.length);
+      this.logger.info(
+        'LLM prompt preview:',
+        comprehensivePrompt.substring(0, 200) + '...'
+      );
 
-        this.logger.info('Created new LLM:', newLlm.llm_id);
-        return newLlm.llm_id;
-      }
-
-      // Use the first available LLM
-      const selectedLlm = llms[0];
-      this.logger.info('Using LLM:', selectedLlm.llm_id);
-
-      return selectedLlm.llm_id;
+      return newLlm.llm_id;
     } catch (error) {
-      this.logger.error('Error getting valid LLM ID:', error);
+      this.logger.error('Error creating new LLM:', error);
 
       // Fallback to environment variable if API fails
       const fallbackLlmId = process.env.RETELL_LLM_ID;
@@ -104,10 +107,176 @@ export class RetellDeploymentService extends BaseBusinessService {
       }
 
       throw new Error(
-        'No valid LLM ID available and unable to create new LLM: ' +
+        'Failed to create new LLM and no fallback available: ' +
           (error instanceof Error ? error.message : error)
       );
     }
+  }
+
+  /**
+   * Generate comprehensive LLM prompt with all business data and user configuration
+   */
+  private generateComprehensivePrompt(
+    businessContext: any,
+    config: any,
+    role: string
+  ): string {
+    // Start with enhanced business identity based on ALL Supabase data
+    let generalPrompt = `You are a professional AI ${role} for ${businessContext.businessName}`;
+    if (businessContext.businessType === 'dental') {
+      generalPrompt += ', a dental practice';
+    } else if (businessContext.businessType) {
+      generalPrompt += `, a ${businessContext.businessType} business`;
+    }
+    generalPrompt += '. ';
+
+    // Add user's basic info prompt (contains specific business details)
+    if (config.basic_info_prompt) {
+      generalPrompt += config.basic_info_prompt + '\n\n';
+      this.logger.info('Added user basic_info_prompt to general prompt');
+    }
+
+    // Add comprehensive business services from database
+    if (businessContext.services && businessContext.services.length > 0) {
+      generalPrompt += 'SERVICES WE OFFER:\n';
+      businessContext.services.forEach((service: any) => {
+        generalPrompt += `- ${service.service_name}`;
+        if (service.service_description) {
+          generalPrompt += `: ${service.service_description}`;
+        }
+        if (service.price && service.price > 0) {
+          generalPrompt += ` (Starting at $${service.price})`;
+        }
+        generalPrompt += '\n';
+      });
+      generalPrompt += '\n';
+      this.logger.info(
+        `Added ${businessContext.services.length} services to prompt`
+      );
+    }
+
+    // Add staff information from database
+    if (businessContext.staff && businessContext.staff.length > 0) {
+      generalPrompt += 'OUR TEAM:\n';
+      businessContext.staff.forEach((staff: any) => {
+        generalPrompt += `- ${staff.first_name} ${staff.last_name}`;
+        if (staff.job_title) {
+          generalPrompt += ` (${staff.job_title})`;
+        }
+        if (staff.specialization) {
+          generalPrompt += ` - Specializes in: ${staff.specialization}`;
+        }
+        generalPrompt += '\n';
+      });
+      generalPrompt += '\n';
+      this.logger.info(
+        `Added ${businessContext.staff.length} staff members to prompt`
+      );
+    }
+
+    // Add location information from database
+    if (businessContext.locations && businessContext.locations.length > 0) {
+      if (businessContext.locations.length === 1) {
+        generalPrompt += 'OUR LOCATION:\n';
+      } else {
+        generalPrompt += 'OUR LOCATIONS:\n';
+      }
+      businessContext.locations.forEach((location: any) => {
+        generalPrompt += `- ${location.location_name || 'Main Office'}`;
+        if (location.address) {
+          generalPrompt += `: ${location.address}`;
+        }
+        if (location.phone_number) {
+          generalPrompt += ` (Phone: ${location.phone_number})`;
+        }
+        generalPrompt += '\n';
+      });
+      generalPrompt += '\n';
+      this.logger.info(
+        `Added ${businessContext.locations.length} locations to prompt`
+      );
+    }
+
+    // Add insurance information for healthcare businesses
+    if (
+      businessContext.businessType === 'dental' &&
+      businessContext.insuranceProviders &&
+      businessContext.insuranceProviders.length > 0
+    ) {
+      generalPrompt += 'INSURANCE ACCEPTED:\n';
+      businessContext.insuranceProviders.forEach((insurance: any) => {
+        generalPrompt += `- ${insurance.provider_name}`;
+        if (insurance.plan_type) {
+          generalPrompt += ` (${insurance.plan_type})`;
+        }
+        generalPrompt += '\n';
+      });
+      generalPrompt += '\n';
+      this.logger.info(
+        `Added ${businessContext.insuranceProviders.length} insurance providers to prompt`
+      );
+    }
+
+    // Add user's custom instructions (escalation, behavior guidelines)
+    if (config.custom_instructions) {
+      generalPrompt +=
+        'SPECIAL INSTRUCTIONS:\n' + config.custom_instructions + '\n\n';
+      this.logger.info('Added user custom_instructions to general prompt');
+    }
+
+    // Add user's call scripts
+    if (config.call_scripts && Object.keys(config.call_scripts).length > 0) {
+      generalPrompt += 'CALL SCRIPTS TO FOLLOW:\n';
+      if (config.call_scripts.greeting_script) {
+        generalPrompt += `Greeting: ${config.call_scripts.greeting_script}\n`;
+      }
+      if (config.call_scripts.main_script) {
+        generalPrompt += `Main Script: ${config.call_scripts.main_script}\n`;
+      }
+      if (config.call_scripts.escalation_script) {
+        generalPrompt += `Escalation: ${config.call_scripts.escalation_script}\n`;
+      }
+      if (config.call_scripts.closing_script) {
+        generalPrompt += `Closing: ${config.call_scripts.closing_script}\n`;
+      }
+      generalPrompt += '\n';
+      this.logger.info('Added user call_scripts to general prompt');
+    }
+
+    // Add user's call handling instructions
+    if (config.call_scripts_prompt) {
+      generalPrompt +=
+        'CALL HANDLING GUIDELINES:\n' + config.call_scripts_prompt + '\n\n';
+      this.logger.info('Added user call_scripts_prompt to general prompt');
+    }
+
+    // Add business-type specific guidelines
+    if (businessContext.businessType === 'dental') {
+      generalPrompt += 'DENTAL PRACTICE GUIDELINES:\n';
+      generalPrompt += '- Always ask for patient insurance information\n';
+      generalPrompt +=
+        '- For dental emergencies, prioritize immediate scheduling\n';
+      generalPrompt += '- Collect patient date of birth for verification\n';
+      generalPrompt +=
+        '- Ask about the reason for visit to schedule appropriate appointment time\n';
+      generalPrompt += '- Confirm if they are an existing or new patient\n';
+      generalPrompt += '- Be empathetic with patients experiencing pain\n\n';
+      this.logger.info('Added dental-specific guidelines to prompt');
+    }
+
+    // Fallback if no prompts provided
+    if (!generalPrompt.trim()) {
+      generalPrompt = `You are a professional ${role} AI assistant for ${businessContext.businessName}. Provide helpful, courteous service to all callers.`;
+    }
+
+    return generalPrompt;
+  }
+
+  /**
+   * Generate begin message based on business context
+   */
+  private generateBeginMessage(businessContext: any): string {
+    return `Hello! Thank you for calling ${businessContext.businessName}. How can I help you today?`;
   }
 
   /**
@@ -437,7 +606,7 @@ export class RetellDeploymentService extends BaseBusinessService {
       );
 
       // First try with full join, then fallback to any configs if none found
-      let { data: agentConfigs, error: configError } = await supabase
+      const { data: agentConfigs, error: configError } = await supabase
         .from('agent_configurations_scoped')
         .select(
           `
@@ -651,8 +820,18 @@ export class RetellDeploymentService extends BaseBusinessService {
         'http://localhost:19080';
       const webhookUrl = `${baseUrl}/api/retell/functions/appointment`;
 
-      // Get dynamic LLM ID for router agent
-      const dynamicLlmId = await this.getValidLlmId();
+      // Get business context for LLM creation
+      const businessContext = await this.getBusinessContext(businessId);
+
+      // Create new LLM for router agent
+      const routerConfig = {
+        basic_info_prompt: 'Router agent for appointment handling',
+      };
+      const dynamicLlmId = await this.createLlmForAgent(
+        businessContext,
+        routerConfig,
+        'router'
+      );
 
       // Create comprehensive agent config based on sample working agent
       const agentConfig = {
@@ -758,9 +937,19 @@ export class RetellDeploymentService extends BaseBusinessService {
           conversation_flow_id:
             config.conversationFlowId || config.conversation_flow_id,
         };
-      } else {
-        // Get dynamic LLM ID
-        const dynamicLlmId = await this.getValidLlmId();
+      }
+
+      // Get complete business context first (needed for both LLM creation and prompt building)
+      const businessContext = await this.getBusinessContext(config.client_id);
+
+      // Create LLM if using retell-llm response engine
+      if (!config.conversationFlowId && !config.conversation_flow_id) {
+        // Create new LLM for this agent
+        const dynamicLlmId = await this.createLlmForAgent(
+          businessContext,
+          config,
+          role
+        );
         responseEngine = {
           type: 'retell-llm',
           llm_id: dynamicLlmId,
@@ -769,189 +958,13 @@ export class RetellDeploymentService extends BaseBusinessService {
 
       this.logger.info('Response engine config:', responseEngine);
 
-      // Get complete business context first for enhanced prompt building
-      const businessContext = await this.getBusinessContext(config.client_id);
-
-      // Build comprehensive prompt using ALL Supabase data + user configuration
-      let generalPrompt = '';
-
-      this.logger.info('Building prompt with complete business context:', {
-        hasBasicInfoPrompt: !!config.basic_info_prompt,
-        hasCustomInstructions: !!config.custom_instructions,
-        hasCallScripts: !!config.call_scripts,
-        hasCallScriptsPrompt: !!config.call_scripts_prompt,
-        businessName: businessContext.businessName,
-        businessType: businessContext.businessType,
-        servicesCount: businessContext.services.length,
-        staffCount: businessContext.staff.length,
-        locationsCount: businessContext.locations.length,
-        insuranceCount: businessContext.insuranceProviders.length,
-      });
-
-      // Start with enhanced business identity based on ALL Supabase data
-      generalPrompt += `You are a professional AI ${role} for ${businessContext.businessName}`;
-      if (businessContext.businessType === 'dental') {
-        generalPrompt += ', a dental practice';
-      } else if (businessContext.businessType) {
-        generalPrompt += `, a ${businessContext.businessType} business`;
-      }
-      generalPrompt += '. ';
-
-      // Add user's basic info prompt (contains specific business details)
-      if (config.basic_info_prompt) {
-        generalPrompt += config.basic_info_prompt + '\n\n';
-        this.logger.info('Added user basic_info_prompt to general prompt');
-      }
-
-      // Add comprehensive business services from database
-      if (businessContext.services && businessContext.services.length > 0) {
-        generalPrompt += 'SERVICES WE OFFER:\n';
-        businessContext.services.forEach((service: any) => {
-          generalPrompt += `- ${service.service_name}`;
-          if (service.service_description) {
-            generalPrompt += `: ${service.service_description}`;
-          }
-          if (service.price && service.price > 0) {
-            generalPrompt += ` (Starting at $${service.price})`;
-          }
-          generalPrompt += '\n';
-        });
-        generalPrompt += '\n';
-        this.logger.info(
-          `Added ${businessContext.services.length} services to prompt`
-        );
-      }
-
-      // Add staff information from database
-      if (businessContext.staff && businessContext.staff.length > 0) {
-        generalPrompt += 'OUR TEAM:\n';
-        businessContext.staff.forEach((staff: any) => {
-          generalPrompt += `- ${staff.first_name} ${staff.last_name}`;
-          if (staff.job_title) {
-            generalPrompt += ` (${staff.job_title})`;
-          }
-          if (staff.specialization) {
-            generalPrompt += ` - Specializes in: ${staff.specialization}`;
-          }
-          generalPrompt += '\n';
-        });
-        generalPrompt += '\n';
-        this.logger.info(
-          `Added ${businessContext.staff.length} staff members to prompt`
-        );
-      }
-
-      // Add location information from database
-      if (businessContext.locations && businessContext.locations.length > 0) {
-        if (businessContext.locations.length === 1) {
-          generalPrompt += 'OUR LOCATION:\n';
-        } else {
-          generalPrompt += 'OUR LOCATIONS:\n';
-        }
-        businessContext.locations.forEach((location: any) => {
-          generalPrompt += `- ${location.location_name || 'Main Office'}`;
-          if (location.address) {
-            generalPrompt += `: ${location.address}`;
-          }
-          if (location.phone_number) {
-            generalPrompt += ` (Phone: ${location.phone_number})`;
-          }
-          generalPrompt += '\n';
-        });
-        generalPrompt += '\n';
-        this.logger.info(
-          `Added ${businessContext.locations.length} locations to prompt`
-        );
-      }
-
-      // Add insurance information for healthcare businesses
-      if (
-        businessContext.businessType === 'dental' &&
-        businessContext.insuranceProviders &&
-        businessContext.insuranceProviders.length > 0
-      ) {
-        generalPrompt += 'INSURANCE ACCEPTED:\n';
-        businessContext.insuranceProviders.forEach((insurance: any) => {
-          generalPrompt += `- ${insurance.provider_name}`;
-          if (insurance.plan_type) {
-            generalPrompt += ` (${insurance.plan_type})`;
-          }
-          generalPrompt += '\n';
-        });
-        generalPrompt += '\n';
-        this.logger.info(
-          `Added ${businessContext.insuranceProviders.length} insurance providers to prompt`
-        );
-      }
-
-      // Add user's custom instructions (escalation, behavior guidelines)
-      if (config.custom_instructions) {
-        generalPrompt +=
-          'SPECIAL INSTRUCTIONS:\n' + config.custom_instructions + '\n\n';
-        this.logger.info('Added user custom_instructions to general prompt');
-      }
-
-      // Add user's call scripts
-      if (config.call_scripts && Object.keys(config.call_scripts).length > 0) {
-        generalPrompt += 'CALL SCRIPTS TO FOLLOW:\n';
-        if (config.call_scripts.greeting_script) {
-          generalPrompt += `Greeting: ${config.call_scripts.greeting_script}\n`;
-        }
-        if (config.call_scripts.main_script) {
-          generalPrompt += `Main Script: ${config.call_scripts.main_script}\n`;
-        }
-        if (config.call_scripts.escalation_script) {
-          generalPrompt += `Escalation: ${config.call_scripts.escalation_script}\n`;
-        }
-        if (config.call_scripts.closing_script) {
-          generalPrompt += `Closing: ${config.call_scripts.closing_script}\n`;
-        }
-        generalPrompt += '\n';
-        this.logger.info('Added user call_scripts to general prompt');
-      }
-
-      // Add user's call handling instructions
-      if (config.call_scripts_prompt) {
-        generalPrompt +=
-          'CALL HANDLING GUIDELINES:\n' + config.call_scripts_prompt + '\n\n';
-        this.logger.info('Added user call_scripts_prompt to general prompt');
-      }
-
-      // Add business-type specific guidelines
-      if (businessContext.businessType === 'dental') {
-        generalPrompt += 'DENTAL PRACTICE GUIDELINES:\n';
-        generalPrompt += '- Always ask for patient insurance information\n';
-        generalPrompt +=
-          '- For dental emergencies, prioritize immediate scheduling\n';
-        generalPrompt += '- Collect patient date of birth for verification\n';
-        generalPrompt +=
-          '- Ask about the reason for visit to schedule appropriate appointment time\n';
-        generalPrompt += '- Confirm if they are an existing or new patient\n';
-        generalPrompt += '- Be empathetic with patients experiencing pain\n\n';
-        this.logger.info('Added dental-specific guidelines to prompt');
-      }
-
-      // Fallback if no prompts provided
-      if (!generalPrompt.trim()) {
-        generalPrompt = `You are a professional ${role} AI assistant for ${businessContext.businessName}. Provide helpful, courteous service to all callers.`;
-      }
-
-      this.logger.info(
-        'Generated general prompt length:',
-        generalPrompt.length
-      );
-      this.logger.info(
-        'General prompt preview:',
-        generalPrompt.substring(0, 200) + '...'
-      );
-
-      // Create comprehensive agent config with all Supabase configurations
+      // Create comprehensive agent config (prompt is now handled in LLM creation)
       const agentConfig = {
         agent_name: agentName,
         response_engine: responseEngine,
         voice_id: config.voice_settings?.voice_id || '11labs-Adrian',
         language: businessContext.businessType === 'dental' ? 'en-US' : 'en-US',
-        webhook_url: `${process.env.NEXT_PUBLIC_BASE_URL}/api/retell/webhook`,
+        webhook_url: `${process.env.NEXT_PUBLIC_SITE_URL}/api/retell/webhook`,
         voice_temperature: config.voice_settings?.voice_temperature || 1,
         voice_speed: config.voice_settings?.speed || 1.28,
         volume: config.voice_settings?.volume || 1,
@@ -977,10 +990,6 @@ export class RetellDeploymentService extends BaseBusinessService {
           config.call_scripts?.greeting_script ||
           config.greeting_message ||
           'Hello! Thank you for calling. How can I help you today?',
-        // Include the comprehensive prompt for Retell LLM
-        ...(responseEngine.type === 'retell-llm' && {
-          general_prompt: generalPrompt,
-        }),
         // Add business-specific post-call analysis fields
         post_call_analysis_data: this.generatePostCallAnalysisFields(
           businessContext,
