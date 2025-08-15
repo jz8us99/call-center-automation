@@ -71,12 +71,14 @@ export class RetellDeploymentService {
       // First try to create a new LLM
       return await this.createLlmForAgent(businessContext, config, role);
     } catch (error) {
-      this.logger.warn('Failed to create new LLM, trying to use existing LLM...');
-      
+      this.logger.warn(
+        'Failed to create new LLM, trying to use existing LLM...'
+      );
+
       // If creation fails, try to get an existing LLM
       try {
         const existingLlms = await this.retell.llm.list();
-        
+
         if (existingLlms && existingLlms.length > 0) {
           const firstLlm = existingLlms[0];
           this.logger.info('Using existing LLM:', firstLlm.llm_id);
@@ -85,9 +87,11 @@ export class RetellDeploymentService {
       } catch (listError) {
         this.logger.error('Failed to list existing LLMs:', listError);
       }
-      
-      throw new Error('No LLMs available and cannot create new one: ' + 
-        (error instanceof Error ? error.message : error));
+
+      throw new Error(
+        'No LLMs available and cannot create new one: ' +
+          (error instanceof Error ? error.message : error)
+      );
     }
   }
 
@@ -138,13 +142,10 @@ export class RetellDeploymentService {
       try {
         this.logger.info('Attempting to find existing LLMs...');
         const existingLlms = await this.retell.llm.list();
-        
+
         if (existingLlms && existingLlms.length > 0) {
           const firstLlm = existingLlms[0];
-          this.logger.warn(
-            'Using existing LLM as fallback:',
-            firstLlm.llm_id
-          );
+          this.logger.warn('Using existing LLM as fallback:', firstLlm.llm_id);
           return firstLlm.llm_id;
         }
       } catch (listError) {
@@ -166,14 +167,59 @@ export class RetellDeploymentService {
     config: any,
     role: string
   ): string {
-    // Start with enhanced business identity based on ALL Supabase data
-    let generalPrompt = `You are a professional AI ${role} for ${businessContext.businessName}`;
+    // Start with calendar-integrated AI receptionist prompt
+    let generalPrompt = `You are a professional AI receptionist for ${businessContext.businessName}`;
     if (businessContext.businessType === 'dental') {
       generalPrompt += ', a dental practice';
     } else if (businessContext.businessType) {
       generalPrompt += `, a ${businessContext.businessType} business`;
     }
-    generalPrompt += '. ';
+    generalPrompt +=
+      '. AI receptionist connected to my application and my integrated calendar.\n\n';
+
+    generalPrompt +=
+      'Your main role is to handle customer appointment scheduling by creating, updating, and canceling bookings directly in my calendar.\n\n';
+
+    generalPrompt += 'CAPABILITIES & RULES:\n\n';
+
+    generalPrompt += 'Calendar Integration:\n';
+    generalPrompt += '- Access my configured calendar from the application\n';
+    generalPrompt +=
+      '- Always check availability before confirming a booking\n';
+    generalPrompt +=
+      '- Create, reschedule, or cancel appointments based on customer requests\n\n';
+
+    generalPrompt += 'Customer Interaction:\n';
+    generalPrompt +=
+      '- Always greet the customer politely and ask for their first name, last name, phone number, and email address\n';
+    generalPrompt += '- If they want to create an appointment, ask for:\n';
+    generalPrompt += '  • Date and time preference\n';
+    generalPrompt +=
+      '  • Service type (e.g., consultation, cleaning, follow-up, etc.)\n';
+    generalPrompt += '  • Staff preference (if any)\n';
+    generalPrompt +=
+      '- If they want to update an existing appointment, confirm their current booking details before making changes\n';
+    generalPrompt +=
+      '- If they want to cancel an appointment, confirm their booking ID or details and then proceed\n\n';
+
+    generalPrompt += 'Validation & Confirmation:\n';
+    generalPrompt +=
+      '- Confirm all details before saving or updating the booking\n';
+    generalPrompt +=
+      '- Provide a clear confirmation message with the appointment date, time, and staff name\n';
+    generalPrompt +=
+      '- If the requested time is unavailable, suggest the nearest available slot\n\n';
+
+    generalPrompt += 'Special Cases:\n';
+    generalPrompt +=
+      '- For existing customers, check by last name or phone number to locate their booking\n';
+    generalPrompt +=
+      '- For urgent changes, mark as high priority in the calendar notes\n\n';
+
+    generalPrompt += 'Tone & Personality:\n';
+    generalPrompt += '- Friendly, professional, and efficient\n';
+    generalPrompt +=
+      '- Always speak clearly and keep the conversation easy for the customer to follow\n\n';
 
     // Add user's basic info prompt (contains specific business details)
     if (config.basic_info_prompt) {
@@ -441,6 +487,142 @@ export class RetellDeploymentService {
         insuranceProviders: [],
       };
     }
+  }
+
+  /**
+   * Generate calendar-specific post-call analysis fields for appointment scheduling
+   */
+  private generateCalendarPostCallAnalysisFields(
+    businessContext: any,
+    config: any
+  ): any[] {
+    const calendarFields = [
+      {
+        name: 'caller_firstname',
+        description: 'Get caller first name from context',
+        type: 'string',
+      },
+      {
+        name: 'caller_lastname',
+        description: 'Get caller last name from context',
+        type: 'string',
+      },
+      {
+        name: 'caller_email',
+        description: 'Get caller email address from context',
+        type: 'string',
+        examples: ['xyz@gmail.com'],
+      },
+      {
+        name: 'caller_phone',
+        description: 'Get caller phone number from context',
+        type: 'string',
+        examples: ['+1234567890'],
+      },
+      {
+        name: 'appointment_action',
+        description: 'What appointment action was performed',
+        type: 'string',
+        examples: ['created', 'updated', 'cancelled', 'searched', 'no_action'],
+      },
+      {
+        name: 'appointment_date_time',
+        description: 'Get the appointment date and time from conversation',
+        type: 'string',
+        examples: ['2025-01-20T14:00:00'],
+      },
+      {
+        name: 'service_type',
+        description: 'Type of service requested for the appointment',
+        type: 'string',
+        examples: businessContext.services
+          ?.map((s: any) => s.service_name)
+          ?.slice(0, 5) || ['consultation', 'cleaning', 'checkup'],
+      },
+      {
+        name: 'preferred_staff',
+        description: 'Staff member requested by the customer',
+        type: 'string',
+        examples: businessContext.staff
+          ?.map((s: any) => s.first_name + ' ' + s.last_name)
+          ?.slice(0, 3) || ['Any available'],
+      },
+      {
+        name: 'appointment_id',
+        description: 'Appointment ID if an existing appointment was referenced',
+        type: 'string',
+      },
+      {
+        name: 'call_outcome',
+        description: 'Overall outcome of the call',
+        type: 'string',
+        examples: [
+          'appointment_scheduled',
+          'appointment_updated',
+          'appointment_cancelled',
+          'information_provided',
+          'callback_requested',
+          'no_action_needed',
+        ],
+      },
+      {
+        name: 'customer_satisfaction',
+        description: 'Perceived customer satisfaction level',
+        type: 'string',
+        examples: ['satisfied', 'neutral', 'dissatisfied'],
+      },
+      {
+        name: 'availability_checked',
+        description: 'Whether availability was checked during the call',
+        type: 'string',
+        examples: ['yes', 'no'],
+      },
+      {
+        name: 'alternative_times_offered',
+        description: 'Whether alternative appointment times were offered',
+        type: 'string',
+        examples: ['yes', 'no'],
+      },
+    ];
+
+    // Add business-type specific fields
+    if (businessContext.businessType === 'dental') {
+      calendarFields.push(
+        {
+          name: 'reason_for_visit',
+          description: 'Get the appointment reason from context',
+          type: 'string',
+          examples: [
+            'cleaning',
+            'checkup',
+            'tooth pain',
+            'crown',
+            'filling',
+            'consultation',
+          ],
+        },
+        {
+          name: 'emergency_flag',
+          description: 'Flag indicating if this is an emergency appointment',
+          type: 'string',
+          examples: ['1', '0'],
+        },
+        {
+          name: 'existing_patient',
+          description: 'Whether the caller is an existing patient',
+          type: 'string',
+          examples: ['yes', 'no', 'unknown'],
+        },
+        {
+          name: 'insurance_mentioned',
+          description: 'Whether insurance was discussed during the call',
+          type: 'string',
+          examples: ['yes', 'no'],
+        }
+      );
+    }
+
+    return calendarFields;
   }
 
   /**
@@ -1012,21 +1194,183 @@ export class RetellDeploymentService {
       try {
         this.logger.info('Testing Retell API permissions by listing agents...');
         const existingAgents = await this.retell.agent.list();
-        this.logger.info(`Found ${existingAgents.length} existing agents in Retell account`);
+        this.logger.info(
+          `Found ${existingAgents.length} existing agents in Retell account`
+        );
         if (existingAgents.length > 0) {
           this.logger.info('Sample agent ID:', existingAgents[0].agent_id);
         }
       } catch (listError) {
-        this.logger.error('Failed to list agents - API key may have permission issues:', listError);
+        this.logger.error(
+          'Failed to list agents - API key may have permission issues:',
+          listError
+        );
       }
 
-      // Create minimal agent config to debug 404 issue
+      // Create calendar-integrated agent config
       const agentConfig = {
         agent_name: agentName,
         response_engine: responseEngine,
-        voice_id: '11labs-Adrian', // Use simple voice ID
+        voice_id: config.voice_settings?.voice_id || '11labs-Adrian',
         language: 'en-US',
         webhook_url: `${process.env.NEXT_PUBLIC_SITE_URL}/api/retell/webhook`,
+        voice_temperature: config.voice_settings?.voice_temperature || 1,
+        voice_speed: config.voice_settings?.speed || 1.28,
+        volume: config.voice_settings?.volume || 1,
+        enable_backchannel: config.voice_settings?.enable_backchannel !== false,
+        backchannel_words: config.voice_settings?.backchannel_words || [
+          'mhm',
+          'uh-huh',
+        ],
+        max_call_duration_ms:
+          config.call_routing?.max_call_duration_ms || 1800000,
+        interruption_sensitivity:
+          config.voice_settings?.interruption_sensitivity || 0.9,
+        normalize_for_speech: true,
+        begin_message_delay_ms:
+          config.voice_settings?.begin_message_delay_ms || 200,
+        post_call_analysis_model: 'gpt-4o-mini',
+        opt_out_sensitive_data_storage: false,
+        opt_in_signed_url: false,
+        allow_user_dtmf: true,
+        user_dtmf_options: {},
+        is_published: true,
+        begin_message:
+          config.call_scripts?.greeting_script ||
+          config.greeting_message ||
+          `Hello! Thank you for calling ${businessContext.businessName}. I'm your AI receptionist and I'm here to help you with scheduling appointments. How may I assist you today?`,
+        // Calendar integration tools
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'check_availability',
+              description:
+                'Check staff availability for appointment scheduling',
+              parameters: {
+                type: 'object',
+                properties: {
+                  date: {
+                    type: 'string',
+                    description: 'Date in YYYY-MM-DD format',
+                  },
+                  time: {
+                    type: 'string',
+                    description: 'Time in HH:MM format',
+                  },
+                  staff_id: {
+                    type: 'string',
+                    description:
+                      'Optional staff member ID for specific staff preference',
+                  },
+                  service_type: {
+                    type: 'string',
+                    description: 'Type of service/appointment',
+                  },
+                },
+                required: ['date', 'time'],
+              },
+            },
+          },
+          {
+            type: 'function',
+            function: {
+              name: 'create_appointment',
+              description: 'Create a new appointment in the calendar',
+              parameters: {
+                type: 'object',
+                properties: {
+                  customer_first_name: { type: 'string' },
+                  customer_last_name: { type: 'string' },
+                  customer_phone: { type: 'string' },
+                  customer_email: { type: 'string' },
+                  date: {
+                    type: 'string',
+                    description: 'Date in YYYY-MM-DD format',
+                  },
+                  time: { type: 'string', description: 'Time in HH:MM format' },
+                  service_type: { type: 'string' },
+                  staff_id: { type: 'string' },
+                  notes: {
+                    type: 'string',
+                    description: 'Additional notes or special requests',
+                  },
+                },
+                required: [
+                  'customer_first_name',
+                  'customer_last_name',
+                  'customer_phone',
+                  'date',
+                  'time',
+                  'service_type',
+                ],
+              },
+            },
+          },
+          {
+            type: 'function',
+            function: {
+              name: 'update_appointment',
+              description: 'Update an existing appointment',
+              parameters: {
+                type: 'object',
+                properties: {
+                  appointment_id: { type: 'string' },
+                  date: {
+                    type: 'string',
+                    description: 'New date in YYYY-MM-DD format',
+                  },
+                  time: {
+                    type: 'string',
+                    description: 'New time in HH:MM format',
+                  },
+                  service_type: { type: 'string' },
+                  staff_id: { type: 'string' },
+                  notes: { type: 'string' },
+                },
+                required: ['appointment_id'],
+              },
+            },
+          },
+          {
+            type: 'function',
+            function: {
+              name: 'cancel_appointment',
+              description: 'Cancel an existing appointment',
+              parameters: {
+                type: 'object',
+                properties: {
+                  appointment_id: { type: 'string' },
+                  reason: {
+                    type: 'string',
+                    description: 'Reason for cancellation',
+                  },
+                },
+                required: ['appointment_id'],
+              },
+            },
+          },
+          {
+            type: 'function',
+            function: {
+              name: 'find_customer_appointments',
+              description: 'Find existing appointments by customer information',
+              parameters: {
+                type: 'object',
+                properties: {
+                  last_name: { type: 'string' },
+                  phone_number: { type: 'string' },
+                  email: { type: 'string' },
+                },
+              },
+            },
+          },
+        ],
+        // Enhanced post-call analysis for appointment data
+        post_call_analysis_data: this.generateCalendarPostCallAnalysisFields(
+          businessContext,
+          config
+        ),
       };
 
       this.logger.info(
@@ -1072,10 +1416,12 @@ export class RetellDeploymentService {
             details: updateError.error || updateError,
             config: agentConfig,
           });
-          
+
           // If agent doesn't exist (404), create a new one instead
           if (updateError.status === 404) {
-            this.logger.warn(`Agent ${existing.agent_id} not found in Retell, creating new agent instead...`);
+            this.logger.warn(
+              `Agent ${existing.agent_id} not found in Retell, creating new agent instead...`
+            );
             try {
               agent = await this.retell.agent.create(agentConfig);
               this.logger.info(
@@ -1083,12 +1429,15 @@ export class RetellDeploymentService {
                 agent.agent_id
               );
             } catch (createError) {
-              this.logger.error(`Failed to create new ${role} agent after 404:`, {
-                error: createError.message,
-                status: createError.status,
-                details: createError.error || createError,
-                config: agentConfig,
-              });
+              this.logger.error(
+                `Failed to create new ${role} agent after 404:`,
+                {
+                  error: createError.message,
+                  status: createError.status,
+                  details: createError.error || createError,
+                  config: agentConfig,
+                }
+              );
               throw createError;
             }
           } else {
@@ -1432,8 +1781,11 @@ export class RetellDeploymentService {
     phoneNumber?: string
   ): Promise<{ success: boolean; phoneNumber?: string; error?: string }> {
     try {
-      this.logger.info('Attempting to assign phone number for business:', businessId);
-      
+      this.logger.info(
+        'Attempting to assign phone number for business:',
+        businessId
+      );
+
       // Get deployed agents for this business
       const { data: agents, error } = await supabase
         .from('retell_agents')
@@ -1443,7 +1795,9 @@ export class RetellDeploymentService {
         .limit(1);
 
       if (error || !agents || agents.length === 0) {
-        this.logger.warn('No deployed agents found for phone number assignment');
+        this.logger.warn(
+          'No deployed agents found for phone number assignment'
+        );
         return {
           success: true,
           phoneNumber: undefined,
@@ -1460,7 +1814,9 @@ export class RetellDeploymentService {
       } else {
         // For now, return success without actually purchasing a new number
         // This can be implemented later when phone number purchasing is needed
-        this.logger.info('Phone number purchase not implemented - returning success');
+        this.logger.info(
+          'Phone number purchase not implemented - returning success'
+        );
         return {
           success: true,
           phoneNumber: undefined,

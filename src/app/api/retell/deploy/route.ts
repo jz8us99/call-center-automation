@@ -60,17 +60,24 @@ export async function POST(request: NextRequest) {
       console.log('✅ Deployment service created successfully');
     } catch (serviceError) {
       console.error('❌ Failed to create deployment service:', serviceError);
-      console.error('Service error stack:', serviceError instanceof Error ? serviceError.stack : 'No stack');
+      console.error(
+        'Service error stack:',
+        serviceError instanceof Error ? serviceError.stack : 'No stack'
+      );
       console.error('Service error details:', {
         name: serviceError instanceof Error ? serviceError.name : 'Unknown',
-        message: serviceError instanceof Error ? serviceError.message : serviceError,
+        message:
+          serviceError instanceof Error ? serviceError.message : serviceError,
         cause: serviceError instanceof Error ? serviceError.cause : undefined,
       });
       return NextResponse.json(
-        { 
+        {
           error: 'Failed to initialize deployment service',
-          details: serviceError instanceof Error ? serviceError.message : 'Unknown error',
-          stack: serviceError instanceof Error ? serviceError.stack : undefined
+          details:
+            serviceError instanceof Error
+              ? serviceError.message
+              : 'Unknown error',
+          stack: serviceError instanceof Error ? serviceError.stack : undefined,
         },
         { status: 500 }
       );
@@ -84,19 +91,28 @@ export async function POST(request: NextRequest) {
       console.log('✅ deployAgents completed:', deploymentResult);
     } catch (deployError) {
       console.error('❌ deployAgents failed:', deployError);
-      console.error('Deploy error stack:', deployError instanceof Error ? deployError.stack : 'No stack');
+      console.error(
+        'Deploy error stack:',
+        deployError instanceof Error ? deployError.stack : 'No stack'
+      );
       return NextResponse.json(
         {
           error: 'Agent deployment failed',
-          details: deployError instanceof Error ? deployError.message : 'Unknown error',
-          stack: deployError instanceof Error ? deployError.stack : undefined
+          details:
+            deployError instanceof Error
+              ? deployError.message
+              : 'Unknown error',
+          stack: deployError instanceof Error ? deployError.stack : undefined,
         },
         { status: 500 }
       );
     }
 
     if (!deploymentResult.success) {
-      console.error('❌ Deployment result indicates failure:', deploymentResult);
+      console.error(
+        '❌ Deployment result indicates failure:',
+        deploymentResult
+      );
       return NextResponse.json(
         {
           error: 'Deployment failed',
