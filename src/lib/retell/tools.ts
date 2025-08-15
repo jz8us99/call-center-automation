@@ -152,26 +152,6 @@ export const retellTools = [
   },
 ];
 
-export const routerAgentConfig = {
-  name: 'Router Agent',
-  type: 'router',
-  systemPrompt: `You are a professional triage and booking assistant. Your role is to:
-1. Warmly greet callers and determine their needs
-2. Collect and validate contact information (first name, last name, phone, email)
-3. Detect if they want to book an appointment or have general questions
-4. For appointments: collect job type, staff preference, and preferred time
-5. For general questions: route to customer support
-6. Always confirm information before proceeding with bookings
-
-Be concise, friendly, and efficient. If the caller switches topics, adapt seamlessly.`,
-  tools: retellTools,
-  voice: {
-    provider: 'retell',
-    voiceId: 'nova',
-    speed: 1.0,
-  },
-};
-
 export const receptionistAgentConfig = {
   name: 'Receptionist Agent',
   type: 'inbound_receptionist',

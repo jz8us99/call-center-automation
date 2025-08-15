@@ -51,6 +51,7 @@ export interface AgentTypeConfig {
   name: string;
   description: string;
   icon: string;
+  direction: 'inbound' | 'outbound' | 'both';
   default_personality: AgentPersonality;
   default_capabilities: string[];
   template_prompt: string;
@@ -613,6 +614,7 @@ export const AGENT_TYPE_CONFIGS: Record<AgentType, Partial<AgentTypeConfig>> = {
     description:
       'Handles incoming customer calls, routing, and initial support',
     icon: '📞',
+    direction: 'inbound',
     default_personality: AgentPersonality.PROFESSIONAL,
     default_capabilities: [
       'Call routing and transfer',
@@ -633,6 +635,7 @@ export const AGENT_TYPE_CONFIGS: Record<AgentType, Partial<AgentTypeConfig>> = {
     description:
       'Manages appointment confirmations, reminders, and rescheduling',
     icon: '📅',
+    direction: 'outbound',
     default_personality: AgentPersonality.FRIENDLY,
     default_capabilities: [
       'Appointment confirmations',
@@ -653,6 +656,7 @@ export const AGENT_TYPE_CONFIGS: Record<AgentType, Partial<AgentTypeConfig>> = {
     description:
       'Conducts sales calls, lead qualification, and promotional campaigns',
     icon: '📈',
+    direction: 'outbound',
     default_personality: AgentPersonality.FRIENDLY,
     default_capabilities: [
       'Lead qualification',
@@ -673,6 +677,7 @@ export const AGENT_TYPE_CONFIGS: Record<AgentType, Partial<AgentTypeConfig>> = {
     name: 'Customer Support Agent',
     description: 'Provides detailed technical support and issue resolution',
     icon: '🛠️',
+    direction: 'inbound',
     default_personality: AgentPersonality.TECHNICAL,
     default_capabilities: [
       'Technical troubleshooting',

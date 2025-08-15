@@ -52,6 +52,8 @@ interface BusinessHours {
 interface AgentCallRoutingConfig {
   id: string;
   agent_type: AgentType;
+  ai_agent_mode: 'always_active' | 'business_hours_only' | 'after_hours_only';
+  ai_agent_hours: BusinessHours;
   primary_number: string;
   fallback_number?: string;
   voicemail_enabled: boolean;
@@ -164,10 +166,20 @@ export function AgentTypeCallRouting({
     return {
       id: 'default',
       agent_type: agentType,
+      ai_agent_mode: 'always_active',
+      ai_agent_hours: {
+        monday: { is_open: true, open_time: '00:00', close_time: '23:59' },
+        tuesday: { is_open: true, open_time: '00:00', close_time: '23:59' },
+        wednesday: { is_open: true, open_time: '00:00', close_time: '23:59' },
+        thursday: { is_open: true, open_time: '00:00', close_time: '23:59' },
+        friday: { is_open: true, open_time: '00:00', close_time: '23:59' },
+        saturday: { is_open: true, open_time: '00:00', close_time: '23:59' },
+        sunday: { is_open: true, open_time: '00:00', close_time: '23:59' },
+      },
       primary_number: businessPhone,
       fallback_number: '',
       voicemail_enabled: true,
-      voicemail_message: `Thank you for calling ${businessInfo?.business_name || '[Business Name]'}. We're unable to take your call right now, but your call is important to us. Please leave a message and we'll get back to you as soon as possible.`,
+      voicemail_message: `Thank you for calling ${businessInfo?.business_name || '[Business Name]'}. Our AI assistant has transferred you to voicemail. Please leave your name, number, and a brief message, and our team will get back to you as soon as possible.`,
       business_hours: {
         monday: { is_open: true, open_time: '09:00', close_time: '17:00' },
         tuesday: { is_open: true, open_time: '09:00', close_time: '17:00' },
@@ -178,7 +190,7 @@ export function AgentTypeCallRouting({
         sunday: { is_open: false, open_time: '09:00', close_time: '17:00' },
       },
       after_hours_action: 'voicemail',
-      after_hours_message: `Thank you for calling ${businessInfo?.business_name || '[Business Name]'}. Our office hours are Monday through Friday, 9 AM to 5 PM. Please leave a message or call us back during business hours.`,
+      after_hours_message: `Thank you for calling ${businessInfo?.business_name || '[Business Name]'}. While I can help with many things 24/7, our human staff is available Monday through Friday, 9 AM to 5 PM. I can take a message, schedule a callback, or try to assist you directly.`,
       routing_rules: defaultRules,
       max_queue_time: 300, // 5 minutes
       callback_enabled: true,
@@ -191,8 +203,21 @@ export function AgentTypeCallRouting({
     if (!routingConfig) return;
 
     try {
+      console.log(
+        'AgentTypeCallRouting: Saving routing config:',
+        routingConfig
+      );
+      console.log(
+        'AgentTypeCallRouting: After hours message:',
+        routingConfig.after_hours_message
+      );
+      console.log(
+        'AgentTypeCallRouting: Voicemail message:',
+        routingConfig.voicemail_message
+      );
       await onSave(routingConfig);
       setIsEditing(false);
+      console.log('AgentTypeCallRouting: Save completed successfully');
     } catch (error) {
       console.error('Failed to save routing config:', error);
     }
@@ -200,7 +225,14 @@ export function AgentTypeCallRouting({
 
   const updateConfig = (field: keyof AgentCallRoutingConfig, value: any) => {
     if (!routingConfig) return;
-    setRoutingConfig({ ...routingConfig, [field]: value });
+    console.log(`AgentTypeCallRouting: Updating ${field}:`, value);
+    const updatedConfig = {
+      ...routingConfig,
+      [field]: value,
+      updated_at: new Date().toISOString(),
+    };
+    console.log('AgentTypeCallRouting: Updated config:', updatedConfig);
+    setRoutingConfig(updatedConfig);
   };
 
   const updateBusinessHours = (day: string, field: string, value: any) => {
@@ -214,6 +246,25 @@ export function AgentTypeCallRouting({
           [field]: value,
         },
       },
+    });
+  };
+
+  const updateAIAgentHours = (day: string, field: string, value: any) => {
+    if (!routingConfig) return;
+    console.log(
+      `AgentTypeCallRouting: Updating AI agent hours ${day}.${field}:`,
+      value
+    );
+    setRoutingConfig({
+      ...routingConfig,
+      ai_agent_hours: {
+        ...routingConfig.ai_agent_hours,
+        [day]: {
+          ...routingConfig.ai_agent_hours[day],
+          [field]: value,
+        },
+      },
+      updated_at: new Date().toISOString(),
     });
   };
 
@@ -290,6 +341,124 @@ export function AgentTypeCallRouting({
             </Button>
           </div>
         </CardHeader>
+      </Card>
+
+      {/* AI Agent Activation Mode */}
+      <Card className="dark:bg-gray-800">
+        <CardHeader className="dark:bg-gray-800">
+          <CardTitle className="dark:text-gray-100">
+            AI Agent Activation
+          </CardTitle>
+          <CardDescription className="dark:text-gray-300">
+            Configure when your AI agent should be active and handle calls
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4 dark:bg-gray-800">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              AI Agent Operating Mode
+            </label>
+            <Select
+              value={routingConfig.ai_agent_mode}
+              onValueChange={value => updateConfig('ai_agent_mode', value)}
+              disabled={!isEditing}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select activation mode" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="always_active">
+                  Always Active (24/7) - Recommended
+                </SelectItem>
+                <SelectItem value="business_hours_only">
+                  Business Hours Only
+                </SelectItem>
+                <SelectItem value="after_hours_only">
+                  After Hours Only
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              {routingConfig.ai_agent_mode === 'always_active' &&
+                'AI agent handles calls 24/7, transferring to humans during business hours when needed'}
+              {routingConfig.ai_agent_mode === 'business_hours_only' &&
+                'AI agent only active during business hours. Direct to voicemail after hours.'}
+              {routingConfig.ai_agent_mode === 'after_hours_only' &&
+                'AI agent only handles calls outside business hours. Direct to humans during business hours.'}
+            </p>
+          </div>
+
+          {routingConfig.ai_agent_mode !== 'always_active' && (
+            <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4 space-y-4">
+              <h4 className="font-medium text-gray-900 dark:text-gray-100">
+                AI Agent Active Hours
+              </h4>
+              <div className="space-y-3">
+                {Object.entries(routingConfig.ai_agent_hours).map(
+                  ([day, hours]) => (
+                    <div
+                      key={day}
+                      className="grid grid-cols-12 gap-3 items-center"
+                    >
+                      <div className="col-span-2">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300 capitalize">
+                          {day}
+                        </label>
+                      </div>
+                      <div className="col-span-2">
+                        <Switch
+                          checked={hours.is_open}
+                          onCheckedChange={checked =>
+                            updateAIAgentHours(day, 'is_open', checked)
+                          }
+                          disabled={!isEditing}
+                        />
+                        <span className="ml-2 text-sm text-gray-600 dark:text-gray-300">
+                          {hours.is_open ? 'Active' : 'Inactive'}
+                        </span>
+                      </div>
+                      {hours.is_open && (
+                        <>
+                          <div className="col-span-3">
+                            <Input
+                              type="time"
+                              value={hours.open_time}
+                              onChange={e =>
+                                updateAIAgentHours(
+                                  day,
+                                  'open_time',
+                                  e.target.value
+                                )
+                              }
+                              disabled={!isEditing}
+                            />
+                          </div>
+                          <div className="col-span-1 text-center text-gray-500 dark:text-gray-400">
+                            to
+                          </div>
+                          <div className="col-span-3">
+                            <Input
+                              type="time"
+                              value={hours.close_time}
+                              onChange={e =>
+                                updateAIAgentHours(
+                                  day,
+                                  'close_time',
+                                  e.target.value
+                                )
+                              }
+                              disabled={!isEditing}
+                            />
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
+          )}
+        </CardContent>
       </Card>
 
       <div className="grid lg:grid-cols-2 gap-6">
@@ -390,7 +559,7 @@ export function AgentTypeCallRouting({
               After Hours Settings
             </CardTitle>
             <CardDescription className="dark:text-gray-300">
-              What happens when calling outside business hours
+              How your AI agent handles calls when human staff is unavailable
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 dark:bg-gray-800">
@@ -453,15 +622,16 @@ export function AgentTypeCallRouting({
         </Card>
       </div>
 
-      {/* Business Hours */}
+      {/* AI Agent Operating Hours */}
       <Card className="dark:bg-gray-800">
         <CardHeader className="dark:bg-gray-800">
           <CardTitle className="flex items-center space-x-2 dark:text-gray-100">
             <ClockIcon className="h-5 w-5" />
-            <span>Business Hours</span>
+            <span>AI Agent Operating Hours</span>
           </CardTitle>
           <CardDescription className="dark:text-gray-300">
-            Set your business operating hours for each day
+            When your AI agent should transfer calls to human staff vs handle
+            independently
           </CardDescription>
         </CardHeader>
         <CardContent className="dark:bg-gray-800">

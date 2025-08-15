@@ -1,24 +1,57 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { RetellDeploymentService } from '@/lib/services/retell-deployment-service';
 import { withAuth, isAuthError } from '@/lib/api-auth-helper';
+import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 
 export async function POST(request: NextRequest) {
   try {
-    // Authenticate request
+    // Authenticate request and verify signature
     const authResult = await withAuth(request);
     if (isAuthError(authResult)) {
       return authResult;
     }
-    const { user } = authResult;
+    const { user, supabaseWithAuth } = authResult;
 
-    const { businessId, agentConfig } = await request.json();
+    const userId = user.id;
+    console.log('Authenticated user ID:', userId);
 
-    if (!businessId) {
+    // Get business_id from business_profiles table using user_id
+    console.log('Querying business_profiles with user_id:', userId);
+
+    // Use authenticated client to query business profiles
+    const { data: businessProfile, error: businessError } =
+      await supabaseWithAuth
+        .from('business_profiles')
+        .select('*')
+        .eq('user_id', userId);
+
+    console.log('Business profiles query result:', {
+      data: businessProfile,
+      error: businessError,
+      count: businessProfile?.length,
+    });
+
+    if (businessError) {
+      console.error('Database error:', businessError);
       return NextResponse.json(
-        { error: 'Business ID is required' },
-        { status: 400 }
+        { error: 'Database query failed', details: businessError },
+        { status: 500 }
       );
     }
+
+    if (!businessProfile || businessProfile.length === 0) {
+      console.error('No business profile found for user_id:', userId);
+      return NextResponse.json(
+        { error: 'Business profile not found' },
+        { status: 404 }
+      );
+    }
+
+    const businessId = businessProfile[0].id;
+    console.log('Business ID from profile:', businessId);
+
+    const { agentConfig } = await request.json();
 
     if (!agentConfig) {
       return NextResponse.json(
@@ -32,7 +65,9 @@ export async function POST(request: NextRequest) {
     // Deploy single agent to Retell
     const deploymentResult = await deploymentService.deploySingleAgent(
       businessId,
-      agentConfig
+      agentConfig,
+      userId,
+      supabaseWithAuth
     );
 
     if (!deploymentResult.success) {

@@ -36,11 +36,10 @@ export class PatientService {
     }
 
     const { data, error } = await this.supabase
-      .schema('clinic')
-      .from('patients')
+      .from('customers')
       .select()
       .eq('phone', args.phone)
-      .eq('user_id', this.userId)
+      .eq('business_id', '9aae05e7-744e-4897-b493-2e4dd1719caa')
       .single();
 
     if (error) {
@@ -89,14 +88,13 @@ export class PatientService {
     const { id, ...updateData } = args;
 
     const { data, error } = await this.supabase
-      .schema('clinic')
-      .from('patients')
+      .from('customers')
       .update({
         ...updateData,
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)
-      .eq('user_id', this.userId)
+      .eq('business_id', '9aae05e7-744e-4897-b493-2e4dd1719caa')
       .select()
       .single();
 
@@ -125,13 +123,12 @@ export class PatientService {
 
     const patientData = {
       ...createData,
-      user_id: this.userId,
+      business_id: '9aae05e7-744e-4897-b493-2e4dd1719caa',
       created_at: new Date().toISOString(),
     };
 
     const { data, error } = await this.supabase
-      .schema('clinic')
-      .from('patients')
+      .from('customers')
       .insert(patientData)
       .select()
       .single();
