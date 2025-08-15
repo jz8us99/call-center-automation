@@ -5,9 +5,51 @@ import Link from 'next/link';
 import { CheckIcon } from '@/components/icons';
 import { SimpleThemeSwitch } from '@/components/common/SimpleThemeSwitch';
 import { HomeButton } from '@/components/common/HomeButton';
+import { PRICING_PLANS } from '@/lib/stripe';
+import { toast } from 'sonner';
 
 const PricingPage = () => {
   const [activeTab, setActiveTab] = useState('ai-receptionist');
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+
+  const handleSelectPlan = async (planKey: keyof typeof PRICING_PLANS) => {
+    const plan = PRICING_PLANS[planKey];
+
+    if (planKey === 'enterprise') {
+      // Handle enterprise plan differently - maybe redirect to contact form
+      window.location.href = '/contact?plan=enterprise';
+      return;
+    }
+
+    try {
+      setLoadingPlan(planKey);
+
+      const response = await fetch('/api/stripe/test-checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          priceId: plan.priceId,
+          planName: plan.name,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.url) {
+        // Redirect to Stripe Checkout
+        window.location.href = data.url;
+      } else {
+        toast.error(data.error || 'Failed to create checkout session');
+      }
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+      toast.error('Failed to start checkout process');
+    } finally {
+      setLoadingPlan(null);
+    }
+  };
 
   const tabs = [
     { id: 'ai-receptionist', label: 'AI Receptionist', active: true },
@@ -15,41 +57,20 @@ const PricingPage = () => {
     { id: 'web-chat', label: 'Web Chat', active: false },
   ];
 
-  const pricingPlans = [
-    {
-      name: 'Starter',
-      calls: '30 calls',
-      price: '$90.00',
-      overage: '$4.25 per call over 30',
-      button: 'Get started',
-      buttonStyle: 'bg-purple-600 hover:bg-purple-700',
-    },
-    {
-      name: 'Basic',
-      calls: '90 calls',
-      price: '$250.00',
-      overage: '$4.00 per call over 90',
-      button: 'Get started',
-      buttonStyle: 'bg-purple-600 hover:bg-purple-700',
-    },
-    {
-      name: 'Pro',
-      calls: '300 calls',
-      price: '$800.00',
-      overage: '$3.75 per call over 300',
-      button: 'Get started',
-      buttonStyle: 'bg-purple-600 hover:bg-purple-700',
-      popular: true,
-    },
-    {
-      name: 'Enterprise',
-      calls: 'Custom',
-      price: 'Ask about enterprise pricing',
-      overage: 'Price adjusted based on your needs',
-      button: 'Talk to us',
-      buttonStyle: 'bg-red-600 hover:bg-red-700',
-    },
-  ];
+  const pricingPlans = Object.entries(PRICING_PLANS).map(([key, plan]) => ({
+    key: key as keyof typeof PRICING_PLANS,
+    name: plan.name,
+    calls: typeof plan.calls === 'number' ? `${plan.calls} calls` : plan.calls,
+    price:
+      typeof plan.price === 'number' ? `$${plan.price.toFixed(2)}` : plan.price,
+    overage: `$${plan.overage}/call overage` || 'Custom pricing',
+    button: key === 'enterprise' ? 'Talk to us' : 'Get started',
+    buttonStyle:
+      key === 'enterprise'
+        ? 'bg-red-600 hover:bg-red-700'
+        : 'bg-purple-600 hover:bg-purple-700',
+    popular: plan.popular || false,
+  }));
 
   const features = [
     'Lead screening, qualification & intake',
@@ -149,8 +170,12 @@ const PricingPage = () => {
                   </p>
                 </div>
 
-                <button className="w-full py-4 px-6 rounded-xl font-semibold text-white bg-orange-500 hover:bg-orange-600 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
-                  {plan.button}
+                <button
+                  onClick={() => handleSelectPlan(plan.key)}
+                  disabled={loadingPlan === plan.key}
+                  className="w-full py-4 px-6 rounded-xl font-semibold text-white bg-orange-500 hover:bg-orange-600 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                >
+                  {loadingPlan === plan.key ? 'Loading...' : plan.button}
                 </button>
               </div>
             </div>

@@ -35,6 +35,7 @@ import {
   CalendarIcon,
 } from '@/components/icons';
 import { StaffCalendarConfiguration } from '@/components/settings/business/steps/step5-staff/StaffCalendarConfiguration';
+import { StaffCalendarIntegration } from '@/components/settings/business/steps/step5-staff/StaffCalendarIntegration';
 
 interface JobCategory {
   id: string;
@@ -110,6 +111,10 @@ export function FinalStaffManagement({
   const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
   const [configuringCalendar, setConfiguringCalendar] =
     useState<StaffMember | null>(null);
+  const [businessId, setBusinessId] = useState<string>('');
+  const [showCalendarIntegration, setShowCalendarIntegration] = useState(false);
+  const [managingCalendarStaff, setManagingCalendarStaff] =
+    useState<StaffMember | null>(null);
 
   const [formData, setFormData] = useState({
     first_name: '',
@@ -152,6 +157,7 @@ export function FinalStaffManagement({
     setLoading(true);
     try {
       await Promise.all([
+        loadBusinessProfile(),
         loadBusinessLocations(),
         loadJobCategories(),
         loadJobTypes(),
@@ -161,6 +167,22 @@ export function FinalStaffManagement({
       console.error('Failed to load initial data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadBusinessProfile = async () => {
+    try {
+      const response = await authenticatedFetch(
+        `/api/business/profile?user_id=${user.id}`
+      );
+      if (response.ok) {
+        const data = await response.json();
+        if (data.client?.id) {
+          setBusinessId(data.client.id);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load business profile:', error);
     }
   };
 
@@ -437,6 +459,22 @@ export function FinalStaffManagement({
     toast.success('Calendar configuration saved successfully!');
   };
 
+  const handleManageCalendarIntegration = (member: StaffMember) => {
+    try {
+      if (!member || !member.id) {
+        console.error('Invalid staff member data:', member);
+        toast.error('Error: Invalid staff member data. Please try again.');
+        return;
+      }
+      setManagingCalendarStaff(member);
+    } catch (error) {
+      console.error('Error opening calendar integration:', error);
+      toast.error(
+        'An error occurred while opening calendar integration. Please try again.'
+      );
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -630,9 +668,19 @@ export function FinalStaffManagement({
                       <Button
                         variant="outline"
                         size="sm"
+                        onClick={() => handleManageCalendarIntegration(member)}
+                        className="text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
+                        title="Manage Calendar Integration"
+                      >
+                        <CalendarIcon className="h-4 w-4 mr-1" />
+                        Integration
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => handleConfigureCalendar(member)}
                         className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-                        title="Configure Calendar"
+                        title="Configure Schedule"
                       >
                         <CalendarIcon className="h-4 w-4" />
                       </Button>
@@ -1076,6 +1124,53 @@ export function FinalStaffManagement({
           </div>
         </CardContent>
       </Card>
+
+      {/* Individual Staff Calendar Integration Dialog */}
+      <Dialog
+        open={!!managingCalendarStaff}
+        onOpenChange={open => {
+          if (!open) {
+            setManagingCalendarStaff(null);
+          }
+        }}
+      >
+        <div className="w-[80vw] max-w-6xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-600 p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                Calendar Integration
+              </h2>
+              {managingCalendarStaff && (
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  Managing calendar for {managingCalendarStaff.first_name}{' '}
+                  {managingCalendarStaff.last_name}
+                </p>
+              )}
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setManagingCalendarStaff(null)}
+            >
+              ✕
+            </Button>
+          </div>
+
+          {managingCalendarStaff && (
+            <StaffCalendarIntegration
+              businessId={businessId || 'temp'} // Use temp ID if businessId not loaded yet
+              staffMembers={[
+                {
+                  id: managingCalendarStaff.id,
+                  first_name: managingCalendarStaff.first_name,
+                  last_name: managingCalendarStaff.last_name,
+                  email: managingCalendarStaff.email || '',
+                },
+              ]}
+            />
+          )}
+        </div>
+      </Dialog>
 
       <ConfirmDialog />
     </div>

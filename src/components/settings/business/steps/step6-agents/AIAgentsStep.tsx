@@ -137,7 +137,7 @@ export function AIAgentsStep({
     'basic' | 'scripts' | 'voice' | 'routing'
   >('basic');
   const [loading, setLoading] = useState(true);
-  const [deploying, setDeploying] = useState(false);
+  const [deployingAgents, setDeployingAgents] = useState<Set<string>>(new Set());
   const [testingCall, setTestingCall] = useState(false);
   const [testCallResult, setTestCallResult] = useState<{
     callId: string;
@@ -185,6 +185,67 @@ export function AIAgentsStep({
     loadBusinessInfo();
   }, [user]);
 
+  // Function to load agent data into form (for persistence across page refreshes)
+  const loadAgentToForm = (agent: AIAgent) => {
+    // console.log('DEBUG: loadAgentToForm called with agent:', agent.agent_name);
+    // console.log('DEBUG: agent.call_scripts:', agent.call_scripts);
+    // console.log('DEBUG: agent.call_scripts_prompt:', agent.call_scripts_prompt);
+
+    const voiceSettings = {
+      speed: agent.voice_settings?.speed || 1.0,
+      pitch: agent.voice_settings?.pitch || 1.0,
+      tone: agent.voice_settings?.tone || 'professional',
+      voice_id: agent.voice_settings?.voice_id || 'sarah-professional',
+      accent: agent.voice_settings?.accent || 'american',
+      gender: agent.voice_settings?.gender || 'female',
+    };
+
+    const newFormData = {
+      agent_name: agent.agent_name,
+      agent_type: agent.agent_type,
+      agent_personality: agent.agent_personality,
+      greeting_message: agent.greeting_message || '',
+      custom_instructions: agent.custom_instructions || '',
+      basic_info_prompt: agent.basic_info_prompt || '',
+      call_scripts_prompt: agent.call_scripts_prompt || '',
+      call_scripts: agent.call_scripts || {},
+      voice_settings: voiceSettings,
+      call_routing: (agent.call_routing as any) || {
+        default_action: 'transfer',
+        escalation_number: '',
+        business_hours_action: 'transfer',
+        after_hours_action: 'voicemail',
+        rules: [],
+      },
+    };
+
+    // console.log('DEBUG: newFormData.call_scripts:', newFormData.call_scripts);
+    setFormData(newFormData);
+  };
+
+  // Auto-load agent into the form when agents are loaded (for persistence)
+  useEffect(() => {
+    if (agents.length > 0 && !showCreateForm && !editingAgent) {
+      // Try to load the agent that was previously being edited (from localStorage)
+      const lastEditedAgentId = localStorage.getItem('lastEditedAgentId');
+      let agentToLoad = agents[0]; // default to most recent
+
+      if (lastEditedAgentId) {
+        const foundAgent = agents.find(agent => agent.id === lastEditedAgentId);
+        if (foundAgent) {
+          agentToLoad = foundAgent;
+          // console.log(
+          //   'DEBUG: Loading previously edited agent:',
+          //   foundAgent.agent_name
+          // );
+        }
+      }
+
+      // console.log('DEBUG: Auto-loading agent:', agentToLoad.agent_name);
+      loadAgentToForm(agentToLoad);
+    }
+  }, [agents, showCreateForm, editingAgent]);
+
   const loadBusinessInfo = async () => {
     try {
       const response = await authenticatedFetch(
@@ -221,6 +282,12 @@ export function AIAgentsStep({
         // Transform the API response to match our AIAgent interface
         const transformedAgents = (data.configurations || []).map(
           (config: any) => {
+            // console.log(
+            //   'DEBUG: Loading agent from database:',
+            //   config.agent_name,
+            //   'call_scripts:',
+            //   config.call_scripts
+            // );
             console.log(
               'AIAgentsStep: Loading agent from database with voice_settings:',
               config.voice_settings
@@ -299,39 +366,10 @@ export function AIAgentsStep({
       'AIAgentsStep: Editing agent with voice_settings:',
       agent.voice_settings
     );
+    // Remember which agent is being edited for persistence across page refreshes
+    localStorage.setItem('lastEditedAgentId', agent.id);
     setEditingAgent(agent);
-
-    const voiceSettings = {
-      speed: agent.voice_settings?.speed || 1.0,
-      pitch: agent.voice_settings?.pitch || 1.0,
-      tone: agent.voice_settings?.tone || 'professional',
-      voice_id: agent.voice_settings?.voice_id || 'sarah-professional',
-      accent: agent.voice_settings?.accent || 'american',
-      gender: agent.voice_settings?.gender || 'female',
-    };
-    console.log(
-      'AIAgentsStep: Final voice settings for editing:',
-      voiceSettings
-    );
-
-    setFormData({
-      agent_name: agent.agent_name,
-      agent_type: agent.agent_type,
-      agent_personality: agent.agent_personality,
-      greeting_message: agent.greeting_message || '',
-      custom_instructions: agent.custom_instructions || '',
-      basic_info_prompt: agent.basic_info_prompt || '',
-      call_scripts_prompt: agent.call_scripts_prompt || '',
-      call_scripts: agent.call_scripts || {},
-      voice_settings: voiceSettings,
-      call_routing: (agent.call_routing as any) || {
-        default_action: 'transfer',
-        escalation_number: '',
-        business_hours_action: 'transfer',
-        after_hours_action: 'voicemail',
-        rules: [],
-      },
-    });
+    loadAgentToForm(agent);
     setActiveSection('basic');
     setShowCreateForm(true);
   };
@@ -465,10 +503,21 @@ export function AIAgentsStep({
     }
   };
 
+  const saveScriptsToDatabase = async (updatedFormData: any) => {
+    return saveAgentConfigurationWithData('scripts', updatedFormData);
+  };
+
   const saveAgentConfiguration = async (
     section: 'basic' | 'scripts' | 'voice' | 'routing' | 'all'
   ) => {
-    if (!formData.agent_type || !formData.agent_name) {
+    return saveAgentConfigurationWithData(section, formData);
+  };
+
+  const saveAgentConfigurationWithData = async (
+    section: 'basic' | 'scripts' | 'voice' | 'routing' | 'all',
+    dataToSave: any
+  ) => {
+    if (!dataToSave.agent_type || !dataToSave.agent_name) {
       toast.error('Please fill in agent name and type before saving');
       return;
     }
@@ -503,36 +552,36 @@ export function AIAgentsStep({
       const agentTypesData = await agentTypesResponse.json();
 
       const agentTypeObj = agentTypesData.agent_types?.find(
-        (at: any) => at.type_code === formData.agent_type
+        (at: any) => at.type_code === dataToSave.agent_type
       );
 
       if (!agentTypeObj) {
-        throw new Error(`Agent type not found: ${formData.agent_type}`);
+        throw new Error(`Agent type not found: ${dataToSave.agent_type}`);
       }
 
       // Prepare data based on section
       let saveData: any = {
         client_id: clientId,
         agent_type_id: agentTypeObj.id,
-        agent_name: formData.agent_name,
-        greeting_message: formData.greeting_message,
+        agent_name: dataToSave.agent_name,
+        greeting_message: dataToSave.greeting_message,
       };
 
       if (section === 'basic' || section === 'all') {
         saveData = {
           ...saveData,
-          basic_info_prompt: formData.basic_info_prompt,
-          agent_personality: formData.agent_personality,
-          custom_instructions: formData.custom_instructions,
+          basic_info_prompt: dataToSave.basic_info_prompt,
+          agent_personality: dataToSave.agent_personality,
+          custom_instructions: dataToSave.custom_instructions,
         };
       }
 
       if (section === 'scripts' || section === 'all') {
         const scriptsData = {
-          call_scripts_prompt: formData.call_scripts_prompt,
-          call_scripts: (formData as any).call_scripts || {},
+          call_scripts_prompt: dataToSave.call_scripts_prompt,
+          call_scripts: (dataToSave as any).call_scripts || {},
         };
-        console.log('Scripts data being saved:', scriptsData);
+        // console.log('DEBUG: Scripts data being saved to database:', scriptsData);
         saveData = {
           ...saveData,
           ...scriptsData,
@@ -542,11 +591,11 @@ export function AIAgentsStep({
       if (section === 'voice' || section === 'all') {
         console.log(
           'AIAgentsStep: Saving voice_settings to database:',
-          formData.voice_settings
+          dataToSave.voice_settings
         );
         saveData = {
           ...saveData,
-          voice_settings: formData.voice_settings,
+          voice_settings: dataToSave.voice_settings,
         };
         console.log(
           'AIAgentsStep: Complete save data with voice_settings:',
@@ -557,7 +606,7 @@ export function AIAgentsStep({
       if (section === 'routing' || section === 'all') {
         saveData = {
           ...saveData,
-          call_routing: formData.call_routing,
+          call_routing: dataToSave.call_routing,
         };
       }
 
@@ -592,8 +641,31 @@ export function AIAgentsStep({
       setSaveStatus(prev => ({ ...prev, [section]: 'success' }));
 
       // Refresh agents list to show the new/updated agent
-      if (section === 'basic' || section === 'all' || section === 'voice') {
+      if (
+        section === 'basic' ||
+        section === 'all' ||
+        section === 'voice' ||
+        section === 'scripts'
+      ) {
+        const currentAgentName = dataToSave.agent_name;
+        const currentAgentType = dataToSave.agent_type;
         await loadAgents();
+
+        // Keep track of the current agent for persistence after refresh
+        if (currentAgentName && currentAgentType) {
+          // Use setTimeout to ensure agents state is updated after loadAgents
+          setTimeout(() => {
+            const updatedAgents = agents;
+            const currentAgent = updatedAgents.find(
+              agent =>
+                agent.agent_name === currentAgentName &&
+                agent.agent_type === currentAgentType
+            );
+            if (currentAgent) {
+              localStorage.setItem('lastEditedAgentId', currentAgent.id);
+            }
+          }, 100);
+        }
       }
 
       // Clear success message after 3 seconds
@@ -615,7 +687,7 @@ export function AIAgentsStep({
     if (!user?.id) return;
 
     try {
-      setDeploying(true);
+      setDeployingAgents(prev => new Set(prev).add(agent.id));
 
       // Deploy individual agent to Retell
       const response = await authenticatedFetch('/api/retell/deploy-single', {
@@ -672,7 +744,11 @@ export function AIAgentsStep({
           : 'Failed to deploy agent - Network or connection error';
       toast.error(errorMessage);
     } finally {
-      setDeploying(false);
+      setDeployingAgents(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(agent.id);
+        return newSet;
+      });
     }
   };
 
@@ -914,10 +990,10 @@ export function AIAgentsStep({
                       <Button
                         size="sm"
                         onClick={() => handleDeployAgent(agent)}
-                        disabled={deploying}
+                        disabled={deployingAgents.has(agent.id)}
                         className="bg-green-600 hover:bg-green-700"
                       >
-                        {deploying ? 'Deploying...' : 'Deploy Agent'}
+                        {deployingAgents.has(agent.id) ? 'Deploying...' : 'Deploy Agent'}
                       </Button>
 
                       <Button
@@ -1270,6 +1346,7 @@ export function AIAgentsStep({
                         main_script: firstScript?.main_script || '',
                         closing_script: firstScript?.closing_script || '',
                         escalation_script: firstScript?.escalation_script || '',
+                        fallback_responses: firstScript?.fallback_responses || [],
                       };
                       scriptPrompt =
                         firstScript?.main_script ||
@@ -1281,68 +1358,50 @@ export function AIAgentsStep({
                         scripts?.main_script || scripts?.greeting_script || '';
                     }
 
+                    // Update form state and trigger auto-save
                     setFormData(prev => {
                       const updatedData = {
                         ...prev,
                         call_scripts: scriptData,
                         call_scripts_prompt: scriptPrompt,
                       };
-                      console.log(
-                        'Updated formData with scripts:',
-                        updatedData
-                      );
+                      
+                      // Auto-save to database after state update
+                      setTimeout(async () => {
+                        try {
+                          await saveScriptsToDatabase(updatedData);
+                          toast.success('Call scripts saved to database successfully!');
+                        } catch (error) {
+                          console.error('Auto-save failed:', error);
+                          toast.error('Failed to save scripts to database');
+                        }
+                      }, 100);
+                      
                       return updatedData;
                     });
-
-                    // Auto-save to database when scripts are generated
-                    setTimeout(async () => {
-                      try {
-                        console.log('Auto-saving scripts to database...');
-                        await saveAgentConfiguration('scripts');
-                        console.log('Scripts auto-saved successfully');
-                      } catch (error) {
-                        console.error('Failed to auto-save scripts:', error);
-                        toast.error(
-                          'Failed to save scripts to database. Please try manually saving.'
-                        );
-                      }
-                    }, 500);
                   }}
                   businessInfo={{ ...businessInfo, user_id: user.id }}
                 />
 
-                {/* Save Button for Call Scripts */}
+                {/* Status Display for Call Scripts Auto-Save */}
                 <div className="flex justify-end pt-4 border-t border-gray-200 dark:border-gray-600">
                   <div className="flex items-center gap-3">
                     {saveStatus.scripts === 'success' && (
                       <span className="text-green-600 text-sm">
-                        ✓ Call scripts saved successfully
+                        ✓ Call scripts saved successfully to database
                       </span>
                     )}
                     {saveStatus.scripts === 'error' && (
                       <span className="text-red-600 text-sm">
-                        ✗ Failed to save call scripts
+                        ✗ Failed to save call scripts to database
                       </span>
                     )}
-                    <Button
-                      type="button"
-                      onClick={() => saveAgentConfiguration('scripts')}
-                      disabled={
-                        savingTab === 'scripts' ||
-                        !formData.agent_name ||
-                        !formData.agent_type
-                      }
-                      className="bg-green-600 hover:bg-green-700"
-                    >
-                      {savingTab === 'scripts' ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                          Saving...
-                        </>
-                      ) : (
-                        'Save Call Scripts'
-                      )}
-                    </Button>
+                    {savingTab === 'scripts' && (
+                      <span className="text-blue-600 text-sm">
+                        <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-2 inline-block"></div>
+                        Saving to database...
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>

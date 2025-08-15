@@ -305,6 +305,10 @@ export function AgentTypeCallScripts({
 
       // If initial scripts are provided, use them
       if (initialScripts && Object.keys(initialScripts).length > 0) {
+        // console.log(
+        //   'DEBUG: AgentTypeCallScripts loading initial scripts:',
+        //   initialScripts
+        // );
         const existingScript: CallScript = {
           id: 'existing-script',
           agent_type: agentType,
@@ -333,6 +337,10 @@ export function AgentTypeCallScripts({
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         };
+        // console.log(
+        //   'DEBUG: AgentTypeCallScripts created script:',
+        //   existingScript
+        // );
         setScripts([existingScript]);
         setSelectedScript(existingScript);
       } else {
@@ -477,11 +485,11 @@ export function AgentTypeCallScripts({
         );
         setScripts(updatedScripts);
 
-        // Auto-save the generated scripts
-        await onSave(updatedScripts);
+        // Don't auto-save, let user manually save
+        // await onSave(updatedScripts);
 
         toast.success(
-          'Agent-specific call scripts have been generated and saved successfully!'
+          'Agent-specific call scripts have been generated! Click "Save Call Scripts" to save them.'
         );
       }
     } catch (error) {
@@ -733,10 +741,11 @@ export function AgentTypeCallScripts({
             </CardContent>
           </Card>
 
-          {isEditing && (
-            <Card className="dark:bg-gray-800">
-              <CardContent className="pt-6 dark:bg-gray-800">
-                <div className="flex items-center justify-end space-x-3">
+          {/* Save Button - Always Visible */}
+          <Card className="dark:bg-gray-800">
+            <CardContent className="pt-6 dark:bg-gray-800">
+              <div className="flex items-center justify-end space-x-3">
+                {isEditing && (
                   <Button
                     variant="outline"
                     onClick={() => {
@@ -746,17 +755,18 @@ export function AgentTypeCallScripts({
                   >
                     Cancel Changes
                   </Button>
-                  <Button
-                    onClick={handleSaveScript}
-                    className="bg-orange-600 hover:bg-orange-700"
-                  >
-                    <CheckIcon className="h-4 w-4 mr-2" />
-                    Save Call Scripts
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                )}
+                <Button
+                  onClick={handleSaveScript}
+                  className="bg-orange-600 hover:bg-orange-700"
+                  disabled={!selectedScript}
+                >
+                  <CheckIcon className="h-4 w-4 mr-2" />
+                  Save Call Scripts
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
     </div>
