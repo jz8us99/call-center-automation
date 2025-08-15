@@ -12,8 +12,18 @@ export default function TestSuccessPage() {
       <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 text-center">
         <div className="mb-6">
           <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            <svg
+              className="w-8 h-8 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 13l4 4L19 7"
+              />
             </svg>
           </div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
@@ -26,7 +36,9 @@ export default function TestSuccessPage() {
 
         {sessionId && (
           <div className="mb-6 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
-            <p className="text-sm text-gray-600 dark:text-gray-400">Session ID:</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Session ID:
+            </p>
             <p className="text-xs font-mono text-gray-800 dark:text-gray-200 break-all">
               {sessionId}
             </p>
