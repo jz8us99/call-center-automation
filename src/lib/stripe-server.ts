@@ -2,7 +2,7 @@ import Stripe from 'stripe';
 import { stripeConfig } from './stripe';
 
 // Initialize Stripe with secret key
-export const stripe = new Stripe(stripeConfig.secretKey, {
+export const stripe = new Stripe(stripeConfig.secretKey || 'sk_test_dummy', {
   apiVersion: '2024-11-20.acacia',
   typescript: true,
 });

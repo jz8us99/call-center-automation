@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
     // your project has type errors.
     ignoreBuildErrors: true,
   },
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer: _isServer }) => {
     // Suppress specific warnings from Supabase realtime-js
     config.infrastructureLogging = {
       level: 'error',

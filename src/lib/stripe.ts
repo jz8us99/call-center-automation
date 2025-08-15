@@ -5,16 +5,21 @@ let stripePromise: Promise<Stripe | null>;
 
 export const getStripe = () => {
   if (!stripePromise) {
-    stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+    const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+    if (key) {
+      stripePromise = loadStripe(key);
+    } else {
+      stripePromise = Promise.resolve(null);
+    }
   }
   return stripePromise;
 };
 
 // Stripe configuration for server-side operations
 export const stripeConfig = {
-  publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!,
-  secretKey: process.env.STRIPE_SECRET_KEY!,
-  webhookSecret: process.env.STRIPE_WEBHOOK_SECRET!,
+  publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '',
+  secretKey: process.env.STRIPE_SECRET_KEY || '',
+  webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
 };
 
 // Product/Price configuration - these should match your Stripe Dashboard

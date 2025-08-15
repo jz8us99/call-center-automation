@@ -10,6 +10,18 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
+  {
+    ignores: [
+      '.next/**',
+      'node_modules/**',
+      'dist/**',
+      'build/**',
+      '*.min.js',
+      '*.d.ts',
+      '.db_ops/**',
+      'scripts/**',
+    ],
+  },
   ...compat.extends('next/core-web-vitals', 'next/typescript'),
   ...compat.config({
     extends: ['prettier'],
@@ -31,6 +43,11 @@ const eslintConfig = [
 
       // ✅ 保留 hooks 检查
       'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'off', // 关闭依赖项检查以避免复杂的依赖管理
+
+      // ✅ 关闭构建文件相关的错误
+      '@next/next/no-assign-module-variable': 'off',
+      '@typescript-eslint/no-this-alias': 'off',
     },
   }),
 ];

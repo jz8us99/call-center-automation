@@ -1,6 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest } from 'next/server';
 
+// Re-export createClient for backward compatibility
+export { createClient };
+
 function createSupabaseClient() {
   const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const SUPABASE_PUBLIC_API_KEY =

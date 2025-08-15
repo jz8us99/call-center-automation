@@ -137,7 +137,9 @@ export function AIAgentsStep({
     'basic' | 'scripts' | 'voice' | 'routing'
   >('basic');
   const [loading, setLoading] = useState(true);
-  const [deployingAgents, setDeployingAgents] = useState<Set<string>>(new Set());
+  const [deployingAgents, setDeployingAgents] = useState<Set<string>>(
+    new Set()
+  );
   const [testingCall, setTestingCall] = useState(false);
   const [testCallResult, setTestCallResult] = useState<{
     callId: string;
@@ -993,7 +995,9 @@ export function AIAgentsStep({
                         disabled={deployingAgents.has(agent.id)}
                         className="bg-green-600 hover:bg-green-700"
                       >
-                        {deployingAgents.has(agent.id) ? 'Deploying...' : 'Deploy Agent'}
+                        {deployingAgents.has(agent.id)
+                          ? 'Deploying...'
+                          : 'Deploy Agent'}
                       </Button>
 
                       <Button
@@ -1346,7 +1350,8 @@ export function AIAgentsStep({
                         main_script: firstScript?.main_script || '',
                         closing_script: firstScript?.closing_script || '',
                         escalation_script: firstScript?.escalation_script || '',
-                        fallback_responses: firstScript?.fallback_responses || [],
+                        fallback_responses:
+                          firstScript?.fallback_responses || [],
                       };
                       scriptPrompt =
                         firstScript?.main_script ||
@@ -1365,18 +1370,20 @@ export function AIAgentsStep({
                         call_scripts: scriptData,
                         call_scripts_prompt: scriptPrompt,
                       };
-                      
+
                       // Auto-save to database after state update
                       setTimeout(async () => {
                         try {
                           await saveScriptsToDatabase(updatedData);
-                          toast.success('Call scripts saved to database successfully!');
+                          toast.success(
+                            'Call scripts saved to database successfully!'
+                          );
                         } catch (error) {
                           console.error('Auto-save failed:', error);
                           toast.error('Failed to save scripts to database');
                         }
                       }, 100);
-                      
+
                       return updatedData;
                     });
                   }}

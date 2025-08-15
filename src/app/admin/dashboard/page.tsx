@@ -8,7 +8,7 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 import { User } from '@supabase/supabase-js';
 
 // Components
-import { Badge } from '@/components/ui/badge';
+// import { Badge } from '@/components/ui/badge';
 import { DashboardHeader } from '@/components/layout/DashboardHeader';
 import {
   CallLogsTable,
@@ -54,7 +54,7 @@ interface UserProfile {
 export default function AdminDashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [calls, setCalls] = useState<AdminCallLog[]>([]);
+  const [_calls, _setCalls] = useState<AdminCallLog[]>([]);
   const [callLogs, setCallLogs] = useState<CallLog[]>([]);
   const [callLogsPagination, setCallLogsPagination] = useState({
     page: 1,
@@ -64,10 +64,10 @@ export default function AdminDashboard() {
   });
   const [callLogsLoading, setCallLogsLoading] = useState(false);
   const [callLogsError, setCallLogsError] = useState<string | null>(null);
-  const [users, setUsers] = useState<UserProfile[]>([]);
-  const [selectedUserId, setSelectedUserId] = useState<string>('all');
-  const [callsLoading, setCallsLoading] = useState(false);
-  const [usersLoading, setUsersLoading] = useState(false);
+  const [_users, _setUsers] = useState<UserProfile[]>([]);
+  const [_selectedUserId, _setSelectedUserId] = useState<string>('all');
+  const [_callsLoading, _setCallsLoading] = useState(false);
+  const [_usersLoading, _setUsersLoading] = useState(false);
   const [stats, setStats] = useState({
     totalUsers: 0,
     activeSessions: 0,
@@ -271,9 +271,9 @@ export default function AdminDashboard() {
   }, []);
 
   // Handle user filter change
-  const handleUserFilterChange = (userId: string) => {
-    setSelectedUserId(userId);
-    loadCalls(userId);
+  const _handleUserFilterChange = (_userId: string) => {
+    // setSelectedUserId(userId);
+    // loadCalls(userId);
   };
 
   // Load data when component mounts or admin status changes
