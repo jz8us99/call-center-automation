@@ -249,9 +249,7 @@ export class MetaDataService {
         'Sunday: Closed',
       ],
       insurance: [],
-      emergency_info: '',
       user_id: this.userId,
-      agent_id: this.agentId,
     };
   }
 }

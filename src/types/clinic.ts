@@ -136,12 +136,10 @@ export interface MetaDataResponse {
   phone: string;
   email: string;
   team: StaffInfo[];
-  services: ServiceInfo[];
+  services: string[];
   hours: string[];
   insurance: string[];
-  emergency_info: string;
   user_id: string;
-  agent_id: string;
 }
 
 // Retell函数调用相关类型

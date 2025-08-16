@@ -10,7 +10,6 @@ import {
   InsuranceData,
   OfficeHoursData,
   JobTypeData,
-  AgentConfigurationData,
 } from './db-queries';
 
 /**
@@ -268,41 +267,13 @@ export class MetaDataAggregator {
   }
 
   /**
-   * 格式化Agent配置信息
-   */
-  private static formatAgentConfigurations(
-    agentConfigurations: AgentConfigurationData[]
-  ): any {
-    if (!agentConfigurations || agentConfigurations.length === 0) {
-      return null;
-    }
-
-    // 如果有多个配置，返回数组；如果只有一个，返回对象
-    const formattedConfigs = agentConfigurations.map(config => ({
-      id: config.id,
-      agent_name: config.agent_name,
-      agent_type: config.agent_type?.type_code,
-      agent_type_name: config.agent_type?.name,
-      call_scripts: config.call_scripts,
-      call_routing: config.call_routing,
-      agent_personality: config.agent_personality,
-      call_scripts_prompt: config.call_scripts_prompt,
-      greeting_message: config.greeting_message,
-    }));
-
-    return formattedConfigs.length === 1
-      ? formattedConfigs[0]
-      : formattedConfigs;
-  }
-
-  /**
    * 主聚合方法：将所有数据聚合成MetaDataResponse
    */
   static async aggregateMetaData(
     userId: string,
-    agentId: string,
+    _agentId: string,
     queries: MetaDataQueries
-  ): Promise<MetaDataResponse & { agent?: any }> {
+  ): Promise<MetaDataResponse> {
     // 获取所有数据
     const {
       businessProfile,
@@ -315,9 +286,6 @@ export class MetaDataAggregator {
       officeHours,
       jobTypes,
     } = await queries.getAllMetaData();
-
-    // 单独获取agent配置，传递agentId
-    const agentConfigurations = await queries.getAgentConfigurations(agentId);
 
     // 确定数据源优先级：business_profiles > business_locations > 默认值
     const practiceName =
@@ -352,10 +320,7 @@ export class MetaDataAggregator {
     // 格式化保险信息
     const insurance = this.formatInsurance(acceptedInsurance);
 
-    // 格式化Agent配置信息
-    const agents = this.formatAgentConfigurations(agentConfigurations);
-
-    const result: MetaDataResponse & { agent?: any } = {
+    const result: MetaDataResponse = {
       practice_name: practiceName,
       location: location,
       phone: phone,
@@ -364,15 +329,8 @@ export class MetaDataAggregator {
       services: services,
       hours: hours,
       insurance: insurance,
-      emergency_info: '',
       user_id: userId,
-      agent_id: agentId,
     };
-
-    // 只有当有agent配置时才添加agent字段
-    if (agents) {
-      result.agent = agents;
-    }
 
     return result;
   }

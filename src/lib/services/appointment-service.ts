@@ -259,9 +259,7 @@ export class AppointmentService extends BaseBusinessService {
       // First approach: Get all active staff and filter in application
       const { data: allStaff, error: staffError } = await supabaseAdmin
         .from('staff_members')
-        .select(
-          'id, first_name, last_name, job_types'
-        )
+        .select('id, first_name, last_name, job_types')
         .eq('is_active', true);
 
       if (staffError) {
@@ -337,7 +335,9 @@ export class AppointmentService extends BaseBusinessService {
         // Add display_name to the staff member
         const staffWithDisplayName = {
           ...data,
-          display_name: `${data.first_name || ''} ${data.last_name || ''}`.trim() || 'Staff Member'
+          display_name:
+            `${data.first_name || ''} ${data.last_name || ''}`.trim() ||
+            'Staff Member',
         };
         staffMembers = [staffWithDisplayName];
       } else {
@@ -464,7 +464,7 @@ export class AppointmentService extends BaseBusinessService {
       // TODO: Implement calendar sync when calendar_provider field is available
       // For now, skip calendar sync as the fields don't exist in the database
       return;
-      
+
       /* Future implementation when calendar fields are added:
       const { data: staff, error } = await supabaseAdmin
         .from('staff_members')

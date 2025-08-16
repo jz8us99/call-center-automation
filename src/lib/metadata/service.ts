@@ -250,7 +250,6 @@ export class MetaDataService {
       ],
       insurance: [],
       user_id: this.userId,
-      agent_id: this.agentId,
     };
   }
 }
