@@ -409,6 +409,64 @@ export class RetellDeploymentService {
   }
 
   /**
+   * Get conversation flow configuration from Retell API
+   */
+  private async getConversationFlow(conversationFlowId: string): Promise<any> {
+    try {
+      const response = await fetch(
+        `https://api.retellai.com/get-conversation-flow/${conversationFlowId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.RETELL_API_KEY}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to get conversation flow: ${response.status}`);
+      }
+
+      return response.json();
+    } catch (error) {
+      this.logger.error('Failed to get conversation flow:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update conversation flow configuration in Retell API
+   */
+  private async updateConversationFlow(
+    conversationFlowId: string,
+    updateData: any
+  ): Promise<any> {
+    try {
+      const response = await fetch(
+        `https://api.retellai.com/update-conversation-flow/${conversationFlowId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            Authorization: `Bearer ${process.env.RETELL_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updateData),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to update conversation flow: ${response.status}`
+        );
+      }
+
+      return response.json();
+    } catch (error) {
+      this.logger.error('Failed to update conversation flow:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Get complete business context from database
    */
   private async getBusinessContext(businessId: string): Promise<{
@@ -1033,8 +1091,43 @@ export class RetellDeploymentService {
       // Get business context for prompt generation
       const businessContext = await this.getBusinessContext(config.client_id);
 
-      // Update LLM if it exists
-      if (existingAgent.retell_llm_id) {
+      // Check current agent's response engine type from Retell API
+      let shouldUpdateLlm = true;
+      let existingResponseEngine: any = null;
+      try {
+        this.logger.info(
+          'Checking agent response engine type from Retell API...'
+        );
+        const currentAgent = await this.retell.agent.retrieve(
+          existingAgent.retell_agent_id
+        );
+
+        if (
+          currentAgent?.response_engine?.type &&
+          currentAgent.response_engine.type !== 'retell-llm'
+        ) {
+          this.logger.info(
+            'Agent uses conversation-flow, skipping LLM update:',
+            {
+              responseEngineType: currentAgent.response_engine.type,
+              conversationFlowId: (currentAgent.response_engine as any)
+                .conversation_flow_id,
+            }
+          );
+          shouldUpdateLlm = false;
+          // Store the existing response engine configuration to reuse
+          existingResponseEngine = currentAgent.response_engine;
+        }
+      } catch (retrieveError: any) {
+        this.logger.warn(
+          'Failed to retrieve agent from Retell API:',
+          retrieveError
+        );
+        // Continue with LLM update if we can't determine the type
+      }
+
+      // Update LLM only if the agent uses retell-llm response engine
+      if (shouldUpdateLlm && existingAgent.retell_llm_id) {
         try {
           const comprehensivePrompt = this.generateComprehensivePrompt(
             businessContext,
@@ -1060,8 +1153,8 @@ export class RetellDeploymentService {
         } catch (llmError: any) {
           this.logger.error('Failed to update LLM:', llmError);
 
-          // If LLM doesn't exist, create a new one
-          if (llmError?.status === 404) {
+          // If LLM doesn't exist, create a new one only if we should update LLM
+          if (llmError?.status === 404 && shouldUpdateLlm) {
             this.logger.info('LLM not found, creating new one...');
             const newLlmId = await this.createLlmForAgent(
               businessContext,
@@ -1071,8 +1164,8 @@ export class RetellDeploymentService {
             existingAgent.retell_llm_id = newLlmId;
           }
         }
-      } else {
-        // No LLM ID stored, create new one
+      } else if (shouldUpdateLlm && !existingAgent.retell_llm_id) {
+        // No LLM ID stored, create new one only if we should update LLM
         this.logger.info('No LLM ID found, creating new LLM...');
         const newLlmId = await this.createLlmForAgent(
           businessContext,
@@ -1080,15 +1173,66 @@ export class RetellDeploymentService {
           'receptionist'
         );
         existingAgent.retell_llm_id = newLlmId;
+      } else if (!shouldUpdateLlm && existingResponseEngine) {
+        // Update conversation-flow's global_prompt
+        try {
+          const comprehensivePrompt = this.generateComprehensivePrompt(
+            businessContext,
+            config,
+            'receptionist'
+          );
+
+          const conversationFlowId =
+            existingResponseEngine.conversation_flow_id;
+
+          this.logger.info('Updating conversation-flow global_prompt:', {
+            conversationFlowId,
+            promptLength: comprehensivePrompt.length,
+          });
+
+          // Get existing conversation flow configuration
+          const existingFlow =
+            await this.getConversationFlow(conversationFlowId);
+
+          // Keep all existing configuration, only update global_prompt
+          const updatePayload = {
+            ...existingFlow, // Keep all existing fields
+            global_prompt: comprehensivePrompt, // Only override global_prompt
+          };
+
+          await this.updateConversationFlow(conversationFlowId, updatePayload);
+
+          this.logger.info(
+            'Successfully updated conversation-flow global_prompt'
+          );
+        } catch (error) {
+          this.logger.error('Failed to update conversation-flow:', error);
+          // Continue processing, don't interrupt the whole flow
+        }
+      } else if (!shouldUpdateLlm) {
+        this.logger.info(
+          'Skipping LLM update - agent uses conversation-flow response engine'
+        );
       }
 
       // Prepare response engine configuration
-      const responseEngine = existingAgent.retell_llm_id
-        ? {
-            type: 'retell-llm' as const,
-            llm_id: existingAgent.retell_llm_id,
-          }
-        : undefined;
+      let responseEngine;
+      if (existingResponseEngine) {
+        // Use existing conversation-flow response engine
+        responseEngine = existingResponseEngine;
+        this.logger.info('Using existing conversation-flow response engine:', {
+          type: existingResponseEngine.type,
+          conversationFlowId: existingResponseEngine.conversation_flow_id,
+        });
+      } else if (existingAgent.retell_llm_id) {
+        // Use retell-llm response engine
+        responseEngine = {
+          type: 'retell-llm' as const,
+          llm_id: existingAgent.retell_llm_id,
+        };
+      } else {
+        responseEngine = undefined;
+      }
 
       // Update Agent
       const agentUpdatePayload: any = {

@@ -108,11 +108,19 @@ export interface MetaDataRequest {
   format?: 'json' | 'text';
 }
 
+// 员工服务类型
+export interface StaffService {
+  id: string;
+  job_name: string;
+  job_description: string;
+}
+
 // 员工信息类型
 export interface StaffInfo {
   id: string;
   name: string;
   title?: string;
+  services?: StaffService[];
 }
 
 // MetaData 响应类型

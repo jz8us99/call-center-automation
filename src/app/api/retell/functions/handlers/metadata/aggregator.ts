@@ -48,19 +48,39 @@ export class MetaDataAggregator {
   }
 
   /**
-   * 格式化员工信息为对象数组，包含id、name和title
+   * 格式化员工信息为对象数组，包含id、name、title和services
    */
-  private static formatTeam(staffMembers: StaffMemberData[]): StaffInfo[] {
-    return staffMembers.map(staff => {
+  private static async formatTeam(
+    staffMembers: StaffMemberData[],
+    queries: MetaDataQueries
+  ): Promise<StaffInfo[]> {
+    const teamPromises = staffMembers.map(async staff => {
       const fullName = `${staff.first_name} ${staff.last_name}`.trim();
       const title = staff.title || staff.job_title;
+
+      // 获取员工的服务信息
+      let services = [];
+      if (staff.job_types && staff.job_types.length > 0) {
+        const jobTypes = await queries.getStaffServicesById(
+          staff.id,
+          staff.job_types
+        );
+        services = jobTypes.map(jobType => ({
+          id: jobType.id,
+          job_name: jobType.job_name,
+          job_description: jobType.job_description,
+        }));
+      }
 
       return {
         id: staff.id,
         name: fullName,
         title: title || undefined,
+        services: services.length > 0 ? services : undefined,
       };
     });
+
+    return Promise.all(teamPromises);
   }
 
   /**
@@ -295,7 +315,7 @@ export class MetaDataAggregator {
     const email = businessProfile?.business_email || '';
 
     // 聚合团队信息
-    const team = this.formatTeam(staffMembers);
+    const team = await this.formatTeam(staffMembers, queries);
 
     // 聚合服务信息 - 优先使用job_types数据
     const services = this.aggregateServices(

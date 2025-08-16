@@ -38,6 +38,7 @@ export interface StaffMemberData {
   email: string;
   phone: string;
   is_active: boolean;
+  job_types?: string[];
 }
 
 /**
@@ -213,7 +214,7 @@ export class MetaDataQueries {
     const { data, error } = await this.supabase
       .from('staff_members')
       .select(
-        'id, first_name, last_name, title, job_title, email, phone, is_active'
+        'id, first_name, last_name, title, job_title, email, phone, is_active, job_types'
       )
       .eq('user_id', this.userId)
       .eq('is_active', true)
@@ -221,6 +222,31 @@ export class MetaDataQueries {
 
     if (error) {
       console.error('Error fetching staff members:', error);
+      return [];
+    }
+
+    return data || [];
+  }
+
+  /**
+   * 获取员工的服务信息
+   */
+  async getStaffServicesById(
+    staffId: string,
+    jobTypeIds: string[]
+  ): Promise<any[]> {
+    if (!jobTypeIds || jobTypeIds.length === 0) {
+      return [];
+    }
+
+    const { data, error } = await this.supabase
+      .from('job_types')
+      .select('id, job_name, job_description')
+      .in('id', jobTypeIds)
+      .eq('is_active', true);
+
+    if (error) {
+      console.error(`Error fetching job types for staff ${staffId}:`, error);
       return [];
     }
 

@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { useTranslations } from 'next-intl';
 import { getStripe, PRICING_PLANS, type PlanType } from '@/lib/stripe';
 import { toast } from 'sonner';
+import { getCurrentUserToken } from '@/lib/get-jwt-token';
 
 interface BillingSettingsProps {
   user: User;
@@ -59,7 +60,15 @@ export default function BillingSettings({ user }: BillingSettingsProps) {
   const loadSubscriptionInfo = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/stripe/subscription');
+      const token = await getCurrentUserToken();
+
+      const response = await fetch('/api/stripe/subscription', {
+        headers: token
+          ? {
+              Authorization: `Bearer ${token}`,
+            }
+          : {},
+      });
       const data = await response.json();
 
       if (response.ok) {
@@ -68,9 +77,11 @@ export default function BillingSettings({ user }: BillingSettingsProps) {
         setInvoices(data.invoices);
       } else {
         console.error('Failed to load subscription info:', data.error);
+        toast.error('Failed to load subscription info');
       }
     } catch (error) {
       console.error('Error loading subscription info:', error);
+      toast.error('Error loading subscription info');
     } finally {
       setLoading(false);
     }
@@ -82,8 +93,14 @@ export default function BillingSettings({ user }: BillingSettingsProps) {
 
       if (subscription) {
         // Open billing portal for existing customers
+        const token = await getCurrentUserToken();
         const response = await fetch('/api/stripe/billing-portal', {
           method: 'POST',
+          headers: token
+            ? {
+                Authorization: `Bearer ${token}`,
+              }
+            : {},
         });
         const data = await response.json();
 
@@ -108,8 +125,14 @@ export default function BillingSettings({ user }: BillingSettingsProps) {
     try {
       setLoadingAction('payment-methods');
 
+      const token = await getCurrentUserToken();
       const response = await fetch('/api/stripe/billing-portal', {
         method: 'POST',
+        headers: token
+          ? {
+              Authorization: `Bearer ${token}`,
+            }
+          : {},
       });
       const data = await response.json();
 

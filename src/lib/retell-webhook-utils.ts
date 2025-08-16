@@ -148,15 +148,15 @@ export async function verifyRetellWebhook(
  */
 export async function getUserIdByAgentId(agent_id?: string): Promise<string> {
   try {
-    const { data: agentConfig } = await supabaseAdmin
-      .from('agent_configs')
+    const { data: retellAgent } = await supabaseAdmin
+      .from('retell_agents')
       .select('user_id')
-      .eq('agent_id', agent_id)
+      .eq('retell_agent_id', agent_id)
       .single();
 
-    return agentConfig?.user_id;
+    return retellAgent?.user_id;
   } catch (error) {
-    console.error('Failed to get user_id from agent_configs:', error);
+    console.error('Failed to get user_id from retell_agents:', error);
     console.log(`Using default user_id for agent_id ${agent_id}`);
     throw error;
   }

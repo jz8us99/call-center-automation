@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { extractUserIdFromJWT } from '@/lib/jwt-utils';
-import { MetaDataCache } from '@/lib/metadata/cache';
+import { MetaDataCache } from '@/app/api/retell/functions/handlers/metadata/cache';
 
 /**
  * Global cache invalidation middleware for Next.js middleware

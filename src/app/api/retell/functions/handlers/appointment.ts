@@ -1,152 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { FunctionContext } from '../types';
 import { AppointmentService } from '@/lib/services/appointment-service';
-import { validateWebhookSignature } from '@/lib/webhook-validation';
 
 const appointmentService = new AppointmentService();
 
-export async function POST(request: NextRequest) {
-  try {
-    // Validate webhook signature
-    const signature = request.headers.get('x-retell-signature');
-    if (!signature) {
-      return NextResponse.json({ error: 'Missing signature' }, { status: 401 });
-    }
-
-    const body = await request.text();
-    const isValid = await validateWebhookSignature(body, signature);
-    if (!isValid) {
-      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
-    }
-
-    const data = JSON.parse(body);
-    const { function_name, function_args, call } = data;
-
-    console.log(`Processing Retell function: ${function_name}`, function_args);
-
-    let result;
-
-    switch (function_name) {
-      case 'lookup_customer':
-        result = await handleLookupCustomer(function_args);
-        break;
-
-      case 'upsert_customer':
-        result = await handleUpsertCustomer(function_args);
-        break;
-
-      case 'check_existing_appointment':
-        result = await handleCheckExistingAppointment(function_args);
-        break;
-
-      case 'get_staff_options_for_job_type':
-        result = await handleGetStaffOptions(function_args);
-        break;
-
-      case 'find_openings':
-        result = await handleFindOpenings(function_args);
-        break;
-
-      case 'book_appointment':
-        result = await handleBookAppointment(function_args);
-        break;
-
-      case 'handoff_to_agent':
-        result = await handleHandoffToAgent(function_args, call);
-        break;
-
-      default:
-        return NextResponse.json(
-          { error: `Unknown function: ${function_name}` },
-          { status: 400 }
-        );
-    }
-
-    return NextResponse.json({
-      response: result,
-    });
-  } catch (error) {
-    console.error('Error processing Retell function:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
-}
-
-async function handleLookupCustomer(args: any) {
-  try {
-    const { lastName, phone } = args;
-
-    if (!lastName || !phone) {
-      return {
-        success: false,
-        message:
-          'I need both last name and phone number to look up your record.',
-      };
-    }
-
-    const customer = await appointmentService.lookupCustomer(lastName, phone);
-
-    if (customer) {
-      return {
-        success: true,
-        customerId: customer.id,
-        firstName: customer.first_name,
-        lastName: customer.last_name,
-        phone: customer.phone,
-        email: customer.email,
-        message: `Found your record, ${customer.first_name}.`,
-      };
-    } else {
-      return {
-        success: false,
-        message:
-          "I couldn't find a record with that information. Let me create a new profile for you.",
-      };
-    }
-  } catch (error) {
-    console.error('Error in lookup_customer:', error);
-    return {
-      success: false,
-      message: 'I had trouble looking up your information. Let me try again.',
-    };
-  }
-}
-
-async function handleUpsertCustomer(args: any) {
-  try {
-    const { firstName, lastName, phone, email } = args;
-
-    if (!firstName || !lastName || !phone) {
-      return {
-        success: false,
-        message:
-          'I need your first name, last name, and phone number to create your profile.',
-      };
-    }
-
-    const customer = await appointmentService.upsertCustomer({
-      first_name: firstName,
-      last_name: lastName,
-      phone,
-      email,
-    });
-
-    return {
-      success: true,
-      customerId: customer.id,
-      message: `Perfect! I've ${customer.created_at === customer.updated_at ? 'created' : 'updated'} your profile.`,
-    };
-  } catch (error) {
-    console.error('Error in upsert_customer:', error);
-    return {
-      success: false,
-      message: 'I had trouble saving your information. Let me try again.',
-    };
-  }
-}
-
-async function handleCheckExistingAppointment(args: any) {
+/**
+ * Handle check_existing_appointment function
+ */
+export async function handleCheckExistingAppointment(
+  args: Record<string, any>,
+  context: FunctionContext
+): Promise<Record<string, any>> {
   try {
     const { customerId } = args;
 
@@ -161,7 +24,10 @@ async function handleCheckExistingAppointment(args: any) {
       await appointmentService.checkExistingAppointment(customerId);
 
     if (appointment) {
-      const date = new Date(appointment.starts_at);
+      // Combine appointment_date and start_time to create a full Date
+      const date = new Date(
+        `${appointment.appointment_date}T${appointment.start_time}`
+      );
       const formattedDate = date.toLocaleDateString('en-US', {
         weekday: 'long',
         month: 'long',
@@ -180,8 +46,8 @@ async function handleCheckExistingAppointment(args: any) {
         date: formattedDate,
         time: formattedTime,
         jobType: appointment.job_type,
-        staffName: appointment.staff?.display_name,
-        message: `You have an appointment scheduled for ${formattedDate} at ${formattedTime} with ${appointment.staff?.display_name} for ${appointment.job_type}.`,
+        staffName: (appointment as any).staff?.display_name,
+        message: `You have an appointment scheduled for ${formattedDate} at ${formattedTime} with ${(appointment as any).staff?.display_name} for ${appointment.job_type}.`,
       };
     } else {
       return {
@@ -200,7 +66,13 @@ async function handleCheckExistingAppointment(args: any) {
   }
 }
 
-async function handleGetStaffOptions(args: any) {
+/**
+ * Handle get_staff_options_for_job_type function
+ */
+export async function handleGetStaffOptions(
+  args: Record<string, any>,
+  context: FunctionContext
+): Promise<Record<string, any>> {
   try {
     const { jobType } = args;
 
@@ -213,6 +85,8 @@ async function handleGetStaffOptions(args: any) {
 
     const staff = await appointmentService.getStaffForJobType(jobType);
 
+    console.log('[handleGetStaffOptions] Staff found:', staff);
+
     if (staff.length === 0) {
       return {
         success: false,
@@ -220,12 +94,20 @@ async function handleGetStaffOptions(args: any) {
       };
     }
 
-    const staffList = staff.map(s => ({
-      id: s.id,
-      name: s.display_name,
-    }));
+    const staffList = staff.map(s => {
+      // Try multiple fields to get the staff name
+      const name =
+        s.display_name ||
+        s.full_name ||
+        `${s.first_name || ''} ${s.last_name || ''}`.trim() ||
+        'Staff Member';
+      return {
+        id: s.id,
+        name: name,
+      };
+    });
 
-    const staffNames = staff.map(s => s.display_name).join(', ');
+    const staffNames = staffList.map(s => s.name).join(', ');
 
     return {
       success: true,
@@ -241,7 +123,13 @@ async function handleGetStaffOptions(args: any) {
   }
 }
 
-async function handleFindOpenings(args: any) {
+/**
+ * Handle find_openings function
+ */
+export async function handleFindOpenings(
+  args: Record<string, any>,
+  context: FunctionContext
+): Promise<Record<string, any>> {
   try {
     const { staffId, jobType, durationMins, dateFrom, dateTo } = args;
 
@@ -310,7 +198,13 @@ async function handleFindOpenings(args: any) {
   }
 }
 
-async function handleBookAppointment(args: any) {
+/**
+ * Handle book_appointment function
+ */
+export async function handleBookAppointment(
+  args: Record<string, any>,
+  context: FunctionContext
+): Promise<Record<string, any>> {
   try {
     const { customerId, staffId, jobType, startsAt, durationMins } = args;
 
@@ -322,12 +216,41 @@ async function handleBookAppointment(args: any) {
       };
     }
 
+    // Get business_id from business_profiles table
+    let businessId = null;
+    if (context.userId) {
+      console.log(
+        `[handleBookAppointment] Looking up business_id for user_id: ${context.userId}`
+      );
+      const { supabaseAdmin } = await import('@/lib/supabase-admin');
+      const { data: businessProfile, error: businessError } =
+        await supabaseAdmin
+          .from('business_profiles')
+          .select('id')
+          .eq('user_id', context.userId)
+          .eq('is_active', true)
+          .single();
+
+      if (businessError) {
+        console.error(
+          `[handleBookAppointment] Error getting business_id:`,
+          businessError
+        );
+        // Continue without business_id rather than failing
+      } else {
+        businessId = businessProfile?.id;
+        console.log(`[handleBookAppointment] Found business_id: ${businessId}`);
+      }
+    }
+
     const appointment = await appointmentService.bookAppointment({
       customerId,
       staffId,
       jobType,
       startsAt,
       durationMins,
+      userId: context.userId,
+      businessId,
     });
 
     const date = new Date(appointment.starts_at);
@@ -369,9 +292,15 @@ async function handleBookAppointment(args: any) {
   }
 }
 
-async function handleHandoffToAgent(args: any, call: any) {
+/**
+ * Handle handoff_to_agent function
+ */
+export async function handleHandoffToAgent(
+  args: Record<string, any>,
+  context: FunctionContext
+): Promise<Record<string, any>> {
   try {
-    const { target, context } = args;
+    const { target, contextData } = args;
 
     if (!target) {
       return {
@@ -381,7 +310,7 @@ async function handleHandoffToAgent(args: any, call: any) {
     }
 
     // Store context for the target agent
-    if (context && call?.call_id) {
+    if (contextData && context.call?.call_id) {
       // TODO: Store context in Redis or database for the target agent to retrieve
     }
 

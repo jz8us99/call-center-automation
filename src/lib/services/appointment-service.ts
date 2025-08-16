@@ -1,6 +1,6 @@
 import { BaseBusinessService } from './base-service';
-import { supabase } from '../supabase';
-import { format, addMinutes, parseISO, startOfDay, endOfDay } from 'date-fns';
+import { supabaseAdmin } from '../supabase-admin';
+import { format, addMinutes, parseISO } from 'date-fns';
 
 export interface Customer {
   id?: string;
@@ -14,14 +14,28 @@ export interface Customer {
 
 export interface Appointment {
   id?: string;
+  business_id?: string;
+  user_id?: string;
   customer_id: string;
   staff_id: string;
-  job_type: string;
-  starts_at: string;
-  ends_at: string;
-  status: 'scheduled' | 'confirmed' | 'cancelled' | 'completed';
-  source: 'retell' | 'web' | 'manual';
+  appointment_type_id?: string;
+  appointment_date: string; // Date in YYYY-MM-DD format
+  start_time: string; // Time in HH:MM:SS format
+  end_time: string; // Time in HH:MM:SS format
+  duration_minutes?: number;
+  title?: string;
   notes?: string;
+  customer_notes?: string;
+  status:
+    | 'scheduled'
+    | 'confirmed'
+    | 'in_progress'
+    | 'completed'
+    | 'cancelled'
+    | 'no_show'
+    | 'rescheduled';
+  booking_source?: string;
+  booked_by?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -57,28 +71,48 @@ export class AppointmentService extends BaseBusinessService {
   };
 
   /**
-   * Look up a customer by last name and phone
+   * Look up a customer by phone
    */
   async lookupCustomer(
-    lastName: string,
-    phone: string
+    phone: string,
+    userId?: string
   ): Promise<Customer | null> {
     try {
       // Normalize phone to E.164 format if not already
       const normalizedPhone = this.normalizePhone(phone);
+      console.log(
+        `[lookupCustomer] normalizedPhone: ${normalizedPhone}, userId: ${userId}`
+      );
 
-      const { data, error } = await supabase
+      let query = supabaseAdmin
         .from('customers')
         .select('*')
-        .ilike('last_name', lastName)
-        .eq('phone', normalizedPhone)
-        .single();
+        .eq('phone', normalizedPhone);
 
-      if (error && error.code !== 'PGRST116') {
-        // PGRST116 = no rows found
-        throw error;
+      // Add user_id filter if provided
+      if (userId) {
+        console.log(`[lookupCustomer] Adding user_id filter: ${userId}`);
+        query = query.eq('user_id', userId);
+      } else {
+        console.log(
+          `[lookupCustomer] No userId provided, searching all customers`
+        );
       }
 
+      console.log(`[lookupCustomer] Executing query...`);
+      const { data, error } = await query.single();
+
+      if (error) {
+        console.log(`[lookupCustomer] Query error:`, error);
+        if (error.code !== 'PGRST116') {
+          // PGRST116 = no rows found
+          throw error;
+        }
+        console.log(`[lookupCustomer] No customer found (PGRST116)`);
+        return null;
+      }
+
+      console.log(`[lookupCustomer] Found customer:`, data);
       return data;
     } catch (error) {
       this.logger.error('Error looking up customer:', error);
@@ -89,24 +123,54 @@ export class AppointmentService extends BaseBusinessService {
   /**
    * Create or update a customer record
    */
-  async upsertCustomer(customer: Customer): Promise<Customer> {
+  async upsertCustomer(customer: Customer, userId?: string): Promise<Customer> {
     try {
+      // First, get business_id from business_profiles table
+      let business_id = null;
+      if (userId) {
+        console.log(
+          `[upsertCustomer] Looking up business_id for user_id: ${userId}`
+        );
+        const { data: businessProfile, error: businessError } =
+          await supabaseAdmin
+            .from('business_profiles')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('is_active', true)
+            .single();
+
+        if (businessError) {
+          console.error(
+            `[upsertCustomer] Error getting business_id:`,
+            businessError
+          );
+          throw new Error(
+            `Failed to get business profile: ${businessError.message}`
+          );
+        }
+
+        business_id = businessProfile?.id;
+        console.log(`[upsertCustomer] Found business_id: ${business_id}`);
+      }
+
       // Normalize phone to E.164 format
       const normalizedCustomer = {
         ...customer,
         phone: this.normalizePhone(customer.phone),
         updated_at: new Date().toISOString(),
+        user_id: userId, // Add user_id to customer record
+        business_id: business_id, // Add business_id to customer record
       };
 
       // Check if customer exists by phone
       const existing = await this.lookupCustomer(
-        normalizedCustomer.last_name,
-        normalizedCustomer.phone
+        normalizedCustomer.phone,
+        userId
       );
 
       if (existing) {
         // Update existing customer
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
           .from('customers')
           .update({
             first_name: normalizedCustomer.first_name,
@@ -122,7 +186,7 @@ export class AppointmentService extends BaseBusinessService {
         return data;
       } else {
         // Create new customer
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
           .from('customers')
           .insert({
             ...normalizedCustomer,
@@ -147,9 +211,11 @@ export class AppointmentService extends BaseBusinessService {
     customerId: string
   ): Promise<Appointment | null> {
     try {
-      const now = new Date().toISOString();
+      const now = new Date();
+      const today = format(now, 'yyyy-MM-dd');
+      const currentTime = format(now, 'HH:mm:ss');
 
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from('appointments')
         .select(
           `
@@ -159,9 +225,12 @@ export class AppointmentService extends BaseBusinessService {
         `
         )
         .eq('customer_id', customerId)
-        .gte('starts_at', now)
+        .or(
+          `appointment_date.gt.${today},and(appointment_date.eq.${today},start_time.gte.${currentTime})`
+        )
         .in('status', ['scheduled', 'confirmed'])
-        .order('starts_at', { ascending: true })
+        .order('appointment_date', { ascending: true })
+        .order('start_time', { ascending: true })
         .limit(1)
         .single();
 
@@ -181,15 +250,46 @@ export class AppointmentService extends BaseBusinessService {
    */
   async getStaffForJobType(jobType: string): Promise<StaffMember[]> {
     try {
-      const { data, error } = await supabase
+      console.log(
+        `[getStaffForJobType] Looking for staff with job type: ${jobType}`
+      );
+
+      // First approach: Get all active staff and filter in application
+      const { data: allStaff, error: staffError } = await supabaseAdmin
         .from('staff_members')
-        .select('*')
-        .contains('job_types', [jobType])
+        .select(
+          'id, display_name, first_name, last_name, job_types, calendar_provider, provider_account_id, working_hours, timezone'
+        )
         .eq('is_active', true);
 
-      if (error) throw error;
+      if (staffError) {
+        console.error('[getStaffForJobType] Error fetching staff:', staffError);
+        throw staffError;
+      }
 
-      return data || [];
+      // Filter staff who have this job type in their job_types array
+      const filteredStaff = (allStaff || []).filter(staff => {
+        if (!staff.job_types || !Array.isArray(staff.job_types)) {
+          return false;
+        }
+        return staff.job_types.includes(jobType);
+      });
+
+      console.log(
+        `[getStaffForJobType] Found ${filteredStaff.length} staff members`
+      );
+
+      // Log the first staff member to debug name fields
+      if (filteredStaff.length > 0) {
+        console.log('[getStaffForJobType] Sample staff data:', {
+          id: filteredStaff[0].id,
+          display_name: filteredStaff[0].display_name,
+          first_name: filteredStaff[0].first_name,
+          last_name: filteredStaff[0].last_name,
+        });
+      }
+
+      return filteredStaff;
     } catch (error) {
       this.logger.error('Error getting staff for job type:', error);
       throw error;
@@ -218,7 +318,7 @@ export class AppointmentService extends BaseBusinessService {
       // Get staff members
       let staffMembers: StaffMember[];
       if (params.staffId) {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseAdmin
           .from('staff_members')
           .select('*')
           .eq('id', params.staffId)
@@ -236,12 +336,15 @@ export class AppointmentService extends BaseBusinessService {
 
       // Get existing appointments for these staff members
       const staffIds = staffMembers.map(s => s.id);
-      const { data: appointments, error } = await supabase
+      const startDateStr = format(startDate, 'yyyy-MM-dd');
+      const endDateStr = format(endDate, 'yyyy-MM-dd');
+
+      const { data: appointments, error } = await supabaseAdmin
         .from('appointments')
-        .select('staff_id, starts_at, ends_at')
+        .select('staff_id, appointment_date, start_time, end_time')
         .in('staff_id', staffIds)
-        .gte('starts_at', startDate.toISOString())
-        .lte('starts_at', endDate.toISOString())
+        .gte('appointment_date', startDateStr)
+        .lte('appointment_date', endDateStr)
         .in('status', ['scheduled', 'confirmed']);
 
       if (error) throw error;
@@ -280,21 +383,26 @@ export class AppointmentService extends BaseBusinessService {
     jobType: string;
     startsAt: string;
     durationMins?: number;
+    userId?: string;
+    businessId?: string;
   }): Promise<Appointment> {
     try {
       const duration = params.durationMins || 30;
       const startsAt = parseISO(params.startsAt);
       const endsAt = addMinutes(startsAt, duration);
 
+      const appointmentDate = format(startsAt, 'yyyy-MM-dd');
+      const startTime = format(startsAt, 'HH:mm:ss');
+      const endTime = format(endsAt, 'HH:mm:ss');
+
       // Check if slot is still available
-      const { data: conflicting, error: conflictError } = await supabase
+      const { data: conflicting, error: conflictError } = await supabaseAdmin
         .from('appointments')
         .select('id')
         .eq('staff_id', params.staffId)
+        .eq('appointment_date', appointmentDate)
         .in('status', ['scheduled', 'confirmed'])
-        .or(
-          `and(starts_at.lt.${endsAt.toISOString()},ends_at.gt.${startsAt.toISOString()})`
-        );
+        .or(`and(start_time.lt.${endTime},end_time.gt.${startTime})`);
 
       if (conflictError) throw conflictError;
 
@@ -303,16 +411,20 @@ export class AppointmentService extends BaseBusinessService {
       }
 
       // Create the appointment
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from('appointments')
         .insert({
+          business_id: params.businessId,
+          user_id: params.userId,
           customer_id: params.customerId,
           staff_id: params.staffId,
-          job_type: params.jobType,
-          starts_at: startsAt.toISOString(),
-          ends_at: endsAt.toISOString(),
+          appointment_type_id: params.jobType, // Using jobType as appointment_type_id
+          appointment_date: appointmentDate,
+          start_time: startTime,
+          end_time: endTime,
+          duration_minutes: duration,
           status: 'scheduled',
-          source: 'retell',
+          booking_source: 'retell',
           created_at: new Date().toISOString(),
         })
         .select()
@@ -336,7 +448,7 @@ export class AppointmentService extends BaseBusinessService {
   private async syncToCalendar(appointment: Appointment): Promise<void> {
     try {
       // Get staff member's calendar configuration
-      const { data: staff, error } = await supabase
+      const { data: staff, error } = await supabaseAdmin
         .from('staff_members')
         .select('calendar_provider, provider_account_id, oauth_tokens')
         .eq('id', appointment.staff_id)
@@ -410,13 +522,24 @@ export class AppointmentService extends BaseBusinessService {
 
           if (slotEnd <= dayEnd) {
             // Check if slot conflicts with existing appointments
+            const slotDateStr = format(slotStart, 'yyyy-MM-dd');
+            const slotStartTime = format(slotStart, 'HH:mm:ss');
+            const slotEndTime = format(slotEnd, 'HH:mm:ss');
+
             const hasConflict = appointments.some(apt => {
-              const aptStart = parseISO(apt.starts_at);
-              const aptEnd = parseISO(apt.ends_at);
+              // Only check appointments on the same date
+              if (apt.appointment_date !== slotDateStr) {
+                return false;
+              }
+
+              // Compare times
+              const aptStartTime = apt.start_time;
+              const aptEndTime = apt.end_time;
+
               return (
-                (slotStart >= aptStart && slotStart < aptEnd) ||
-                (slotEnd > aptStart && slotEnd <= aptEnd) ||
-                (slotStart <= aptStart && slotEnd >= aptEnd)
+                (slotStartTime >= aptStartTime && slotStartTime < aptEndTime) ||
+                (slotEndTime > aptStartTime && slotEndTime <= aptEndTime) ||
+                (slotStartTime <= aptStartTime && slotEndTime >= aptEndTime)
               );
             });
 
