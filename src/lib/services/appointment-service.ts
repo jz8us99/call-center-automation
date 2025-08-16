@@ -43,6 +43,8 @@ export interface Appointment {
 export interface StaffMember {
   id: string;
   display_name: string;
+  first_name?: string;
+  last_name?: string;
   job_types: string[];
   calendar_provider?: 'google' | 'outlook' | 'calendly' | 'none';
   provider_account_id?: string;
@@ -258,7 +260,7 @@ export class AppointmentService extends BaseBusinessService {
       const { data: allStaff, error: staffError } = await supabaseAdmin
         .from('staff_members')
         .select(
-          'id, display_name, first_name, last_name, job_types, calendar_provider, provider_account_id, working_hours, timezone'
+          'id, first_name, last_name, job_types'
         )
         .eq('is_active', true);
 
@@ -268,12 +270,19 @@ export class AppointmentService extends BaseBusinessService {
       }
 
       // Filter staff who have this job type in their job_types array
-      const filteredStaff = (allStaff || []).filter(staff => {
-        if (!staff.job_types || !Array.isArray(staff.job_types)) {
-          return false;
-        }
-        return staff.job_types.includes(jobType);
-      });
+      const filteredStaff = (allStaff || [])
+        .filter(staff => {
+          if (!staff.job_types || !Array.isArray(staff.job_types)) {
+            return false;
+          }
+          return staff.job_types.includes(jobType);
+        })
+        .map(staff => ({
+          ...staff,
+          display_name:
+            `${staff.first_name || ''} ${staff.last_name || ''}`.trim() ||
+            'Staff Member',
+        }));
 
       console.log(
         `[getStaffForJobType] Found ${filteredStaff.length} staff members`
@@ -320,12 +329,17 @@ export class AppointmentService extends BaseBusinessService {
       if (params.staffId) {
         const { data, error } = await supabaseAdmin
           .from('staff_members')
-          .select('*')
+          .select('id, first_name, last_name, job_types')
           .eq('id', params.staffId)
           .single();
 
         if (error) throw error;
-        staffMembers = [data];
+        // Add display_name to the staff member
+        const staffWithDisplayName = {
+          ...data,
+          display_name: `${data.first_name || ''} ${data.last_name || ''}`.trim() || 'Staff Member'
+        };
+        staffMembers = [staffWithDisplayName];
       } else {
         staffMembers = await this.getStaffForJobType(params.jobType);
       }
@@ -447,7 +461,11 @@ export class AppointmentService extends BaseBusinessService {
    */
   private async syncToCalendar(appointment: Appointment): Promise<void> {
     try {
-      // Get staff member's calendar configuration
+      // TODO: Implement calendar sync when calendar_provider field is available
+      // For now, skip calendar sync as the fields don't exist in the database
+      return;
+      
+      /* Future implementation when calendar fields are added:
       const { data: staff, error } = await supabaseAdmin
         .from('staff_members')
         .select('calendar_provider, provider_account_id, oauth_tokens')
@@ -462,7 +480,6 @@ export class AppointmentService extends BaseBusinessService {
         return; // No calendar sync configured
       }
 
-      // TODO: Implement calendar sync based on provider
       switch (staff.calendar_provider) {
         case 'google':
           // await this.syncToGoogleCalendar(appointment, staff);
@@ -474,6 +491,7 @@ export class AppointmentService extends BaseBusinessService {
           // await this.syncToCalendly(appointment, staff);
           break;
       }
+      */
     } catch (error) {
       this.logger.error('Error syncing to calendar:', error);
       // Don't throw - calendar sync failure shouldn't fail the booking

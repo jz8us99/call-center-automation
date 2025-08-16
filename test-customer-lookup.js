@@ -1,5 +1,7 @@
 // 测试客户查找功能
-const { AppointmentService } = require('./src/lib/services/appointment-service');
+const {
+  AppointmentService,
+} = require('./src/lib/services/appointment-service');
 
 // 创建服务实例
 const appointmentService = new AppointmentService();
@@ -8,11 +10,11 @@ async function testCustomerLookup() {
   try {
     const phone = '+19099908801';
     const userId = 'test-user-id'; // 用实际的user_id测试
-    
+
     console.log(`正在查找电话号码: ${phone}, 用户ID: ${userId}`);
-    
+
     const customer = await appointmentService.lookupCustomer(phone, userId);
-    
+
     if (customer) {
       console.log('找到客户:', customer);
     } else {

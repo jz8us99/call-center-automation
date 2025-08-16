@@ -1,4 +1,4 @@
-import { MetaDataResponse, StaffInfo } from '@/types/clinic';
+import { MetaDataResponse, StaffInfo, ServiceInfo } from '@/types/clinic';
 import {
   MetaDataQueries,
   BusinessProfileData,
@@ -84,48 +84,66 @@ export class MetaDataAggregator {
   }
 
   /**
-   * 聚合所有服务信息 - 优先使用job_types数据
+   * 聚合所有服务信息 - 优先使用job_types数据，返回包含id的服务对象
    */
   private static aggregateServices(
     jobTypes: JobTypeData[],
     businessServices: BusinessServiceData[],
     staffServices: StaffServiceData[],
     appointmentTypes: AppointmentTypeData[]
-  ): string[] {
-    const serviceSet = new Set<string>();
+  ): ServiceInfo[] {
+    const serviceMap = new Map<string, ServiceInfo>();
 
     // 优先使用job_types数据
     jobTypes.forEach(jobType => {
-      if (jobType.job_name) {
-        serviceSet.add(jobType.job_name);
+      if (jobType.job_name && jobType.id) {
+        serviceMap.set(jobType.id, {
+          id: jobType.id,
+          name: jobType.job_name,
+        });
       }
     });
 
     // 如果job_types没有数据，则使用原有的聚合逻辑作为降级
-    if (serviceSet.size === 0) {
-      // 添加业务服务
-      businessServices.forEach(service => {
+    if (serviceMap.size === 0) {
+      // 添加业务服务 (使用服务名作为ID，因为business_services可能没有独立的ID)
+      businessServices.forEach((service, index) => {
         if (service.service_name) {
-          serviceSet.add(service.service_name);
+          const id = `business_service_${index}`;
+          serviceMap.set(id, {
+            id: id,
+            name: service.service_name,
+          });
         }
       });
 
-      // 添加员工提供的服务
-      staffServices.forEach(service => {
+      // 添加员工提供的服务 (使用组合ID)
+      staffServices.forEach((service, index) => {
         if (service.job_name) {
-          serviceSet.add(service.job_name);
+          const id = `staff_service_${service.staff_id}_${index}`;
+          serviceMap.set(id, {
+            id: id,
+            name: service.job_name,
+          });
         }
       });
 
-      // 添加预约类型
-      appointmentTypes.forEach(type => {
+      // 添加预约类型 (使用预约类型名作为ID)
+      appointmentTypes.forEach((type, index) => {
         if (type.name) {
-          serviceSet.add(type.name);
+          const id = `appointment_type_${index}`;
+          serviceMap.set(id, {
+            id: id,
+            name: type.name,
+          });
         }
       });
     }
 
-    return Array.from(serviceSet).sort();
+    // 转换为数组并按名称排序
+    return Array.from(serviceMap.values()).sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
   }
 
   /**
@@ -346,6 +364,7 @@ export class MetaDataAggregator {
       services: services,
       hours: hours,
       insurance: insurance,
+      emergency_info: '',
       user_id: userId,
       agent_id: agentId,
     };

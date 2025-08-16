@@ -115,6 +115,12 @@ export interface StaffService {
   job_description: string;
 }
 
+// 基础服务类型
+export interface ServiceInfo {
+  id: string;
+  name: string;
+}
+
 // 员工信息类型
 export interface StaffInfo {
   id: string;
@@ -130,7 +136,7 @@ export interface MetaDataResponse {
   phone: string;
   email: string;
   team: StaffInfo[];
-  services: string[];
+  services: ServiceInfo[];
   hours: string[];
   insurance: string[];
   emergency_info: string;

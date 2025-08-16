@@ -156,18 +156,28 @@ export async function handleFindOpenings(
       };
     }
 
-    // Format the first few slots for speech
-    const formattedSlots = slots.slice(0, 3).map(slot => {
+    // Format all slots for speech
+    // Use America/Los_Angeles timezone as default (can be made configurable)
+    const timeZone = 'America/Los_Angeles';
+
+    const formattedSlots = slots.map(slot => {
       const date = new Date(slot.start);
-      const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+
+      // Format using the business timezone
+      const dayName = date.toLocaleDateString('en-US', {
+        weekday: 'long',
+        timeZone: timeZone,
+      });
       const monthDay = date.toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
+        timeZone: timeZone,
       });
       const time = date.toLocaleTimeString('en-US', {
         hour: 'numeric',
         minute: '2-digit',
         hour12: true,
+        timeZone: timeZone,
       });
 
       return {
@@ -176,7 +186,9 @@ export async function handleFindOpenings(
       };
     });
 
+    // Include all slots in the message
     const slotList = formattedSlots.map(s => s.spoken).join(', ');
+    const message = `I have the following appointments available: ${slotList}. Which one works best for you?`;
 
     return {
       success: true,
@@ -186,7 +198,7 @@ export async function handleFindOpenings(
         staffId: s.staffId,
         staffName: s.staffName,
       })),
-      message: `I have the following appointments available: ${slotList}. Which one works best for you?`,
+      message: message,
     };
   } catch (error) {
     console.error('Error in find_openings:', error);
@@ -243,7 +255,7 @@ export async function handleBookAppointment(
       }
     }
 
-    const appointment = await appointmentService.bookAppointment({
+    const bookingParams = {
       customerId,
       staffId,
       jobType,
@@ -251,7 +263,9 @@ export async function handleBookAppointment(
       durationMins,
       userId: context.userId,
       businessId,
-    });
+    };
+
+    const appointment = await appointmentService.bookAppointment(bookingParams);
 
     const date = new Date(appointment.starts_at);
     const formattedDate = date.toLocaleDateString('en-US', {

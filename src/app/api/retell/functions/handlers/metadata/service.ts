@@ -238,7 +238,7 @@ export class MetaDataService {
       phone: '',
       email: '',
       team: [],
-      services: ['General Services'],
+      services: [{ id: 'fallback_service_1', name: 'General Services' }],
       hours: [
         'Monday: 9:00 AM to 5:00 PM',
         'Tuesday: 9:00 AM to 5:00 PM',
@@ -249,6 +249,7 @@ export class MetaDataService {
         'Sunday: Closed',
       ],
       insurance: [],
+      emergency_info: '',
       user_id: this.userId,
       agent_id: this.agentId,
     };
