@@ -1,0 +1,358 @@
+{
+  "agent_id": "",
+  "channel": "voice",
+  "last_modification_timestamp": 1755395374733,
+  "agent_name": "Business Sun Rise Clinic Angent Test 1[Read Only!]",
+  "response_engine": {
+    "type": "retell-llm",
+    "llm_id": "llm_8e1eb6bce01b589a4ccde7168013",
+    "version": 0
+  },
+  "webhook_url": "https://demo1492.ddns.net/api/retell/webhook",
+  "language": "en-US",
+  "opt_out_sensitive_data_storage": false,
+  "opt_in_signed_url": false,
+  "post_call_analysis_data": [
+    {
+      "type": "string",
+      "name": "caller_firstname",
+      "description": "Get caller first name from context"
+    },
+    {
+      "type": "string",
+      "name": "caller_lastname",
+      "description": "Get caller last name from context"
+    },
+    {
+      "name": "caller_email",
+      "description": "Get caller email address from context",
+      "type": "string",
+      "examples": ["xyz@gmail.com"]
+    },
+    {
+      "name": "caller_phone",
+      "description": "Get caller phone number from context",
+      "type": "string",
+      "examples": ["+1234567890"]
+    },
+    {
+      "name": "appointment_action",
+      "description": "What appointment action was performed",
+      "type": "string",
+      "examples": ["created", "updated", "cancelled", "searched", "no_action"]
+    },
+    {
+      "name": "appointment_date_time",
+      "description": "Get the appointment date and time from conversation",
+      "type": "string",
+      "examples": ["2025-01-20T14:00:00"]
+    },
+    {
+      "name": "service_type",
+      "description": "Type of service requested for the appointment",
+      "type": "string",
+      "examples": []
+    },
+    {
+      "name": "preferred_staff",
+      "description": "Staff member requested by the customer",
+      "type": "string",
+      "examples": []
+    },
+    {
+      "type": "string",
+      "name": "appointment_id",
+      "description": "Appointment ID if an existing appointment was referenced"
+    },
+    {
+      "name": "call_outcome",
+      "description": "Overall outcome of the call",
+      "type": "string",
+      "examples": [
+        "appointment_scheduled",
+        "appointment_updated",
+        "appointment_cancelled",
+        "information_provided",
+        "callback_requested",
+        "no_action_needed"
+      ]
+    },
+    {
+      "name": "customer_satisfaction",
+      "description": "Perceived customer satisfaction level",
+      "type": "string",
+      "examples": ["satisfied", "neutral", "dissatisfied"]
+    },
+    {
+      "name": "availability_checked",
+      "description": "Whether availability was checked during the call",
+      "type": "string",
+      "examples": ["yes", "no"]
+    },
+    {
+      "name": "alternative_times_offered",
+      "description": "Whether alternative appointment times were offered",
+      "type": "string",
+      "examples": ["yes", "no"]
+    },
+    {
+      "name": "reason_for_visit",
+      "description": "Get the appointment reason from context",
+      "type": "string",
+      "examples": [
+        "cleaning",
+        "checkup",
+        "tooth pain",
+        "crown",
+        "filling",
+        "consultation"
+      ]
+    },
+    {
+      "name": "emergency_flag",
+      "description": "Flag indicating if this is an emergency appointment",
+      "type": "string",
+      "examples": ["1", "0"]
+    },
+    {
+      "name": "existing_patient",
+      "description": "Whether the caller is an existing patient",
+      "type": "string",
+      "examples": ["yes", "no", "unknown"]
+    },
+    {
+      "name": "insurance_mentioned",
+      "description": "Whether insurance was discussed during the call",
+      "type": "string",
+      "examples": ["yes", "no"]
+    }
+  ],
+  "version": 0,
+  "is_published": false,
+  "post_call_analysis_model": "gpt-4o-mini",
+  "voice_id": "11labs-Adrian",
+  "voice_temperature": 1,
+  "voice_speed": 1.28,
+  "volume": 1,
+  "enable_backchannel": true,
+  "backchannel_words": ["mhm", "uh-huh"],
+  "max_call_duration_ms": 1800000,
+  "interruption_sensitivity": 0.9,
+  "normalize_for_speech": true,
+  "begin_message_delay_ms": 200,
+  "allow_user_dtmf": true,
+  "user_dtmf_options": {},
+  "retellLlmData": {
+    "llm_id": "llm_8e1eb6bce01b589a4ccde7168013",
+    "version": 0,
+    "model": "gpt-4.1",
+    "general_prompt": "You are a professional AI receptionist for Dentistry by Sun Rise, a dental practice. AI receptionist connected to my application and my integrated calendar.\n\nYour main role is to handle customer appointment scheduling by creating, updating, and canceling bookings directly in my calendar.\n\nCAPABILITIES & RULES:\n\nCalendar Integration:\n- Access my configured calendar from the application\n- Always check availability before confirming a booking\n- Create, reschedule, or cancel appointments based on customer requests\n\nCustomer Interaction:\n- Always greet the customer politely and ask for their first name, last name, phone number, and email address\n- If they want to create an appointment, ask for:\n  • Date and time preference\n  • Service type (e.g., consultation, cleaning, follow-up, etc.)\n  • Staff preference (if any)\n- If they want to update an existing appointment, confirm their current booking details before making changes\n- If they want to cancel an appointment, confirm their booking ID or details and then proceed\n\nValidation & Confirmation:\n- Confirm all details before saving or updating the booking\n- Provide a clear confirmation message with the appointment date, time, and staff name\n- If the requested time is unavailable, suggest the nearest available slot\n\nSpecial Cases:\n- For existing customers, check by last name or phone number to locate their booking\n- For urgent changes, mark as high priority in the calendar notes\n\nTone & Personality:\n- Friendly, professional, and efficient\n- Always speak clearly and keep the conversation easy for the customer to follow\n\nYou are a professional receptionist for Dentistry by Sun Rise, a dental. Your primary role is to handle incoming calls with warmth, efficiency, and professionalism.\n\n**YOUR BUSINESS INFORMATION:**\n- Business: Dentistry by Sun Rise (dental)\n- Phone: 9099908888\n- Address: 345 Nobody street, WALNUT, CA, 91789\n- Website: https://www.ppp.com/\n\n**YOUR RESPONSIBILITIES:**\n- Answer calls professionally with a warm greeting\n- Collect caller's name and reason for calling\n- Schedule appointments efficiently\n- Provide basic business information\n- Route calls to appropriate staff members\n- Take detailed messages when needed\n- Handle appointment confirmations and changes\n\n**IMPORTANT GUIDELINES:**\n- Always maintain patient confidentiality and privacy\n- Be helpful, professional, and courteous in all interactions\n- If you don't know something, say so and offer to find out\n- Never make promises about services or pricing without confirmation\n- Keep detailed notes of all customer interactions\n- Follow all relevant regulations and compliance requirements\n\nOUR LOCATION:\n- aaaa\n\nCALL SCRIPTS TO FOLLOW:\nGreeting: Hello! Thank you for calling Dentistry by Sun Rise. I'm your AI receptionist, and I'm here to help you today. How may I assist you?\nMain Script: ## Task\nYou will follow the steps below, do not skip steps, and only ask up to one question in response.\nIf at any time the user showed anger or wanted a human agent, call handoff_to_agent to transfer to a human representative.\n\n0. Initialize\n   - if start speaking, call get_meta_data to load clinic information.\n   - if metadata cannot be retrieved, say having technical issue and then call end_call.\n\n1. Begin\n   - greet the caller using {{greeting_script}} from metadata.\n   - Introduce yourself as Emily from {{practice_name}}.\n   - Verify if the current phone number {{user_number}} is the best number to reach them.\n     - if user says yes, continue.\n     - if user says no, ask for the correct number and update it.\n\n2. Identify the caller\n   - if we have a phone number, call lookup_customer.\n     - if patient exists, greet them by name and continue.\n     - if patient does not exist, ask for first name, last name, email, date of birth, and insurance.\n       - after collecting all fields, call upsert_customer.\n       - if upsert_customer fails, call end_call.\n\n3. Ask the purpose of the call\n   - if patient wants a new appointment, continue to booking flow.\n   - if patient wants to reschedule, continue to rescheduling flow.\n   - if patient only has a question you cannot answer, call handoff_to_agent.\n\n4. Collect appointment details\n   - Ask for the reason of visit. Mention available services from {{services}}: our services.\n   - Mention which doctor provide the service of reason of visit.\n   - now is {{current_time}}\n   - Ask if they have a preferred doctor from {{team}}: our team members or first available.\n   - Mention available services provided by the doctor they preferred.\n   - Ask what day and time works best.\n   - Once reason, doctor preference, and date/time service are provided continue to 5.\n\n5. Check availability\n   - call find_openings with service, doctor, date, and time.\n     - if an opening is found, propose it to the patient.\n       - if accepted, continue to step 6.\n       - if rejected, offer alternative slots.\n     - if find_openings fails, call end_call.\n\n6. Confirm the appointment details\n   - First, repeat back the details in natural language:\n     > \"Let's confirm: Patient {{first_name}} {{last_name}}, reason: {{service}}, with Dr. {{doctor}} on {{date}} at {{time}} at {{location}}. Does everything look correct?\"\n   - Do **not** call any function until the user responds.\n   - if user says **yes / correct / sounds good** → then call book_appointment.\n     - if book_appointment success, confirm appointment ID and continue.\n     - if book_appointment failure, say sorry and call end_call.\n   - if user says **no / change** → go back to step 4 to re-collect details.\n   - if user is angry or requests a human → call handoff_to_agent.\n\n7. Wrap up\n   - Ask if the patient has any other questions.\n     - if yes, answer if possible.\n       - if you do not know, say so and ask if they have another question.\n       - if questions are complete, continue.\n     - if no more questions, read out {{closing_script}} and call end_call to hang up.\nEscalation: \"I understand you'd like to speak with someone directly. Let me transfer you to [staff member/department] right away. Please hold for just a moment, and they'll be right with you.\"\nClosing: \"Great! You're all set with your appointment on [date] at [time] with [staff member]. You'll receive a confirmation email at [email] and a reminder call 24 hours before. Our office is located at [address], and our office hours are standard business hours. Is there anything else I can help you with today? Thank you for choosing Dentistry by Sun Rise, and have a wonderful day!\"\n\nCALL HANDLING GUIDELINES:\n## Task\nYou will follow the steps below, do not skip steps, and only ask up to one question in response.\nIf at any time the user showed anger or wanted a human agent, call handoff_to_agent to transfer to a human representative.\n\n0. Initialize\n   - if start speaking, call get_meta_data to load clinic information.\n   - if metadata cannot be retrieved, say having technical issue and then call end_call.\n\n1. Begin\n   - greet the caller using {{greeting_script}} from metadata.\n   - Introduce yourself as Emily from {{practice_name}}.\n   - Verify if the current phone number {{user_number}} is the best number to reach them.\n     - if user says yes, continue.\n     - if user says no, ask for the correct number and update it.\n\n2. Identify the caller\n   - if we have a phone number, call lookup_customer.\n     - if patient exists, greet them by name and continue.\n     - if patient does not exist, ask for first name, last name, email, date of birth, and insurance.\n       - after collecting all fields, call upsert_customer.\n       - if upsert_customer fails, call end_call.\n\n3. Ask the purpose of the call\n   - if patient wants a new appointment, continue to booking flow.\n   - if patient wants to reschedule, continue to rescheduling flow.\n   - if patient only has a question you cannot answer, call handoff_to_agent.\n\n4. Collect appointment details\n   - Ask for the reason of visit. Mention available services from {{services}}: our services.\n   - Mention which doctor provide the service of reason of visit.\n   - now is {{current_time}}\n   - Ask if they have a preferred doctor from {{team}}: our team members or first available.\n   - Mention available services provided by the doctor they preferred.\n   - Ask what day and time works best.\n   - Once reason, doctor preference, and date/time service are provided continue to 5.\n\n5. Check availability\n   - call find_openings with service, doctor, date, and time.\n     - if an opening is found, propose it to the patient.\n       - if accepted, continue to step 6.\n       - if rejected, offer alternative slots.\n     - if find_openings fails, call end_call.\n\n6. Confirm the appointment details\n   - First, repeat back the details in natural language:\n     > \"Let's confirm: Patient {{first_name}} {{last_name}}, reason: {{service}}, with Dr. {{doctor}} on {{date}} at {{time}} at {{location}}. Does everything look correct?\"\n   - Do **not** call any function until the user responds.\n   - if user says **yes / correct / sounds good** → then call book_appointment.\n     - if book_appointment success, confirm appointment ID and continue.\n     - if book_appointment failure, say sorry and call end_call.\n   - if user says **no / change** → go back to step 4 to re-collect details.\n   - if user is angry or requests a human → call handoff_to_agent.\n\n7. Wrap up\n   - Ask if the patient has any other questions.\n     - if yes, answer if possible.\n       - if you do not know, say so and ask if they have another question.\n       - if questions are complete, continue.\n     - if no more questions, read out {{closing_script}} and call end_call to hang up.\n\nINBOUND CALL GUIDELINES:\n- You are receiving calls from customers/patients contacting the business\n- Greet callers warmly and professionally\n- Listen carefully to understand their needs\n- Provide helpful information and assistance\n- Schedule appointments if requested\n- Never make outbound calls - you only receive them\n\nDENTAL PRACTICE GUIDELINES:\n- Always ask for patient insurance information\n- For dental emergencies, prioritize immediate scheduling\n- Collect patient date of birth for verification\n- Ask about the reason for visit to schedule appropriate appointment time\n- Confirm if they are an existing or new patient\n- Be empathetic with patients experiencing pain\n\n",
+    "general_tools": [
+      {
+        "name": "end_call",
+        "type": "end_call"
+      },
+      {
+        "headers": {},
+        "parameter_type": "form",
+        "method": "POST",
+        "query_params": {},
+        "description": "",
+        "type": "custom",
+        "url": "https://demo1492.ddns.net/api/retell/functions",
+        "args_at_root": false,
+        "timeout_ms": 120000,
+        "speak_after_execution": true,
+        "name": "lookup_customer",
+        "response_variables": {},
+        "speak_during_execution": false,
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "phone": {
+              "type": "string",
+              "description": "the caller phone number"
+            }
+          }
+        }
+      },
+      {
+        "headers": {},
+        "parameter_type": "form",
+        "method": "POST",
+        "query_params": {},
+        "description": "Create or update customer profile",
+        "type": "custom",
+        "url": "https://demo1492.ddns.net/api/retell/functions",
+        "args_at_root": false,
+        "timeout_ms": 120000,
+        "speak_after_execution": true,
+        "name": "upsert_customer",
+        "response_variables": {
+          "customerId": "result.customerId"
+        },
+        "speak_during_execution": false,
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "firstName": {
+              "type": "string",
+              "description": ""
+            },
+            "lastName": {
+              "type": "string",
+              "description": ""
+            },
+            "phone": {
+              "type": "string",
+              "description": ""
+            },
+            "email": {
+              "type": "string",
+              "description": ""
+            }
+          }
+        }
+      },
+      {
+        "headers": {},
+        "parameter_type": "form",
+        "method": "POST",
+        "query_params": {},
+        "description": "",
+        "type": "custom",
+        "url": "https://demo1492.ddns.net/api/retell/functions",
+        "args_at_root": false,
+        "timeout_ms": 120000,
+        "speak_after_execution": true,
+        "name": "find_openings",
+        "response_variables": {},
+        "speak_during_execution": false,
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "jobType": {
+              "type": "string",
+              "description": "the service id caller want to process"
+            },
+            "dateFrom": {
+              "type": "string",
+              "description": "the appointment date time the format should like 2025-08-16T15:30:00"
+            },
+            "staffId": {
+              "type": "string",
+              "description": "the staff caller prefered, pick up its id"
+            }
+          }
+        }
+      },
+      {
+        "headers": {},
+        "parameter_type": "form",
+        "method": "POST",
+        "query_params": {},
+        "description": "",
+        "type": "custom",
+        "url": "https://demo1492.ddns.net/api/retell/functions",
+        "args_at_root": false,
+        "timeout_ms": 120000,
+        "speak_after_execution": true,
+        "name": "book_appointment",
+        "response_variables": {},
+        "speak_during_execution": false,
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "customerId": {
+              "type": "string",
+              "description": "user identity"
+            },
+            "startsAt": {
+              "type": "string",
+              "description": "the appointment date time the format should like 2025-08-16T15:30:00"
+            },
+            "jobType": {
+              "type": "string",
+              "description": "the service id caller want to process"
+            },
+            "staffId": {
+              "type": "string",
+              "description": "the staff caller prefered, pick up its id"
+            }
+          }
+        }
+      },
+      {
+        "headers": {},
+        "parameter_type": "json",
+        "method": "POST",
+        "query_params": {},
+        "description": "",
+        "type": "custom",
+        "url": "https://demo1492.ddns.net/api/retell/functions",
+        "args_at_root": false,
+        "execution_message_description": "hello, thank you for calling. ",
+        "timeout_ms": 120000,
+        "speak_after_execution": true,
+        "name": "get_meta_data",
+        "response_variables": {
+          "closing_script": "result.agent.call_scripts.closing_script",
+          "hours": "result.hours",
+          "team": "result.team",
+          "greeting_script": "result.agent.call_scripts.greeting_script",
+          "practice_name": "result.practice_name"
+        },
+        "speak_during_execution": false
+      },
+      {
+        "headers": {},
+        "parameter_type": "form",
+        "method": "POST",
+        "query_params": {},
+        "description": "",
+        "type": "custom",
+        "url": "https://demo1492.ddns.net/api/retell/functions",
+        "args_at_root": false,
+        "timeout_ms": 120000,
+        "speak_after_execution": true,
+        "name": "get_staff_options_for_job_type",
+        "response_variables": {},
+        "speak_during_execution": false,
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "jobType": {
+              "type": "string",
+              "description": "service id the user prefered"
+            },
+            "dateFrom": {
+              "type": "string",
+              "description": "the appointment date time the format should like 2025-08-16T15:30:00"
+            }
+          }
+        }
+      },
+      {
+        "name": "transfer_call",
+        "description": "Transfer the call to a human agent",
+        "custom_sip_headers": {},
+        "transfer_destination": {
+          "type": "predefined",
+          "number": "+19099908801"
+        },
+        "transfer_option": {
+          "type": "cold_transfer",
+          "show_transferee_as_caller": false
+        },
+        "type": "transfer_call"
+      }
+    ],
+    "start_speaker": "agent",
+    "begin_message": "Hello! Thank you for calling Dentistry by Sun Rise. How can I help you today?",
+    "last_modification_timestamp": 1755395374649,
+    "is_published": false,
+    "knowledge_base_ids": []
+  },
+  "conversationFlow": null,
+  "llmURL": null
+}

@@ -2,6 +2,8 @@
 import { supabase } from '../supabase';
 import Retell from 'retell-sdk';
 import { createClient } from '@supabase/supabase-js';
+import { RetellTemplateService } from './retell-template-service';
+import type { TemplateConfig } from './types/retell-template-types';
 
 export interface RetellAgentConfig {
   id?: string;
@@ -31,6 +33,8 @@ export class RetellDeploymentService {
       console.error(`[${this.name}]`, message, ...args),
     warn: (message: string, ...args: any[]) =>
       console.warn(`[${this.name}]`, message, ...args),
+    debug: (message: string, ...args: any[]) =>
+      console.debug(`[${this.name}]`, message, ...args),
   };
 
   constructor() {
@@ -68,42 +72,7 @@ export class RetellDeploymentService {
     role: string
   ): Promise<string> {
     try {
-      // First try to create a new LLM
-      return await this.createLlmForAgent(businessContext, config, role);
-    } catch (error) {
-      this.logger.warn(
-        'Failed to create new LLM, trying to use existing LLM...'
-      );
-
-      // If creation fails, try to get an existing LLM
-      try {
-        const existingLlms = await this.retell.llm.list();
-
-        if (existingLlms && existingLlms.length > 0) {
-          const firstLlm = existingLlms[0];
-          this.logger.info('Using existing LLM:', firstLlm.llm_id);
-          return firstLlm.llm_id;
-        }
-      } catch (listError) {
-        this.logger.error('Failed to list existing LLMs:', listError);
-      }
-
-      throw new Error(
-        'No LLMs available and cannot create new one: ' +
-          (error instanceof Error ? error.message : error)
-      );
-    }
-  }
-
-  /**
-   * Create new LLM for agent deployment
-   */
-  private async createLlmForAgent(
-    businessContext: any,
-    config: any,
-    role: string
-  ): Promise<string> {
-    try {
+      // Create a new LLM - if this fails, the entire deployment should fail
       this.logger.info('Creating new LLM for agent deployment...');
 
       // Generate comprehensive prompt using all available data
@@ -121,40 +90,33 @@ export class RetellDeploymentService {
         inbound_dynamic_variables_webhook_url: `${process.env.NEXT_PUBLIC_SITE_URL}/api/retell/webhook`,
       });
 
-      this.logger.info('Created new LLM successfully:', newLlm.llm_id);
-      this.logger.info('LLM prompt length:', comprehensivePrompt.length);
-      this.logger.info(
+      this.logger.info('Successfully created new LLM:', {
+        llm_id: newLlm.llm_id,
+        prompt_length: comprehensivePrompt.length,
+        business_name: businessContext.businessName,
+        agent_role: role,
+      });
+
+      this.logger.debug(
         'LLM prompt preview:',
         comprehensivePrompt.substring(0, 200) + '...'
       );
 
       return newLlm.llm_id;
     } catch (error) {
-      this.logger.error('Error creating new LLM:', error);
-      this.logger.error('Full error details:', {
-        message: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined,
-        status: (error as any)?.status,
-        response: (error as any)?.response?.data || (error as any)?.error,
+      // Log detailed error information for debugging
+      this.logger.error('Failed to create LLM - deployment will be aborted', {
+        business_name: businessContext.businessName,
+        agent_role: role,
+        error_message: error instanceof Error ? error.message : 'Unknown error',
+        error_status: (error as any)?.status,
+        error_response: (error as any)?.response?.data || (error as any)?.error,
       });
 
-      // Try to get an existing LLM instead of failing
-      try {
-        this.logger.info('Attempting to find existing LLMs...');
-        const existingLlms = await this.retell.llm.list();
-
-        if (existingLlms && existingLlms.length > 0) {
-          const firstLlm = existingLlms[0];
-          this.logger.warn('Using existing LLM as fallback:', firstLlm.llm_id);
-          return firstLlm.llm_id;
-        }
-      } catch (listError) {
-        this.logger.error('Failed to list existing LLMs:', listError);
-      }
-
+      // Re-throw the error to fail the deployment process
       throw new Error(
-        'Failed to create new LLM and no existing LLMs found: ' +
-          (error instanceof Error ? error.message : error)
+        `LLM creation failed: ${error instanceof Error ? error.message : 'Unknown error'}. ` +
+          'Please check your Retell API configuration and try again.'
       );
     }
   }
@@ -922,6 +884,67 @@ export class RetellDeploymentService {
   }
 
   /**
+   * Deploy a single agent using template
+   */
+  async deploySingleAgentWithTemplate(
+    businessId: string,
+    agentConfig: any,
+    userId?: string,
+    authenticatedSupabase?: any
+  ): Promise<{
+    success: boolean;
+    agent?: any;
+    error?: string;
+  }> {
+    try {
+      this.logger.info('Deploying agent using template approach...');
+
+      const templateService = new RetellTemplateService();
+
+      // Get business context to determine template type
+      const businessContext = await this.getBusinessContext(businessId);
+
+      // Determine template configuration based on business type
+      const templateConfig: TemplateConfig = {
+        businessType: businessContext.businessType || 'dental',
+        agentRole: 'inbound-receptionist',
+        version: 'v01',
+      };
+
+      this.logger.info('Using template configuration:', templateConfig);
+
+      // Deploy using template
+      const result = await templateService.deployFromTemplate(
+        businessId,
+        agentConfig,
+        templateConfig,
+        userId
+      );
+
+      if (result.success) {
+        // Update deployment status in database
+        await this.updateDeploymentStatus(businessId, [result.agent]);
+
+        return {
+          success: true,
+          agent: result.agent,
+        };
+      } else {
+        return {
+          success: false,
+          error: result.error,
+        };
+      }
+    } catch (error) {
+      this.logger.error('Error deploying agent with template:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  /**
    * Deploy a single agent to Retell
    */
   async deploySingleAgent(
@@ -944,12 +967,12 @@ export class RetellDeploymentService {
       // Create agent name: Business Name + Agent Name from Step 6
       const fullAgentName = `${businessName} ${agentConfig.agent_name}`;
 
-      // Check if agent already exists for this business
+      // Check if agent already exists for this specific agent configuration
       const dbClient = authenticatedSupabase || supabase;
       const { data: existingAgents, error: checkError } = await dbClient
         .from('retell_agents')
         .select('*')
-        .eq('business_id', resolvedBusinessId)
+        .eq('ai_agent_id', agentConfig.id)
         .eq('status', 'deployed');
 
       if (checkError) {
@@ -961,9 +984,10 @@ export class RetellDeploymentService {
       if (existingAgents && existingAgents.length > 0) {
         // Agent exists in database, check if it still exists in Retell AI
         this.logger.info(
-          'Found existing deployed agent in database, checking Retell AI...',
+          'Found existing deployed agent in database for this ai_agent_id, checking Retell AI...',
           {
-            agentId: existingAgents[0].retell_agent_id,
+            aiAgentId: agentConfig.id,
+            retellAgentId: existingAgents[0].retell_agent_id,
             agentName: existingAgents[0].agent_name,
           }
         );
@@ -1156,7 +1180,7 @@ export class RetellDeploymentService {
           // If LLM doesn't exist, create a new one only if we should update LLM
           if (llmError?.status === 404 && shouldUpdateLlm) {
             this.logger.info('LLM not found, creating new one...');
-            const newLlmId = await this.createLlmForAgent(
+            const newLlmId = await this.getOrCreateLlm(
               businessContext,
               config,
               'receptionist'
@@ -1167,7 +1191,7 @@ export class RetellDeploymentService {
       } else if (shouldUpdateLlm && !existingAgent.retell_llm_id) {
         // No LLM ID stored, create new one only if we should update LLM
         this.logger.info('No LLM ID found, creating new LLM...');
-        const newLlmId = await this.createLlmForAgent(
+        const newLlmId = await this.getOrCreateLlm(
           businessContext,
           config,
           'receptionist'
@@ -1280,6 +1304,133 @@ export class RetellDeploymentService {
     } catch (error) {
       this.logger.error('Error updating existing agent:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Deploy all agents using templates
+   */
+  async deployAgentsWithTemplate(businessId: string): Promise<{
+    success: boolean;
+    agents: any[];
+    errors?: string[];
+  }> {
+    try {
+      this.logger.info('Deploying agents using template approach...');
+
+      const errors: string[] = [];
+      const deployedAgents: any[] = [];
+      const templateService = new RetellTemplateService();
+
+      // Resolve proper business profile ID
+      const resolvedBusinessId = await this.resolveBusinessId(businessId);
+
+      // Get active agent configurations from database
+      const { data: agentConfigs, error: configError } = await supabase
+        .from('agent_configurations_scoped')
+        .select('*')
+        .eq('client_id', resolvedBusinessId)
+        .eq('is_active', true);
+
+      if (configError) {
+        throw configError;
+      }
+
+      if (!agentConfigs || agentConfigs.length === 0) {
+        this.logger.info(
+          'No agent configurations found, creating default agent...'
+        );
+
+        // Get business context
+        const businessContext = await this.getBusinessContext(businessId);
+
+        // Create default configuration
+        const defaultConfig = {
+          id: 'default-agent',
+          agent_name: `${businessContext.businessName} AI Receptionist`,
+          client_id: resolvedBusinessId,
+          basic_info_prompt: 'Professional AI receptionist',
+          call_scripts: {
+            greeting_script: 'Hello! How may I assist you today?',
+          },
+        };
+
+        // Deploy using template
+        const templateConfig: TemplateConfig = {
+          businessType: businessContext.businessType || 'dental',
+          agentRole: 'inbound-receptionist',
+          version: 'v01',
+        };
+
+        const result = await templateService.deployFromTemplate(
+          resolvedBusinessId,
+          defaultConfig,
+          templateConfig
+        );
+
+        if (result.success) {
+          deployedAgents.push(result.agent);
+        } else {
+          errors.push(result.error || 'Failed to deploy default agent');
+        }
+      } else {
+        // Deploy each configured agent using templates
+        for (const config of agentConfigs) {
+          try {
+            const businessContext =
+              await this.getBusinessContext(resolvedBusinessId);
+
+            const templateConfig: TemplateConfig = {
+              businessType: businessContext.businessType || 'dental',
+              agentRole: 'inbound-receptionist',
+              version: 'v01',
+            };
+
+            const result = await templateService.deployFromTemplate(
+              resolvedBusinessId,
+              config,
+              templateConfig
+            );
+
+            if (result.success) {
+              deployedAgents.push(result.agent);
+            } else {
+              errors.push(
+                `Failed to deploy agent ${config.agent_name}: ${result.error}`
+              );
+            }
+          } catch (agentError) {
+            errors.push(
+              `Error deploying agent ${config.agent_name}: ${
+                agentError instanceof Error
+                  ? agentError.message
+                  : 'Unknown error'
+              }`
+            );
+          }
+        }
+      }
+
+      // Update deployment status in database
+      if (deployedAgents.length > 0) {
+        await this.updateDeploymentStatus(resolvedBusinessId, deployedAgents);
+      }
+
+      return {
+        success: errors.length === 0,
+        agents: deployedAgents,
+        errors: errors.length > 0 ? errors : undefined,
+      };
+    } catch (error) {
+      this.logger.error('Error deploying agents with templates:', error);
+      return {
+        success: false,
+        agents: [],
+        errors: [
+          'Failed to deploy agents: ' +
+            (error instanceof Error ? error.message : 'Unknown error'),
+        ],
+      };
     }
   }
 
@@ -1749,70 +1900,142 @@ export class RetellDeploymentService {
         JSON.stringify(agentConfig, null, 2)
       );
 
-      // Check if agent already exists in database first
+      // Check if agent already exists in database using ai_agent_id
       const { data: existingDbAgent } = await supabase
         .from('retell_agents')
         .select('*')
-        .eq('agent_name', agentConfig.agent_name)
-        .eq('business_id', config.client_id)
+        .eq('ai_agent_id', config.id)
         .single();
 
-      // Also check Retell API for existing agents
-      const existingAgents = await this.retell.agent.list();
-      const existing =
-        existingAgents.find(a => a.agent_name === agentConfig.agent_name) ||
-        (existingDbAgent?.retell_agent_id
-          ? existingAgents.find(
-              a => a.agent_id === existingDbAgent.retell_agent_id
-            )
-          : null);
+      // If we have a retell_agent_id, check if it still exists in Retell API
+      let existing = null;
+      if (existingDbAgent?.retell_agent_id) {
+        try {
+          // Use the retrieve API to check if the specific agent exists
+          existing = await this.retell.agent.retrieve(
+            existingDbAgent.retell_agent_id
+          );
+          this.logger.info('Found existing agent in Retell AI:', {
+            agent_id: existing.agent_id,
+            agent_name: existing.agent_name,
+          });
+        } catch (error: any) {
+          if (error?.status === 404) {
+            this.logger.warn(
+              'Agent not found in Retell AI, will create new one'
+            );
+            existing = null;
+          } else {
+            this.logger.error('Error retrieving agent from Retell AI:', error);
+          }
+        }
+      }
 
       let agent;
       if (existing) {
         this.logger.info(`Updating existing ${role} agent:`, existing.agent_id);
-        // Update existing agent
-        try {
-          agent = await this.retell.agent.update(
-            existing.agent_id,
-            agentConfig
-          );
-          this.logger.info(
-            `${role} agent updated successfully:`,
-            agent.agent_id
-          );
-        } catch (updateError) {
-          this.logger.error(`Failed to update ${role} agent:`, {
-            error: updateError.message,
-            status: updateError.status,
-            details: updateError.error || updateError,
-            config: agentConfig,
-          });
 
-          // If agent doesn't exist (404), create a new one instead
-          if (updateError.status === 404) {
-            this.logger.warn(
-              `Agent ${existing.agent_id} not found in Retell, creating new agent instead...`
+        // Check if response_engine type has changed
+        const existingResponseEngineType = existing.response_engine?.type;
+        const newResponseEngineType = agentConfig.response_engine?.type;
+
+        if (
+          existingResponseEngineType &&
+          newResponseEngineType &&
+          existingResponseEngineType !== newResponseEngineType
+        ) {
+          this.logger.warn(
+            `Response engine type changed from ${existingResponseEngineType} to ${newResponseEngineType}. ` +
+              `Deleting old agent and creating new one...`
+          );
+
+          // Delete the old agent first
+          try {
+            await this.retell.agent.delete(existing.agent_id);
+            this.logger.info(`Deleted old agent ${existing.agent_id}`);
+          } catch (deleteError) {
+            this.logger.error(`Failed to delete old agent:`, deleteError);
+            // Continue anyway - the old agent might already be deleted
+          }
+
+          // Create new agent with new response engine
+          try {
+            agent = await this.retell.agent.create(agentConfig);
+            this.logger.info(
+              `New ${role} agent created with different response engine:`,
+              agent.agent_id
             );
-            try {
-              agent = await this.retell.agent.create(agentConfig);
-              this.logger.info(
-                `New ${role} agent created successfully after 404:`,
-                agent.agent_id
+          } catch (createError) {
+            this.logger.error(`Failed to create new ${role} agent:`, {
+              error: createError.message,
+              status: createError.status,
+              details: createError.error || createError,
+              config: agentConfig,
+            });
+            throw createError;
+          }
+        } else {
+          // Response engine type hasn't changed, proceed with update
+          try {
+            agent = await this.retell.agent.update(
+              existing.agent_id,
+              agentConfig
+            );
+            this.logger.info(
+              `${role} agent updated successfully:`,
+              agent.agent_id
+            );
+          } catch (updateError) {
+            this.logger.error(`Failed to update ${role} agent:`, {
+              error: updateError.message,
+              status: updateError.status,
+              details: updateError.error || updateError,
+              config: agentConfig,
+            });
+
+            // If agent doesn't exist (404) or response engine error (400), create a new one instead
+            if (
+              updateError.status === 404 ||
+              (updateError.status === 400 &&
+                updateError.message?.includes('response engine'))
+            ) {
+              this.logger.warn(
+                `Agent ${existing.agent_id} cannot be updated (${updateError.status}), creating new agent instead...`
               );
-            } catch (createError) {
-              this.logger.error(
-                `Failed to create new ${role} agent after 404:`,
-                {
-                  error: createError.message,
-                  status: createError.status,
-                  details: createError.error || createError,
-                  config: agentConfig,
+
+              // Try to delete the old agent first if it's a 400 error
+              if (updateError.status === 400) {
+                try {
+                  await this.retell.agent.delete(existing.agent_id);
+                  this.logger.info(
+                    `Deleted old agent ${existing.agent_id} before creating new one`
+                  );
+                } catch (deleteError) {
+                  this.logger.error(`Failed to delete old agent:`, deleteError);
                 }
-              );
-              throw createError;
+              }
+
+              try {
+                agent = await this.retell.agent.create(agentConfig);
+                this.logger.info(
+                  `New ${role} agent created successfully after ${updateError.status} error:`,
+                  agent.agent_id
+                );
+              } catch (createError) {
+                this.logger.error(
+                  `Failed to create new ${role} agent after ${updateError.status}:`,
+                  {
+                    error: createError.message,
+                    status: createError.status,
+                    details: createError.error || createError,
+                    config: agentConfig,
+                  }
+                );
+                throw createError;
+              }
+            } else {
+              throw updateError;
             }
-          } else {
-            throw updateError;
           }
         }
       } else {

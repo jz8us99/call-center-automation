@@ -12,10 +12,15 @@ import {
   AgentStatus,
   AIAgent,
 } from '@/types/ai-agent-types';
+import Retell from 'retell-sdk';
 
 const translationManager = TranslationManager.getInstance(
   new MockTranslationService()
 );
+
+const retell = new Retell({
+  apiKey: process.env.RETELL_API_KEY!,
+});
 
 // GET /api/ai-agents/[agentId] - Get specific agent
 export async function GET(
@@ -323,34 +328,80 @@ export async function DELETE(
       );
     }
 
-    // Get translated agents
+    // Get retell_agents records associated with this agent
+    const { data: retellAgents } = await supabase
+      .from('retell_agents')
+      .select('retell_agent_id, retell_llm_id, ai_agent_id')
+      .eq('ai_agent_id', agentId);
+
+    console.log('Found retell_agents records:', retellAgents);
+
+    // Delete Retell AI resources
+    if (retellAgents && retellAgents.length > 0) {
+      for (const record of retellAgents) {
+        // Delete Agent from Retell AI
+        if (record.retell_agent_id) {
+          try {
+            await retell.agent.delete(record.retell_agent_id);
+            console.log(
+              'Successfully deleted agent from Retell AI:',
+              record.retell_agent_id
+            );
+          } catch (retellError) {
+            console.error('Error deleting agent from Retell AI:', retellError);
+            // Continue with deletion process
+          }
+        }
+
+        // Delete LLM from Retell AI
+        if (record.retell_llm_id) {
+          try {
+            await retell.llm.delete(record.retell_llm_id);
+            console.log(
+              'Successfully deleted LLM from Retell AI:',
+              record.retell_llm_id
+            );
+          } catch (retellError) {
+            console.error('Error deleting LLM from Retell AI:', retellError);
+            // Continue with deletion process
+          }
+        }
+      }
+    }
+
+    // Delete retell_agents records
+    const { error: retellAgentsDeleteError } = await supabase
+      .from('retell_agents')
+      .delete()
+      .eq('ai_agent_id', agentId);
+
+    if (retellAgentsDeleteError) {
+      console.error(
+        'Error deleting retell_agents records:',
+        retellAgentsDeleteError
+      );
+      // Continue with ai_agents deletion
+    } else {
+      console.log(
+        'Successfully deleted retell_agents records for agent:',
+        agentId
+      );
+    }
+
+    // Get translated agents for cleanup
     const { data: translatedAgents } = await supabase
       .from('ai_agents')
       .select('id, retell_agent_id')
       .eq('parent_agent_id', agentId);
 
-    // Delete from Retell AI if deployed
-    if (existingAgent.retell_agent_id) {
-      try {
-        // TODO: Implement Retell AI deletion
-        console.log(
-          'Deleting agent from Retell AI:',
-          existingAgent.retell_agent_id
-        );
-      } catch (retellError) {
-        console.error('Error deleting from Retell AI:', retellError);
-        // Continue with local deletion
-      }
-    }
-
-    // Delete translated agents from Retell AI
+    // Delete translated agents from Retell AI (legacy logic)
     if (translatedAgents) {
       for (const translatedAgent of translatedAgents) {
         if (translatedAgent.retell_agent_id) {
           try {
-            // TODO: Implement Retell AI deletion
+            await retell.agent.delete(translatedAgent.retell_agent_id);
             console.log(
-              'Deleting translated agent from Retell AI:',
+              'Successfully deleted translated agent from Retell AI:',
               translatedAgent.retell_agent_id
             );
           } catch (retellError) {

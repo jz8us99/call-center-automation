@@ -429,23 +429,67 @@ export function AIAgentsStep({
   };
 
   const handleDeleteAgent = async (agentId: string) => {
-    const confirmed = await confirm({
-      title: 'Delete AI Agent',
-      description: 'Are you sure you want to delete this AI agent?',
-      confirmText: 'Delete',
-      cancelText: 'Cancel',
-      variant: 'destructive',
-    });
+    console.log('handleDeleteAgent called with agentId:', agentId);
 
-    if (!confirmed) {
+    try {
+      console.log('About to show confirm dialog...');
+      const confirmed = await confirm({
+        title: 'Delete AI Agent',
+        description:
+          'Are you sure you want to delete this AI agent? This will also remove the agent from Retell AI and cannot be undone.',
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        variant: 'destructive',
+      });
+
+      console.log('User confirmation result received:', confirmed);
+
+      if (!confirmed) {
+        console.log('User cancelled deletion');
+        return;
+      }
+    } catch (error) {
+      console.error('Error in confirm dialog:', error);
       return;
     }
 
     try {
-      // TODO: Delete from API
+      console.log(
+        'Making DELETE request to /api/business/agent-configurations/' + agentId
+      );
+      const response = await authenticatedFetch(
+        `/api/business/agent-configurations`,
+        {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ id: agentId }),
+        }
+      );
+
+      console.log('Response status:', response.status);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('API error response:', errorData);
+        throw new Error(errorData.error || 'Failed to delete agent');
+      }
+
+      const responseData = await response.json();
+      console.log('API success response:', responseData);
+
+      // Remove agent from local state
       setAgents(prev => prev.filter(agent => agent.id !== agentId));
+
+      // Show success message
+      toast.success('Agent deleted successfully');
+      console.log('Agent deleted successfully');
     } catch (error) {
       console.error('Failed to delete agent:', error);
+      toast.error(
+        `Failed to delete agent: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   };
 

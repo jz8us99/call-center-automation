@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { RetellDeploymentService } from '@/lib/services/retell-deployment-service';
+import { RetellTemplateService } from '@/lib/services/retell-template-service';
 import { withAuth, isAuthError } from '@/lib/api-auth-helper';
 import { supabase } from '@/lib/supabase';
 import { supabaseAdmin } from '@/lib/supabase-admin';
@@ -60,14 +60,52 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const deploymentService = new RetellDeploymentService();
+    const templateService = new RetellTemplateService();
 
-    // Deploy single agent to Retell
-    const deploymentResult = await deploymentService.deploySingleAgent(
+    // Auto-generate templateConfig based on business profile
+    const businessType = businessProfile[0].business_type || 'general';
+
+    // Map business types to available templates
+    const getTemplateConfig = (businessType: string) => {
+      switch (businessType.toLowerCase()) {
+        case 'dental':
+          return {
+            businessType: 'dental',
+            agentRole: 'inbound-receptionist',
+            version: 'v01',
+          };
+        case 'medical':
+        case 'healthcare':
+          return {
+            businessType: 'medical',
+            agentRole: 'inbound-receptionist',
+            version: 'v01',
+          };
+        case 'restaurant':
+        case 'food':
+          return {
+            businessType: 'restaurant',
+            agentRole: 'inbound-receptionist',
+            version: 'v01',
+          };
+        default:
+          return {
+            businessType: 'general',
+            agentRole: 'inbound-receptionist',
+            version: 'v01',
+          };
+      }
+    };
+
+    const templateConfig = getTemplateConfig(businessType);
+    console.log('Auto-generated templateConfig:', templateConfig);
+
+    // Deploy agent from template
+    const deploymentResult = await templateService.deployFromTemplate(
       businessId,
       agentConfig,
-      userId,
-      supabaseWithAuth
+      templateConfig,
+      userId
     );
 
     if (!deploymentResult.success) {
@@ -83,10 +121,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       agent: deploymentResult.agent,
-      message: `Successfully deployed agent: ${agentConfig.agent_name}`,
+      llmId: deploymentResult.llmId,
+      message: `Successfully deployed agent from template: ${deploymentResult.agent.agent_name}`,
     });
   } catch (error) {
-    console.error('Error deploying single agent to Retell:', error);
+    console.error('Error deploying agent from template:', error);
     return NextResponse.json(
       {
         error: 'Internal server error',

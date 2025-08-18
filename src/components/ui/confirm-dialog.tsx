@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import * as AlertDialog from '@radix-ui/react-alert-dialog';
 import { Button } from '@/components/ui/button';
 
@@ -93,9 +93,9 @@ export function useConfirmDialog(): UseConfirmDialogReturn {
     cancelText?: string;
     variant?: 'default' | 'destructive';
   } | null>(null);
-  const [resolvePromise, setResolvePromise] = useState<
-    ((value: boolean) => void) | null
-  >(null);
+
+  // 使用useRef来保存resolve函数，避免React状态更新的问题
+  const resolveRef = useRef<((value: boolean) => void) | null>(null);
 
   const confirm = (props: {
     title: string;
@@ -106,23 +106,25 @@ export function useConfirmDialog(): UseConfirmDialogReturn {
   }): Promise<boolean> => {
     return new Promise(resolve => {
       setDialogProps(props);
-      setResolvePromise(() => resolve);
+      resolveRef.current = resolve;
       setIsOpen(true);
     });
   };
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
-    if (!open && resolvePromise) {
-      resolvePromise(false);
-      setResolvePromise(null);
+    if (!open && resolveRef.current) {
+      // 对话框被关闭（取消或ESC键），返回false
+      resolveRef.current(false);
+      resolveRef.current = null;
     }
   };
 
   const handleConfirm = () => {
-    if (resolvePromise) {
-      resolvePromise(true);
-      setResolvePromise(null);
+    if (resolveRef.current) {
+      // 确认按钮被点击，返回true
+      resolveRef.current(true);
+      resolveRef.current = null;
     }
     setIsOpen(false);
   };

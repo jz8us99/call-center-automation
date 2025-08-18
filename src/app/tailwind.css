@@ -2,6 +2,43 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Markdown Editor Styles */
+.markdown-editor .w-md-editor {
+  background-color: transparent !important;
+}
+
+.markdown-editor .w-md-editor.w-md-editor-dark {
+  --color-neutral-muted: var(--color-gray-800);
+  --color-border-default: var(--color-gray-600);
+  --color-fg-default: var(--color-gray-100);
+  --color-canvas-default: var(--color-gray-900);
+}
+
+.markdown-editor .w-md-editor-text {
+  color: inherit !important;
+  background-color: transparent !important;
+}
+
+.markdown-editor .w-md-editor-text-container {
+  background-color: var(--color-card) !important;
+}
+
+.dark .markdown-editor .w-md-editor-text-container {
+  background-color: var(--color-gray-800) !important;
+  border-color: var(--color-gray-600) !important;
+}
+
+.dark .markdown-editor .w-md-editor-text {
+  color: var(--color-gray-100) !important;
+  background-color: var(--color-gray-800) !important;
+}
+
+.dark .markdown-editor .w-md-editor-preview {
+  background-color: var(--color-gray-800) !important;
+  color: var(--color-gray-100) !important;
+  border-color: var(--color-gray-600) !important;
+}
+
 /* Core theme configuration */
 @theme {
   /* Font families */
