@@ -4,10 +4,12 @@ import { HelpButton } from '@/components/modals/HelpDialog';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import HeroSection from '@/components/common/HeroSection';
+import ProductsSection from '@/components/common/ProductsSection';
 import IndustriesSection from '@/components/common/IndustriesSection';
 import ValueProposition from '@/components/common/ValueProposition';
 import TestimonialsSection from '@/components/common/TestimonialsSection';
 import IntegrationsSection from '@/components/common/IntegrationsSection';
+import CompanySection from '@/components/common/CompanySection';
 
 export default function HomePage() {
   return (
@@ -18,10 +20,12 @@ export default function HomePage() {
       <Header />
 
       <HeroSection />
+      <ProductsSection />
       <IndustriesSection />
       <ValueProposition />
       <TestimonialsSection />
       <IntegrationsSection />
+      <CompanySection />
 
       <Footer />
 

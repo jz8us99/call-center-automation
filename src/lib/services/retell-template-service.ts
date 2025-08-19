@@ -174,6 +174,20 @@ export class RetellTemplateService {
       // Replace begin_message with business-specific message
       llmConfig.begin_message = this.generateBeginMessage(businessContext);
 
+      // Get the site URL with fallback
+      const siteUrl =
+        process.env.NEXT_PUBLIC_SITE_URL ||
+        process.env.NEXT_PUBLIC_BASE_URL ||
+        'http://localhost:19080';
+
+      this.logger.info('Environment variables and URL check:', {
+        NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+        NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
+        finalSiteUrl: siteUrl,
+        NODE_ENV: process.env.NODE_ENV,
+        functionContext: 'webhook URL generation',
+      });
+
       // Update webhook URLs in tools
       if (llmConfig.general_tools && llmConfig.general_tools.length > 0) {
         llmConfig.general_tools = llmConfig.general_tools.map(
@@ -181,7 +195,7 @@ export class RetellTemplateService {
             if (tool.type === 'custom' && tool.url) {
               return {
                 ...tool,
-                url: `${process.env.NEXT_PUBLIC_SITE_URL}/api/retell/functions`,
+                url: `${siteUrl}/api/retell/functions`,
               };
             }
             return tool;
@@ -191,7 +205,7 @@ export class RetellTemplateService {
 
       // Set inbound dynamic variables webhook
       (llmConfig as any).inbound_dynamic_variables_webhook_url =
-        `${process.env.NEXT_PUBLIC_SITE_URL}/api/retell/webhook`;
+        `${siteUrl}/api/retell/webhook`;
 
       this.logger.info('Creating LLM with config:', {
         model: llmConfig.model,
@@ -239,8 +253,14 @@ export class RetellTemplateService {
       agentConfig.agent_name =
         config?.agent_name || `${businessContext.businessName} AI Receptionist`;
 
+      // Get the site URL with fallback
+      const siteUrl =
+        process.env.NEXT_PUBLIC_SITE_URL ||
+        process.env.NEXT_PUBLIC_BASE_URL ||
+        'http://localhost:19080';
+
       // Replace webhook URL
-      agentConfig.webhook_url = `${process.env.NEXT_PUBLIC_SITE_URL}/api/retell/webhook`;
+      agentConfig.webhook_url = `${siteUrl}/api/retell/webhook`;
 
       // Update response_engine to use the new LLM
       agentConfig.response_engine = {
@@ -322,12 +342,24 @@ export class RetellTemplateService {
         });
 
         // 4a. Update existing LLM
+        this.logger.info('About to update existing LLM...', {
+          llmId: existingAgent.retell_llm_id,
+          businessId,
+          currentTime: new Date().toISOString(),
+        });
+
         llmId = await this.updateLlmFromTemplate(
           existingAgent.retell_llm_id,
           template,
           businessContext,
           config
         );
+
+        this.logger.info('LLM update completed successfully', {
+          llmId,
+          businessId,
+          currentTime: new Date().toISOString(),
+        });
 
         // 5a. Update existing Agent
         agent = await this.updateAgentFromTemplate(
@@ -875,6 +907,20 @@ export class RetellTemplateService {
       // Replace begin_message with business-specific message
       llmConfig.begin_message = this.generateBeginMessage(businessContext);
 
+      // Get the site URL with fallback
+      const siteUrl =
+        process.env.NEXT_PUBLIC_SITE_URL ||
+        process.env.NEXT_PUBLIC_BASE_URL ||
+        'http://localhost:19080';
+
+      this.logger.info('Environment variables and URL check:', {
+        NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+        NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
+        finalSiteUrl: siteUrl,
+        NODE_ENV: process.env.NODE_ENV,
+        functionContext: 'webhook URL generation',
+      });
+
       // Update webhook URLs in tools
       if (llmConfig.general_tools && llmConfig.general_tools.length > 0) {
         llmConfig.general_tools = llmConfig.general_tools.map(
@@ -882,7 +928,7 @@ export class RetellTemplateService {
             if (tool.type === 'custom' && tool.url) {
               return {
                 ...tool,
-                url: `${process.env.NEXT_PUBLIC_SITE_URL}/api/retell/functions`,
+                url: `${siteUrl}/api/retell/functions`,
               };
             }
             return tool;
@@ -892,13 +938,30 @@ export class RetellTemplateService {
 
       // Set inbound dynamic variables webhook
       (llmConfig as any).inbound_dynamic_variables_webhook_url =
-        `${process.env.NEXT_PUBLIC_SITE_URL}/api/retell/webhook`;
+        `${siteUrl}/api/retell/webhook`;
 
       this.logger.info('Updating LLM with config:', {
         llmId,
         model: llmConfig.model,
         promptLength: llmConfig.general_prompt.length,
         toolsCount: llmConfig.general_tools?.length || 0,
+        webhookUrl: (llmConfig as any).inbound_dynamic_variables_webhook_url,
+        toolUrls: llmConfig.general_tools?.map(tool => tool.url) || [],
+      });
+
+      // Additional detailed logging before API call
+      this.logger.info('About to call Retell API with exact payload:', {
+        llmId,
+        webhookUrl: (llmConfig as any).inbound_dynamic_variables_webhook_url,
+        webhookUrlType: typeof (llmConfig as any)
+          .inbound_dynamic_variables_webhook_url,
+        webhookUrlLength: (
+          (llmConfig as any).inbound_dynamic_variables_webhook_url || ''
+        ).length,
+        isValidUrl: /^https?:\/\/.+/.test(
+          (llmConfig as any).inbound_dynamic_variables_webhook_url || ''
+        ),
+        payloadKeys: Object.keys(llmConfig),
       });
 
       // Update LLM using Retell SDK
@@ -942,8 +1005,14 @@ export class RetellTemplateService {
       agentConfig.agent_name =
         config?.agent_name || `${businessContext.businessName} AI Receptionist`;
 
+      // Get the site URL with fallback
+      const siteUrl =
+        process.env.NEXT_PUBLIC_SITE_URL ||
+        process.env.NEXT_PUBLIC_BASE_URL ||
+        'http://localhost:19080';
+
       // Replace webhook URL
-      agentConfig.webhook_url = `${process.env.NEXT_PUBLIC_SITE_URL}/api/retell/webhook`;
+      agentConfig.webhook_url = `${siteUrl}/api/retell/webhook`;
 
       // Update response_engine to use the LLM
       agentConfig.response_engine = {
@@ -972,6 +1041,16 @@ export class RetellTemplateService {
         agentName: agentConfig.agent_name,
         voiceId: agentConfig.voice_id,
         responseEngineType: agentConfig.response_engine.type,
+      });
+
+      // Log agent configuration before API call
+      this.logger.info('About to call Retell Agent API with payload:', {
+        agentId,
+        webhookUrl: agentConfig.webhook_url,
+        webhookUrlType: typeof agentConfig.webhook_url,
+        webhookUrlLength: (agentConfig.webhook_url || '').length,
+        isValidUrl: /^https?:\/\/.+/.test(agentConfig.webhook_url || ''),
+        agentName: agentConfig.agent_name,
       });
 
       // Update Agent using Retell SDK

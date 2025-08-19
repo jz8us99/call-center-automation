@@ -1,0 +1,586 @@
+{
+  "agent_id": "",
+  "channel": "voice",
+  "last_modification_timestamp": null,
+  "agent_name": "Clinic Call Center Inbound Agent",
+  "response_engine": {
+    "type": "conversation-flow",
+    "version": 3,
+    "conversation_flow_id": "conversation_flow_clinic_inbound"
+  },
+  "webhook_url": "https://your-domain.com/api/retell/webhook",
+  "language": "en-US",
+  "opt_out_sensitive_data_storage": false,
+  "opt_in_signed_url": false,
+  "version": 3,
+  "is_published": false,
+  "version_title": "",
+  "post_call_analysis_model": "gpt-4o-mini",
+  "voice_id": "11labs-Adrian",
+  "max_call_duration_ms": 1800000,
+  "interruption_sensitivity": 0.8,
+  "allow_user_dtmf": true,
+  "user_dtmf_options": {},
+  "retellLlmData": null,
+  "conversationFlow": {
+    "conversation_flow_id": "conversation_flow_clinic_inbound",
+    "version": 3,
+    "global_prompt": "{{practice_name}} Call Center Assistant\n\nYou are a professional, empathetic call center representative for {{practice_name}}. Your primary objectives are to:\n1. Provide excellent customer service\n2. Efficiently route calls to appropriate departments\n3. Collect necessary information for appointments and inquiries\n4. Handle basic questions about services, hours, and policies\n\nKey Information:\nPractice Name: {{practice_name}}\nLocation: {{location}}\nPhone: {{clinic_phone}}\nEmail: {{clinic_email}}\nServices: {{services}}\nHours: {{hours}}\nTeam: {{team}}\nInsurance: {{insurance}}\n\nAlways maintain professionalism, speak clearly, and be helpful. If you cannot answer a question, politely redirect to appropriate staff.",
+    "nodes": [
+      {
+        "instruction": {
+          "type": "prompt",
+          "text": "Greet the caller warmly and professionally:\n\n\"Thank you for calling {{practice_name}}. This is your virtual assistant. How may I help you today?\"\n\nListen carefully to determine the caller's needs:\n- New appointment scheduling\n- Existing appointment changes\n- General inquiries about services\n- Billing or insurance questions\n- Emergency situations\n- Speaking with specific staff members"
+        },
+        "name": "Welcome & Intake",
+        "edges": [
+          {
+            "destination_node_id": "node-appointment-booking",
+            "id": "edge-to-appointment",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Caller wants to schedule a new appointment or book services"
+            }
+          },
+          {
+            "destination_node_id": "node-appointment-changes",
+            "id": "edge-to-changes",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Caller wants to reschedule, cancel, or modify existing appointment"
+            }
+          },
+          {
+            "destination_node_id": "node-general-inquiry",
+            "id": "edge-to-inquiry",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Caller has questions about services, hours, location, or general information"
+            }
+          },
+          {
+            "destination_node_id": "node-billing-insurance",
+            "id": "edge-to-billing",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Caller has billing, payment, or insurance-related questions"
+            }
+          },
+          {
+            "destination_node_id": "node-emergency",
+            "id": "edge-to-emergency",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Caller indicates urgent medical situation or emergency"
+            }
+          },
+          {
+            "destination_node_id": "node-staff-request",
+            "id": "edge-to-staff",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Caller specifically requests to speak with a particular staff member or department"
+            }
+          }
+        ],
+        "start_speaker": "agent",
+        "id": "start-node-welcome",
+        "type": "conversation",
+        "display_position": {
+          "x": 0,
+          "y": 0
+        }
+      },
+      {
+        "instruction": {
+          "type": "prompt",
+          "text": "Help the caller schedule a new appointment:\n\n1. First, determine if they are a new or existing patient\n2. Collect necessary information:\n   - Full name\n   - Phone number (confirm with caller number if available)\n   - Email address\n   - Date of birth\n   - Insurance information\n   - Preferred appointment date/time\n   - Type of service needed\n   - Any specific doctor preferences\n\n3. Check availability and confirm appointment details\n4. Provide confirmation number and next steps"
+        },
+        "name": "New Appointment Booking",
+        "edges": [
+          {
+            "destination_node_id": "node-patient-info-collection",
+            "id": "edge-to-patient-info",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Need to collect patient information"
+            }
+          },
+          {
+            "destination_node_id": "node-appointment-confirmation",
+            "id": "edge-to-confirmation",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "All information collected and appointment can be scheduled"
+            }
+          }
+        ],
+        "id": "node-appointment-booking",
+        "type": "conversation",
+        "display_position": {
+          "x": -400,
+          "y": 300
+        }
+      },
+      {
+        "instruction": {
+          "type": "prompt",
+          "text": "Collect patient information systematically:\n\n1. \"May I have your full name please?\" - Store as {patient_name}\n2. \"What's the best phone number to reach you?\" - Store as {patient_phone}\n3. \"May I have your email address?\" - Store as {patient_email}\n4. \"What's your date of birth?\" - Store as {date_of_birth}\n5. \"Do you have insurance? If so, what's your insurance provider?\" - Store as {insurance_info}\n6. \"What type of service do you need?\" - Store as {service_type}\n7. \"Do you have a preferred date and time?\" - Store as {preferred_datetime}\n8. \"Is there a specific doctor you'd like to see?\" - Store as {preferred_doctor}\n\nConfirm each piece of information before moving to the next question."
+        },
+        "name": "Patient Information Collection",
+        "edges": [
+          {
+            "destination_node_id": "node-appointment-confirmation",
+            "id": "edge-to-final-confirmation",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "All required patient information has been collected and confirmed"
+            }
+          }
+        ],
+        "id": "node-patient-info-collection",
+        "type": "conversation",
+        "display_position": {
+          "x": -800,
+          "y": 600
+        }
+      },
+      {
+        "instruction": {
+          "type": "prompt",
+          "text": "Handle existing appointment modifications:\n\n1. Ask for patient identification:\n   - Name\n   - Phone number or appointment confirmation number\n   - Date of birth for verification\n\n2. Determine what changes are needed:\n   - Reschedule to different date/time\n   - Cancel appointment\n   - Change service type\n   - Update contact information\n\n3. Process the change and provide confirmation\n4. Send updated appointment details if rescheduling"
+        },
+        "name": "Appointment Changes",
+        "edges": [
+          {
+            "destination_node_id": "node-appointment-confirmation",
+            "id": "edge-change-to-confirmation",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Changes have been processed and confirmed"
+            }
+          },
+          {
+            "destination_node_id": "node-call-completion",
+            "id": "edge-change-to-completion",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Appointment cancelled or no further action needed"
+            }
+          }
+        ],
+        "id": "node-appointment-changes",
+        "type": "conversation",
+        "display_position": {
+          "x": -200,
+          "y": 300
+        }
+      },
+      {
+        "instruction": {
+          "type": "prompt",
+          "text": "Answer general inquiries about the practice:\n\n1. Services offered: {{services}}\n2. Hours of operation: {{hours}}\n3. Location and directions: {{location}}\n4. Contact information: Phone {{clinic_phone}}, Email {{clinic_email}}\n5. Team information: {{team}}\n6. Insurance accepted: {{insurance}}\n\nIf asked about specific procedures, costs, or medical advice, explain that you can provide general information but recommend speaking with clinical staff for detailed medical questions.\n\nAlways offer to schedule an appointment if appropriate."
+        },
+        "name": "General Inquiry",
+        "edges": [
+          {
+            "destination_node_id": "node-appointment-booking",
+            "id": "edge-inquiry-to-appointment",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Caller expresses interest in scheduling an appointment"
+            }
+          },
+          {
+            "destination_node_id": "node-call-completion",
+            "id": "edge-inquiry-to-completion",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Question answered and no further assistance needed"
+            }
+          }
+        ],
+        "id": "node-general-inquiry",
+        "type": "conversation",
+        "display_position": {
+          "x": 200,
+          "y": 300
+        }
+      },
+      {
+        "instruction": {
+          "type": "prompt",
+          "text": "Handle billing and insurance questions:\n\n1. For billing inquiries:\n   - Ask for patient name and date of birth for verification\n   - Explain that detailed billing questions need to be handled by billing department\n   - Provide billing department contact information\n   - Offer to transfer call if available\n\n2. For insurance questions:\n   - Confirm we accept their insurance: {{insurance}}\n   - Explain that coverage varies by individual plan\n   - Recommend calling insurance company for coverage details\n   - Offer to verify benefits before appointment\n\n3. For payment options:\n   - Explain accepted payment methods\n   - Mention payment plan options if available"
+        },
+        "name": "Billing & Insurance",
+        "edges": [
+          {
+            "destination_node_id": "node-staff-transfer",
+            "id": "edge-billing-to-transfer",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Caller needs to speak with billing department"
+            }
+          },
+          {
+            "destination_node_id": "node-call-completion",
+            "id": "edge-billing-to-completion",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Question answered satisfactorily"
+            }
+          }
+        ],
+        "id": "node-billing-insurance",
+        "type": "conversation",
+        "display_position": {
+          "x": 400,
+          "y": 300
+        }
+      },
+      {
+        "instruction": {
+          "type": "prompt",
+          "text": "Handle emergency situations with urgency and care:\n\n1. Assess the severity:\n   - Is this a life-threatening emergency? If yes, advise calling 911 immediately\n   - Is this urgent but not life-threatening?\n\n2. For urgent dental/medical issues:\n   - Collect patient name and phone number\n   - Get brief description of the problem\n   - Immediately connect with on-call staff or emergency line\n   - Provide temporary relief advice if appropriate\n\n3. Always prioritize patient safety and quick connection to medical professionals"
+        },
+        "name": "Emergency Handling",
+        "edges": [
+          {
+            "destination_node_id": "node-staff-transfer",
+            "id": "edge-emergency-to-transfer",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Emergency requires immediate staff attention"
+            }
+          },
+          {
+            "destination_node_id": "node-call-completion",
+            "id": "edge-emergency-to-completion",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Emergency addressed or caller referred appropriately"
+            }
+          }
+        ],
+        "id": "node-emergency",
+        "type": "conversation",
+        "display_position": {
+          "x": 600,
+          "y": 300
+        }
+      },
+      {
+        "instruction": {
+          "type": "prompt",
+          "text": "Handle requests to speak with specific staff:\n\n1. Ask who they'd like to speak with and the reason for the call\n2. Check if the person is available\n3. Options:\n   - Transfer if available\n   - Take a message if unavailable\n   - Offer alternative staff member if appropriate\n   - Schedule callback if preferred\n\n4. For department requests (billing, clinical, etc.), explain transfer process"
+        },
+        "name": "Staff Request",
+        "edges": [
+          {
+            "destination_node_id": "node-staff-transfer",
+            "id": "edge-staff-request-to-transfer",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Staff member available for transfer"
+            }
+          },
+          {
+            "destination_node_id": "node-message-taking",
+            "id": "edge-staff-to-message",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Staff unavailable, need to take message"
+            }
+          }
+        ],
+        "id": "node-staff-request",
+        "type": "conversation",
+        "display_position": {
+          "x": 800,
+          "y": 300
+        }
+      },
+      {
+        "instruction": {
+          "type": "prompt",
+          "text": "Process staff transfer:\n\n1. Inform caller: \"Let me transfer you to [department/person name]. Please hold while I connect your call.\"\n2. Provide brief hold message if transfer takes time\n3. If transfer fails, offer alternatives:\n   - Take a message\n   - Schedule callback\n   - Provide direct contact information"
+        },
+        "name": "Staff Transfer",
+        "edges": [
+          {
+            "destination_node_id": "node-call-completion",
+            "id": "edge-transfer-to-completion",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Transfer completed successfully"
+            }
+          },
+          {
+            "destination_node_id": "node-message-taking",
+            "id": "edge-transfer-to-message",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Transfer failed, need to take message"
+            }
+          }
+        ],
+        "id": "node-staff-transfer",
+        "type": "conversation",
+        "display_position": {
+          "x": 1000,
+          "y": 600
+        }
+      },
+      {
+        "instruction": {
+          "type": "prompt",
+          "text": "Take detailed message:\n\n1. Collect message information:\n   - Caller's name: {message_caller_name}\n   - Phone number: {message_phone}\n   - Email if needed: {message_email}\n   - Who the message is for: {message_recipient}\n   - Detailed message: {message_content}\n   - Preferred callback time: {callback_time}\n   - Urgency level: {message_urgency}\n\n2. Confirm all details with caller\n3. Provide timeline for response\n4. Give message confirmation number if system provides one"
+        },
+        "name": "Message Taking",
+        "edges": [
+          {
+            "destination_node_id": "node-call-completion",
+            "id": "edge-message-to-completion",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Message taken and confirmed"
+            }
+          }
+        ],
+        "id": "node-message-taking",
+        "type": "conversation",
+        "display_position": {
+          "x": 1200,
+          "y": 400
+        }
+      },
+      {
+        "instruction": {
+          "type": "prompt",
+          "text": "Confirm appointment details:\n\n1. Summarize all appointment information:\n   - Patient name: {patient_name}\n   - Service: {service_type}\n   - Date and time: {confirmed_datetime}\n   - Doctor: {assigned_doctor}\n   - Location: {{location}}\n\n2. Provide important reminders:\n   - Arrival time (usually 15 minutes early)\n   - What to bring (insurance card, ID, etc.)\n   - Cancellation policy\n   - Contact number for questions: {{clinic_phone}}\n\n3. Ask if they have any other questions\n4. Send confirmation via email/SMS if possible"
+        },
+        "name": "Appointment Confirmation",
+        "edges": [
+          {
+            "destination_node_id": "node-call-completion",
+            "id": "edge-confirmation-to-completion",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Appointment confirmed and no further questions"
+            }
+          }
+        ],
+        "id": "node-appointment-confirmation",
+        "type": "conversation",
+        "display_position": {
+          "x": -400,
+          "y": 900
+        }
+      },
+      {
+        "instruction": {
+          "type": "prompt",
+          "text": "Complete the call professionally:\n\n1. Summarize what was accomplished during the call\n2. Confirm any follow-up actions\n3. Ask if there's anything else you can help with\n4. Thank caller for choosing {{practice_name}}\n5. End with: \"Have a great day and we look forward to seeing you soon!\"\n\nEnsure all promised actions (callbacks, emails, etc.) are documented for follow-up."
+        },
+        "name": "Call Completion",
+        "edges": [
+          {
+            "destination_node_id": "node-call-end",
+            "id": "edge-completion-to-end",
+            "transition_condition": {
+              "type": "prompt",
+              "prompt": "Caller confirms no additional needs"
+            }
+          }
+        ],
+        "id": "node-call-completion",
+        "type": "conversation",
+        "display_position": {
+          "x": 0,
+          "y": 1200
+        }
+      },
+      {
+        "name": "Call End",
+        "id": "node-call-end",
+        "type": "end",
+        "display_position": {
+          "x": 0,
+          "y": 1500
+        },
+        "instruction": {
+          "type": "prompt",
+          "text": "End call gracefully"
+        }
+      }
+    ],
+    "start_node_id": "start-node-welcome",
+    "start_speaker": "agent",
+    "tools": [
+      {
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "parameter_type": "json",
+        "method": "POST",
+        "query_params": {},
+        "description": "Search for existing patient by phone number",
+        "type": "custom",
+        "url": "https://your-domain.com/api/patients/search",
+        "tool_id": "tool-patient-search",
+        "args_at_root": false,
+        "timeout_ms": 30000,
+        "name": "search_patient",
+        "response_variables": {
+          "patient_found": "result.found",
+          "patient_id": "result.data.id",
+          "patient_name": "result.data.name",
+          "patient_phone": "result.data.phone",
+          "patient_email": "result.data.email"
+        },
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "phone": {
+              "type": "string",
+              "description": "Patient phone number to search"
+            }
+          },
+          "required": ["phone"]
+        }
+      },
+      {
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "parameter_type": "json",
+        "method": "POST",
+        "query_params": {},
+        "description": "Create or update patient information",
+        "type": "custom",
+        "url": "https://your-domain.com/api/patients/upsert",
+        "tool_id": "tool-patient-upsert",
+        "args_at_root": false,
+        "timeout_ms": 30000,
+        "name": "upsert_patient",
+        "response_variables": {
+          "patient_id": "result.data.id",
+          "created": "result.created"
+        },
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Patient full name"
+            },
+            "phone": {
+              "type": "string",
+              "description": "Patient phone number"
+            },
+            "email": {
+              "type": "string",
+              "description": "Patient email address"
+            },
+            "date_of_birth": {
+              "type": "string",
+              "description": "Patient date of birth (YYYY-MM-DD)"
+            },
+            "insurance": {
+              "type": "string",
+              "description": "Insurance provider information"
+            }
+          },
+          "required": ["name", "phone"]
+        }
+      },
+      {
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "parameter_type": "json",
+        "method": "POST",
+        "query_params": {},
+        "description": "Schedule new appointment",
+        "type": "custom",
+        "url": "https://your-domain.com/api/appointments/create",
+        "tool_id": "tool-appointment-create",
+        "args_at_root": false,
+        "timeout_ms": 30000,
+        "name": "create_appointment",
+        "response_variables": {
+          "appointment_id": "result.data.id",
+          "confirmation_number": "result.data.confirmation_number",
+          "scheduled_datetime": "result.data.scheduled_datetime",
+          "doctor_name": "result.data.doctor.name"
+        },
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "patient_id": {
+              "type": "string",
+              "description": "Patient ID from patient search/creation"
+            },
+            "service_type": {
+              "type": "string",
+              "description": "Type of service requested"
+            },
+            "preferred_datetime": {
+              "type": "string",
+              "description": "Preferred appointment date and time"
+            },
+            "doctor_preference": {
+              "type": "string",
+              "description": "Preferred doctor if specified"
+            },
+            "notes": {
+              "type": "string",
+              "description": "Additional notes or special requests"
+            }
+          },
+          "required": ["patient_id", "service_type", "preferred_datetime"]
+        }
+      },
+      {
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "parameter_type": "json",
+        "method": "GET",
+        "query_params": {},
+        "description": "Get practice metadata and configuration",
+        "type": "custom",
+        "url": "https://your-domain.com/api/practice/metadata",
+        "tool_id": "tool-practice-metadata",
+        "args_at_root": false,
+        "timeout_ms": 15000,
+        "name": "get_practice_info",
+        "response_variables": {
+          "practice_name": "result.practice_name",
+          "location": "result.location",
+          "clinic_phone": "result.phone",
+          "clinic_email": "result.email",
+          "hours": "result.hours",
+          "services": "result.services",
+          "team": "result.team",
+          "insurance": "result.insurance"
+        },
+        "parameters": {
+          "type": "object",
+          "properties": {}
+        }
+      }
+    ],
+    "model_choice": {
+      "type": "cascading",
+      "model": "gpt-4o"
+    },
+    "begin_tag_display_position": {
+      "x": -200,
+      "y": -200
+    },
+    "is_published": false,
+    "knowledge_base_ids": []
+  },
+  "llmURL": null
+}

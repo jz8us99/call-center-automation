@@ -83,4 +83,70 @@ export const PRICING_PLANS = {
   },
 } as const;
 
+// Outreach Campaigns Pricing Plans
+export const OUTREACH_PRICING_PLANS = {
+  starter: {
+    name: 'Starter',
+    calls: 30,
+    price: 250.0,
+    priceId: 'price_outreach_starter', // Starter outreach plan price ID
+    overage: 8.5,
+    features: [
+      '30 outbound calls per month',
+      'Lead qualification & scoring',
+      'Basic campaign analytics',
+      'Email integration',
+      'Standard support',
+    ],
+  },
+  basic: {
+    name: 'Basic',
+    calls: 100,
+    price: 500.0,
+    priceId: 'price_outreach_basic', // Basic outreach plan price ID
+    overage: 5.0,
+    popular: true,
+    features: [
+      '100 outbound calls per month',
+      'Advanced lead scoring',
+      'Campaign performance tracking',
+      'CRM integrations',
+      'A/B testing capabilities',
+      'Priority support',
+    ],
+  },
+  pro: {
+    name: 'Pro',
+    calls: 300,
+    price: 1200.0,
+    priceId: 'price_outreach_pro', // Pro outreach plan price ID
+    overage: 4.0,
+    features: [
+      '300 outbound calls per month',
+      'AI-powered personalization',
+      'Multi-channel campaigns',
+      'Advanced analytics & reporting',
+      'Custom workflows',
+      'Dedicated account manager',
+      'Priority support',
+    ],
+  },
+  enterprise: {
+    name: 'Enterprise',
+    calls: 'unlimited',
+    price: 'custom',
+    priceId: 'price_outreach_enterprise_custom',
+    features: [
+      'Unlimited outbound calls',
+      'Custom AI model training',
+      'White-label solutions',
+      'Advanced compliance features',
+      'Dedicated infrastructure',
+      'SLA guarantees',
+      '24/7 enterprise support',
+    ],
+  },
+} as const;
+
 export type PlanType = keyof typeof PRICING_PLANS;
+export type OutreachPlanType = keyof typeof OUTREACH_PRICING_PLANS;

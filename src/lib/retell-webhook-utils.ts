@@ -54,20 +54,26 @@ export async function verifyRetellWebhook(
     // Parse request body
     const json = await request.json();
 
-    // Only allow signature skipping in development/local environment
-    const isLocalEnv = process.env.ENVIRONMENT === 'local'; // Local development without Vercel
-    console.log(`env is : ${process.env.ENVIRONMENT}`);
+    // Allow signature skipping in development/local environment or when explicitly disabled
+    const isLocalEnv =
+      process.env.ENVIRONMENT === 'local' ||
+      process.env.NODE_ENV === 'development';
+    const skipSignatureCheck = process.env.CHECK_SIGN === 'false';
+    console.log(
+      `Environment: ${process.env.ENVIRONMENT}, NODE_ENV: ${process.env.NODE_ENV}, CHECK_SIGN: ${process.env.CHECK_SIGN}`
+    );
+
     const ignoreFlag = request.headers.get('ignore-check') || false;
-    if (ignoreFlag && isLocalEnv) {
+    if ((ignoreFlag && isLocalEnv) || skipSignatureCheck) {
       console.warn(
-        'Warning: Skipping webhook signature verification in development mode'
+        'Warning: Skipping webhook signature verification in development mode or due to CHECK_SIGN=false'
       );
       return {
         success: true,
         body: '', // No need for body string in development
         payload: json,
       };
-    } else if (ignoreFlag && !isLocalEnv) {
+    } else if (ignoreFlag && !isLocalEnv && !skipSignatureCheck) {
       console.error(
         'Security: Attempted to skip signature verification in production environment - rejecting request'
       );
@@ -111,9 +117,21 @@ export async function verifyRetellWebhook(
     }
 
     // Verify signature
+    console.log('Attempting signature verification with:', {
+      bodyLength: body.length,
+      signaturePresent: !!signature,
+      apiKeyPresent: !!apiKey,
+    });
+
     const valid = Retell.verify(body, apiKey, signature);
+    console.log('Signature verification result:', valid);
 
     if (!valid) {
+      console.error('Webhook signature verification failed:', {
+        signature,
+        bodyPreview: body.substring(0, 100) + '...',
+        apiKeyPrefix: apiKey ? apiKey.substring(0, 10) + '...' : 'missing',
+      });
       return {
         success: false,
         error: NextResponse.json(

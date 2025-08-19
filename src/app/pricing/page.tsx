@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { CheckIcon } from '@/components/icons';
 import { SimpleThemeSwitch } from '@/components/common/SimpleThemeSwitch';
 import { HomeButton } from '@/components/common/HomeButton';
-import { PRICING_PLANS } from '@/lib/stripe';
+import { PRICING_PLANS, OUTREACH_PRICING_PLANS } from '@/lib/stripe';
 import { toast } from 'sonner';
 
 const PricingPage = () => {
@@ -57,7 +57,14 @@ const PricingPage = () => {
     { id: 'web-chat', label: 'Web Chat', active: false },
   ];
 
-  const pricingPlans = Object.entries(PRICING_PLANS).map(([key, plan]) => ({
+  // Get current pricing plans based on active tab
+  const getCurrentPlans = () => {
+    return activeTab === 'ai-receptionist'
+      ? PRICING_PLANS
+      : OUTREACH_PRICING_PLANS;
+  };
+
+  const pricingPlans = Object.entries(getCurrentPlans()).map(([key, plan]) => ({
     key: key as keyof typeof PRICING_PLANS,
     name: plan.name,
     calls: typeof plan.calls === 'number' ? `${plan.calls} calls` : plan.calls,
@@ -72,11 +79,29 @@ const PricingPage = () => {
     popular: plan.popular || false,
   }));
 
-  const features = [
-    'Lead screening, qualification & intake',
-    'Live expert agents on standby 24/7',
-    'Rich business insights in your dashboard',
-  ];
+  // Get features based on active tab
+  const getFeatures = () => {
+    if (activeTab === 'ai-receptionist') {
+      return [
+        'Lead screening, qualification & intake',
+        'Live expert agents on standby 24/7',
+        'Rich business insights in your dashboard',
+      ];
+    } else if (activeTab === 'outreach-campaigns') {
+      return [
+        'AI-powered lead qualification & scoring',
+        'Multi-channel campaign management',
+        'Advanced analytics & performance tracking',
+      ];
+    }
+    return [
+      'Coming soon - Web chat integration',
+      'Real-time visitor engagement',
+      'Advanced chat analytics',
+    ];
+  };
+
+  const features = getFeatures();
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 dark:bg-gray-900 text-black dark:text-white dark:text-white transition-colors duration-300">
@@ -92,10 +117,18 @@ const PricingPage = () => {
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-16">
           <h1 className="text-5xl md:text-6xl font-bold mb-6 text-black dark:bg-gradient-to-r dark:from-white dark:to-gray-300 dark:bg-clip-text dark:text-transparent">
-            Convert conversations to clients
+            {activeTab === 'ai-receptionist'
+              ? 'Convert conversations to clients'
+              : activeTab === 'outreach-campaigns'
+                ? 'Scale your sales outreach'
+                : 'Engage visitors instantly'}
           </h1>
           <p className="text-xl md:text-2xl text-orange-500 max-w-3xl mx-auto font-semibold">
-            AI Receptionest and Customer Service 24/7.
+            {activeTab === 'ai-receptionist'
+              ? 'AI Receptionist and Customer Service 24/7.'
+              : activeTab === 'outreach-campaigns'
+                ? 'AI-powered outbound calling campaigns that convert.'
+                : 'Real-time web chat powered by AI (Coming Soon).'}
           </p>
         </div>
 
@@ -186,7 +219,9 @@ const PricingPage = () => {
         <div className="bg-gradient-to-r from-purple-100/80 to-red-100/80 dark:from-purple-900/50 dark:to-red-900/50 rounded-2xl p-8 border border-purple-300/50 dark:border-purple-500/30">
           <div className="text-center">
             <h3 className="text-2xl font-bold mb-6 text-black dark:text-white dark:text-white">
-              ALL PLANS INCLUDE A 30-DAY MONEY-BACK GUARANTEE, PLUS:
+              {activeTab === 'outreach-campaigns'
+                ? 'ALL PLANS INCLUDE A 30-DAY MONEY-BACK GUARANTEE, PLUS:'
+                : 'ALL PLANS INCLUDE A 30-DAY MONEY-BACK GUARANTEE, PLUS:'}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {features.map((feature, index) => (
