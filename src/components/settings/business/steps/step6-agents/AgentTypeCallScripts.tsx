@@ -513,20 +513,30 @@ export function AgentTypeCallScripts({
         agent_type: agentType.replace(/_/g, ' ').toLowerCase(),
       };
 
-      // Use Retell MCP server to generate professional voice-ready prompt
+      // Use Retell MCP server with new 4-step process
       const retellPromptRequest = {
-        instruction: `You are a Conversational AI Prompt Engineer. Your job is to take raw business info and generate a voice-ready system prompt for Retell AI.
+        instruction: `You are a Conversational AI Prompt Engineer. Your job is to take raw business info and generate voice-ready call scripts for Retell AI following these exact steps:
 
 Step 1 – Extract Key Details
 From provided business info, extract and structure:
 - Company description: ${businessContext.company_name} (${businessContext.business_type})
-- Office hours: ${businessContext.office_hours.join(', ') || 'Not specified'}
-- Staff members: ${businessContext.staff.join(', ') || 'Not specified'}
-- Services: ${businessContext.services.join(', ') || 'Not specified'}
-- Contact: ${businessContext.phone}
+- Office hours: ${businessContext.office_hours.join(', ') || 'Standard business hours'}
+- Staff members + services/job types each handles: ${businessContext.staff.join(', ') || 'Professional team'}
+- Value Proposition: Quality ${businessContext.business_type} services
+- Business models: Professional ${businessContext.business_type} service delivery
+- Target audiences: Customers seeking ${businessContext.business_type} services
+- Questions & Answers (FAQ): Common questions about ${businessContext.business_type} services
+- Policies (e.g., cancellations, payments, guarantees): Professional service policies
+- Pricing: Competitive pricing for ${businessContext.business_type} services
 - Agent type: ${businessContext.agent_type}
+- Any other relevant business details: Contact ${businessContext.phone}, Website ${businessContext.website}
 
-Step 2 – Voice-AI Best Practices
+Step 2 – Populate Prompt Template
+Use the provided conversational business prompt template for ${businessContext.agent_type} (different per business type).
+Replace all placeholders with extracted values.
+Preserve all section headers and formatting exactly.
+
+Step 3 – Voice-AI Best Practices
 Keep each AI turn 1–2 sentences (<30 words).
 Use natural, human-like speech (contractions, pauses, casual flow).
 Only one question per turn.
@@ -539,14 +549,10 @@ Follow the full Conversation Framework:
 - Proof → credibility, testimonials, benefits
 - Close → guide to booking/demo/payment
 
-Step 3 – Generate Scripts
-Create greeting, main conversation flow, closing, and escalation scripts optimized for voice AI that:
-- Sound natural and conversational
-- Handle the specific business type appropriately
-- Include proper call flows and function calls
-- Are ready for Retell AI implementation
-
-Output only the structured scripts without internal reasoning.`,
+Step 4 – Finalize Output
+Output only the fully populated call scripts (greeting, main, closing, escalation) ready for Retell AI.
+No internal reasoning, no extra notes.
+If any required detail is missing or unclear, ask one clarifying question first before generating.`,
         business_data: businessContext,
       };
 
@@ -614,7 +620,7 @@ Output only the structured scripts without internal reasoning.`,
       }
 
       toast.success(
-        'Professional voice-ready scripts generated using Retell MCP! Click "Save Call Scripts" to save them.'
+        'Voice-ready call scripts generated using Retell MCP 4-Step Process! Click "Save Call Scripts" to save them.'
       );
     } catch (error) {
       console.error('Error generating scripts with Retell MCP:', error);
@@ -642,7 +648,7 @@ Output only the structured scripts without internal reasoning.`,
       }
 
       toast.success(
-        'Scripts generated using fallback method. Click "Save Call Scripts" to save them.'
+        'Call scripts generated using fallback 4-step process. Click "Save Call Scripts" to save them.'
       );
     } finally {
       setGenerating(false);

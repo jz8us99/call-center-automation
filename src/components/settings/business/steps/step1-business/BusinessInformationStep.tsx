@@ -36,6 +36,8 @@ import {
   Plus as PlusIcon,
   Edit as EditIcon,
   Trash as TrashIcon,
+  Wand2,
+  RefreshCw,
 } from 'lucide-react';
 import { BUSINESS_TYPE_CONFIGS } from '@/types/business-types';
 
@@ -218,6 +220,8 @@ export function BusinessInformationStep({
   const [businessLocations, setBusinessLocations] = useState<
     BusinessLocation[]
   >([]);
+  const [generatingPrompt, setGeneratingPrompt] = useState(false);
+  const [generatedPrompt, setGeneratedPrompt] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load existing business profile data
@@ -564,6 +568,134 @@ export function BusinessInformationStep({
       console.error('Website extraction failed:', error);
     } finally {
       setExtractingWebsite(false);
+    }
+  };
+
+  const handleGeneratePrompt = async () => {
+    if (!formData.business_name || !formData.business_type) {
+      toast.error('Business name and type are required to generate prompt');
+      return;
+    }
+
+    setGeneratingPrompt(true);
+    try {
+      // Step 1 – Extract Key Details
+      const businessContext = {
+        company_name: formData.business_name,
+        business_type: formData.business_type,
+        services: [], // Will be populated from services data if available
+        staff: [], // Will be populated from staff data if available
+        office_hours: [], // Will be populated from office hours if available
+        phone: formData.business_phone || '',
+        website: formData.business_website || '',
+        agent_type: 'general business',
+        business_description: formData.business_description || '',
+        years_in_business: formData.years_in_business || 0,
+        number_of_employees: formData.number_of_employees || 1,
+        accepted_insurances: formData.accepted_insurances || [],
+        locations: businessLocations,
+        documents: formData.document_sections || [],
+        additional_content: formData.support_content || '',
+      };
+
+      // Step 2 – Use Retell MCP server with new 4-step process
+      const retellPromptRequest = {
+        instruction: `You are a Conversational AI Prompt Engineer. Your job is to take raw business info and generate a comprehensive business prompt following these exact steps:
+
+Step 1 – Extract Key Details
+From provided business info, extract and structure:
+- Company description: ${businessContext.company_name} (${businessContext.business_type})
+- Office hours: ${businessContext.office_hours.join(', ') || 'Standard business hours'}
+- Staff members + services/job types each handles: ${businessContext.staff.join(', ') || 'Professional team'}
+- Value Proposition: Quality ${businessContext.business_type} services
+- Business models: ${businessContext.business_description || 'Professional services'}
+- Target audiences: Customers seeking ${businessContext.business_type} services
+- Questions & Answers (FAQ): Common questions about ${businessContext.business_type} services
+- Policies (e.g., cancellations, payments, guarantees): Professional service policies
+- Pricing: Competitive pricing for ${businessContext.business_type} services
+- Any other relevant business details: ${businessContext.additional_content || 'Additional business information'}
+
+Step 2 – Populate Prompt Template
+Use the provided conversational business prompt template for ${businessContext.business_type}.
+Replace all placeholders with extracted values.
+Preserve all section headers and formatting exactly.
+
+Step 3 – Voice-AI Best Practices
+Keep each AI turn 1–2 sentences (<30 words).
+Use natural, human-like speech (contractions, pauses, casual flow).
+Only one question per turn.
+Follow the full Conversation Framework:
+- Opening → friendly intro
+- Pain → surface prospect's challenge  
+- Amplify → show stakes of inaction
+- Qualify → gather info (budget, needs, timeline)
+- Solve → position service/product
+- Proof → credibility, testimonials, benefits
+- Close → guide to booking/demo/payment
+
+Step 4 – Finalize Output
+Output only the fully populated markdown system prompt (ready for copy-paste into Retell).
+No internal reasoning, no extra notes.
+If any required detail is missing or unclear, ask one clarifying question first before generating.`,
+        business_data: businessContext,
+      };
+
+      const response = await fetch('/api/retell-mcp/generate-prompt', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(retellPromptRequest),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate prompt');
+      }
+
+      const result = await response.json();
+
+      // Step 4 – Update the support content with the generated comprehensive prompt
+      const comprehensivePrompt = `# AI Agent System Prompt - ${formData.business_name}
+
+## Business Overview
+- **Company**: ${businessContext.company_name}
+- **Type**: ${businessContext.business_type}
+- **Experience**: ${businessContext.years_in_business} years in business
+- **Team Size**: ${businessContext.number_of_employees} employees
+- **Contact**: ${businessContext.phone}
+- **Website**: ${businessContext.website}
+
+## Services & Value Proposition
+${businessContext.business_description || `Professional ${businessContext.business_type} services`}
+
+## Target Audience
+Customers seeking quality ${businessContext.business_type} services
+
+## Key Information for AI Agent
+${businessContext.additional_content || 'Professional service delivery with focus on customer satisfaction'}
+
+## Generated Voice-Ready Instructions
+${result.scripts?.main || 'Professional voice AI assistant instructions'}
+
+---
+*Generated using Retell MCP 4-Step Process*`;
+
+      setGeneratedPrompt(comprehensivePrompt);
+      setFormData(prev => ({
+        ...prev,
+        support_content: comprehensivePrompt,
+      }));
+
+      toast.success(
+        'Comprehensive business prompt generated successfully! The AI-ready content has been added to your business information.'
+      );
+    } catch (error) {
+      console.error('Error generating prompt:', error);
+      toast.error(
+        'Failed to generate prompt. Please ensure all required business information is complete and try again.'
+      );
+    } finally {
+      setGeneratingPrompt(false);
     }
   };
 
@@ -1583,11 +1715,39 @@ export function BusinessInformationStep({
         {/* Website and Content */}
         <Card>
           <CardHeader>
-            <CardTitle>Website and Content</CardTitle>
-            <CardDescription>
-              Help train your AI by providing your website and additional
-              business content.
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Website and Content</CardTitle>
+                <CardDescription>
+                  Help train your AI by providing your website and additional
+                  business content.
+                </CardDescription>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleGeneratePrompt}
+                disabled={
+                  generatingPrompt ||
+                  !formData.business_name ||
+                  !formData.business_type
+                }
+                className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
+                title="Generate comprehensive AI agent prompt using Retell MCP 4-step process"
+              >
+                {generatingPrompt ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Wand2 className="h-4 w-4 mr-2" />
+                    Generate AI Prompt
+                  </>
+                )}
+              </Button>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
