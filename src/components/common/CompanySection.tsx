@@ -67,11 +67,10 @@ export default function CompanySection() {
                   </h3>
                 </div>
                 <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                  We're a team of AI engineers, customer experience
-                  specialists, and business innovators who believe every call
-                  matters. Founded in 2025, we are helping businesses
-                  transform their phone operations from cost centers into growth
-                  engines.
+                  We're a team of AI engineers, customer experience specialists,
+                  and business innovators who believe every call matters.
+                  Founded in 2025, we are helping businesses transform their
+                  phone operations from cost centers into growth engines.
                 </p>
               </div>
 
@@ -124,8 +123,8 @@ export default function CompanySection() {
                 Accessibility
               </h4>
               <p className="text-gray-600 dark:text-gray-400">
-                Great customer service shouldn't be a luxury. We're committed
-                to making professional voice AI affordable and easy to implement
+                Great customer service shouldn't be a luxury. We're committed to
+                making professional voice AI affordable and easy to implement
                 for businesses of every size.
               </p>
             </div>
